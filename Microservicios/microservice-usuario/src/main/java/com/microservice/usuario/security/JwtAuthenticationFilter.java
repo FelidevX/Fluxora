@@ -1,6 +1,7 @@
 package com.microservice.usuario.security;
 
 import java.io.IOException;
+import java.security.Security;
 import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,12 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
+        if (header == null || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
         }
 
-        String token = header.substring(7);
+        String token = header.substring(7).trim();
 
         try {
             var claims = jwtService.parse(token);
@@ -49,8 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
             chain.doFilter(request, response);
         } catch (ExpiredJwtException ex) {
+            SecurityContextHolder.clearContext();
             unauthorized(response, "Token expirado");
         } catch (JwtException | IllegalArgumentException ex) {
+            SecurityContextHolder.clearContext();
             unauthorized(response, "Token inválido");
         }
     }

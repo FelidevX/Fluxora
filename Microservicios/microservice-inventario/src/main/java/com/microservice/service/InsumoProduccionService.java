@@ -3,7 +3,6 @@ package com.microservice.service;
 import com.microservice.dto.InsumoProduccionDTO;
 import com.microservice.entity.InsumoProduccion;
 import com.microservice.repository.InsumoProduccionRepository;
-import com.microservice.repository.MateriaPrimaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,11 +12,9 @@ import java.util.stream.Collectors;
 public class InsumoProduccionService {
 
     private final InsumoProduccionRepository insumoRepo;
-    private final MateriaPrimaRepository materiaRepo;
 
-    public InsumoProduccionService(InsumoProduccionRepository insumoRepo, MateriaPrimaRepository materiaRepo) {
+    public InsumoProduccionService(InsumoProduccionRepository insumoRepo) {
         this.insumoRepo = insumoRepo;
-        this.materiaRepo = materiaRepo;
     }
 
     private InsumoProduccionDTO toDTO(InsumoProduccion entity) {
@@ -25,7 +22,7 @@ public class InsumoProduccionService {
                 .id(entity.getId())
                 .cantidadUsada(entity.getCantidadUsada())
                 .fecha(entity.getFecha())
-                .materiaPrimaId(entity.getMateriaPrima().getId())
+                .materiaPrimaId(entity.getMateriaPrimaId())
                 .build();
     }
 
@@ -38,7 +35,7 @@ public class InsumoProduccionService {
                 .id(dto.getId())
                 .cantidadUsada(dto.getCantidadUsada())
                 .fecha(dto.getFecha())
-                .materiaPrima(materiaRepo.findById(dto.getMateriaPrimaId()).orElseThrow())
+                .materiaPrimaId(dto.getMateriaPrimaId())
                 .build();
         return toDTO(insumoRepo.save(entity));
     }

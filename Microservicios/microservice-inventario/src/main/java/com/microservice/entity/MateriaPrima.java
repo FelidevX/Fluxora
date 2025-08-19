@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Table(name = "materias_primas")
@@ -24,11 +23,6 @@ public class MateriaPrima {
     private String unidad;
     private LocalDate fecha;
 
-    // Relación con Producto (n a n)
-    @ManyToMany(mappedBy = "materiasPrimas")
-    private List<Producto> productos;
-
-    // Relación con InsumoProduccion (1 a n)
-    @OneToMany(mappedBy = "materiaPrima", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InsumoProduccion> insumosProduccion;
+    // Nota: Relaciones removidas temporalmente para simplificar el modelo
+    // Se pueden restaurar después si son necesarias para la lógica de negocio
 }

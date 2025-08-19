@@ -2,26 +2,27 @@ package com.microservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
 
 @Entity
-@Table(name = "insumos_produccion")
+@Table(name = "recetas")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class InsumoProduccion {
+public class Receta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "cantidad_usada")
-    private Double cantidadUsada;
-
-    private LocalDate fecha;
-
-    // Simplificado: solo el ID de la materia prima
+    
+    @Column(name = "producto_id")
+    private Long productoId;
+    
     @Column(name = "materia_prima_id")
     private Long materiaPrimaId;
+    
+    @Column(name = "cantidad_necesaria")
+    private Double cantidadNecesaria;
+    
+    private String unidad;
 }

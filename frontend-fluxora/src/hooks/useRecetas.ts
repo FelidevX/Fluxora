@@ -88,6 +88,18 @@ export function useRecetas() {
 
   const clearError = () => setError(null);
 
+  const cargarRecetas = () => {
+    try {
+      const recetasGuardadas = localStorage.getItem(STORAGE_KEY);
+      if (recetasGuardadas) {
+        setRecetas(JSON.parse(recetasGuardadas));
+      }
+    } catch (err) {
+      console.error("Error cargando recetas:", err);
+      setError("Error cargando recetas guardadas");
+    }
+  };
+
   return {
     recetas,
     loading,
@@ -95,5 +107,6 @@ export function useRecetas() {
     crearReceta,
     eliminarReceta,
     clearError,
+    cargarRecetas,
   };
 }

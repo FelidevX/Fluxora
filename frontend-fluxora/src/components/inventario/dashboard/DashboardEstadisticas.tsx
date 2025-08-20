@@ -9,7 +9,7 @@ import Badge from "@/components/ui/Badge";
 
 export default function DashboardEstadisticas() {
   const { productos } = useProductos();
-  const { materias } = useMaterias();
+  const { materias, cargarMaterias } = useMaterias();
 
   const [estadisticas, setEstadisticas] = useState({
     totalProductos: 0,
@@ -18,6 +18,11 @@ export default function DashboardEstadisticas() {
     stockBajo: 0,
     productosDisponibles: 0,
   });
+
+  // Cargar materias primas al montar el componente
+  useEffect(() => {
+    cargarMaterias();
+  }, []); // Sin dependencias para evitar loops infinitos
 
   useEffect(() => {
     const totalProductos = productos.length;

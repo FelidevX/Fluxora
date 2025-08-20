@@ -40,4 +40,9 @@ public class MateriaPrimaController {
     public void eliminar(@PathVariable Long id) {
         service.delete(id);
     }
+
+    @GetMapping("/buscar/{nombre}")
+    public List<MateriaPrimaDTO> buscarPorNombre(@PathVariable String nombre) {
+        return service.findByNombre(nombre);
+    }
 }

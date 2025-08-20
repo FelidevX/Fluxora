@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { MateriaPrimaDTO, MateriaPrima } from "@/types/inventario";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useCurrentDate, useFormattedDate } from "@/hooks/useDate";
@@ -12,6 +13,7 @@ import DataTable from "@/components/ui/DataTable";
 import FormattedDate from "@/components/ui/FormattedDate";
 
 export default function MateriasManager() {
+  const searchParams = useSearchParams();
   const {
     materias,
     loading,
@@ -46,7 +48,25 @@ export default function MateriasManager() {
   // Cargar materias al montar el componente
   useEffect(() => {
     cargarMaterias();
-  }, [cargarMaterias]);
+  }, []); // Sin dependencias para evitar loops infinitos
+
+  // Detectar si se debe abrir el formulario automáticamente
+  useEffect(() => {
+    const action = searchParams.get('action');
+    const suggestion = searchParams.get('suggestion');
+    
+    if (action === 'create') {
+      setShowForm(true);
+      
+      // Si hay una sugerencia de nombre, pre-llenar el formulario
+      if (suggestion) {
+        setFormulario(prev => ({
+          ...prev,
+          nombre: suggestion
+        }));
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

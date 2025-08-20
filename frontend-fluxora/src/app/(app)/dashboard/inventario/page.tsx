@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import InventarioCard from "@/components/inventario/InventarioCard";
 import MateriasManager from "@/components/inventario/materias/MateriasManager";
 import ProductosManager from "@/components/inventario/productos/ProductosManager";
@@ -9,9 +10,18 @@ import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEs
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
 
 export default function InventarioPage() {
+  const searchParams = useSearchParams();
   const [activeView, setActiveView] = useState<
     "overview" | "materias" | "productos" | "recetas"
   >("overview");
+
+  // Manejar parámetros de query para navegación directa
+  useEffect(() => {
+    const view = searchParams.get('view');
+    if (view && ['materias', 'productos', 'recetas'].includes(view)) {
+      setActiveView(view as "materias" | "productos" | "recetas");
+    }
+  }, [searchParams]);
 
   const handleCardClick = (view: "materias" | "productos" | "recetas") => {
     setActiveView(view);

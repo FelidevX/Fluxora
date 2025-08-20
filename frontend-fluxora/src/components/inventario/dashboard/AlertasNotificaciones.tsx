@@ -18,12 +18,21 @@ interface Alerta {
 
 export default function AlertasNotificaciones() {
   const { productos } = useProductos();
-  const { materias } = useMaterias();
+  const { materias, cargarMaterias } = useMaterias();
   const { recetas } = useRecetas();
 
   const [alertas, setAlertas] = useState<Alerta[]>([]);
 
+  // Cargar datos al montar el componente
   useEffect(() => {
+    cargarMaterias();
+  }, []); // Sin dependencias para evitar loops
+  useEffect(() => {
+    // Solo generar alertas si tenemos datos completos
+    if (materias.length === 0) {
+      return;
+    }
+    
     const nuevasAlertas: Alerta[] = [];
 
     // Alertas de stock bajo en materias primas

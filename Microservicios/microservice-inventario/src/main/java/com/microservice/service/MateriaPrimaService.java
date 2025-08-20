@@ -41,7 +41,9 @@ public class MateriaPrimaService {
     }
 
     public List<MateriaPrimaDTO> findAll() {
-        return repository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+        return repository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     public MateriaPrimaDTO save(MateriaPrimaDTO dto) {
@@ -60,5 +62,13 @@ public class MateriaPrimaService {
 
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    // Método para encontrar materias por nombre (para el utilitario de reparación)
+    public List<MateriaPrimaDTO> findByNombre(String nombre) {
+        return repository.findAll().stream()
+                .filter(materia -> materia.getNombre().equalsIgnoreCase(nombre))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 }

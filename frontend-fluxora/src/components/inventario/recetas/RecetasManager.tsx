@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   RecetaMaestra,
   RecetaMaestraDTO,
@@ -14,11 +14,14 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
+import ReparadorRecetas, { ReparadorRecetasRef } from "./ReparadorRecetas";
 
 export default function RecetasManager() {
-  const { materias } = useMaterias();
+  const { materias, setOnMateriaCreated } = useMaterias();
   const { recetas, loading, error, crearReceta, eliminarReceta, clearError } =
     useRecetas();
+  
+  const reparadorRef = useRef<ReparadorRecetasRef>(null);
 
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -36,6 +39,27 @@ export default function RecetasManager() {
   });
 
   const [ingredientes, setIngredientes] = useState<RecetaIngredienteDTO[]>([]);
+
+  // Configurar verificación automática cuando se agreguen materias primas
+  useEffect(() => {
+    if (setOnMateriaCreated) {
+      setOnMateriaCreated(async () => {
+        // Usar setTimeout para evitar setState durante render
+        setTimeout(() => {
+          if (reparadorRef.current) {
+            reparadorRef.current.verificarYReparar();
+          }
+        }, 100);
+      });
+    }
+    
+    // Limpiar el callback al desmontar
+    return () => {
+      if (setOnMateriaCreated) {
+        setOnMateriaCreated(null);
+      }
+    };
+  }, []); // Sin dependencias para evitar reconfiguración
 
   // Funciones para manejo de ingredientes
   const agregarIngrediente = () => {
@@ -269,6 +293,9 @@ export default function RecetasManager() {
           </div>
         </div>
       )}
+
+      {/* Reparador de recetas */}
+      <ReparadorRecetas ref={reparadorRef} />
 
       {/* Formulario de nueva receta */}
       {showForm && (

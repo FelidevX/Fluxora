@@ -32,12 +32,14 @@ interface UseMateriasResult {
   actualizarStock: (id: number, nuevaCantidad: number) => Promise<void>;
   eliminarMateria: (id: number) => Promise<void>;
   clearError: () => void;
+  setOnMateriaCreated: (callback: (() => Promise<void>) | null) => void;
 }
 
 export function useMaterias(): UseMateriasResult {
   const [materias, setMaterias] = useState<MateriaPrima[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [onMateriaCreated, setOnMateriaCreated] = useState<(() => Promise<void>) | null>(null);
 
   const cargarMaterias = useCallback(async () => {
     try {
@@ -89,6 +91,11 @@ export function useMaterias(): UseMateriasResult {
       }
 
       await cargarMaterias(); // Recargar la lista después de crear
+      
+      // Disparar callback si está configurado (para verificación de recetas)
+      if (onMateriaCreated) {
+        await onMateriaCreated();
+      }
     } catch (err) {
       console.error("Error al crear materia prima:", err);
       setError(
@@ -200,5 +207,6 @@ export function useMaterias(): UseMateriasResult {
     actualizarStock,
     eliminarMateria,
     clearError,
+    setOnMateriaCreated: (callback: (() => Promise<void>) | null) => setOnMateriaCreated(callback),
   };
 }

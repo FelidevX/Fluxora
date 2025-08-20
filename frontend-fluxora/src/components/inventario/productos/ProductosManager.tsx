@@ -15,6 +15,7 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
+import DataTable from "@/components/ui/DataTable";
 
 export default function ProductosManager() {
   const {
@@ -219,6 +220,98 @@ export default function ProductosManager() {
     return estado;
   };
 
+  // Definir columnas de la tabla
+  const columns = [
+    {
+      key: "nombre",
+      label: "Producto",
+      render: (producto: Producto) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">
+            {producto.nombre || "Sin nombre"}
+          </div>
+          <div className="text-sm text-gray-500">
+            {producto.descripcion || "Sin descripción"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "categoria",
+      label: "Categoría",
+      render: (producto: Producto) => (
+        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+          {producto.categoria || "Sin categoría"}
+        </span>
+      ),
+    },
+    {
+      key: "cantidad",
+      label: "Stock",
+      render: (producto: Producto) => (
+        <span className="text-sm text-gray-900">
+          {producto.cantidad || 0} unidades
+        </span>
+      ),
+    },
+    {
+      key: "precio",
+      label: "Precio",
+      render: (producto: Producto) => (
+        <span className="text-sm text-gray-900">
+          {formatCLP(producto.precio || 0)}
+        </span>
+      ),
+    },
+    {
+      key: "fecha",
+      label: "Fecha",
+      render: (producto: Producto) => (
+        <span className="text-sm text-gray-900">
+          {producto.fecha
+            ? new Date(producto.fecha).toLocaleDateString("es-ES")
+            : "N/A"}
+        </span>
+      ),
+    },
+    {
+      key: "estado",
+      label: "Estado",
+      render: (producto: Producto) => (
+        <Badge
+          variant={obtenerEstadoBadge(
+            producto.estado || "Disponible",
+            producto.cantidad || 0
+          )}
+        >
+          {obtenerTextoEstado(
+            producto.estado || "Disponible",
+            producto.cantidad || 0
+          )}
+        </Badge>
+      ),
+    },
+  ];
+
+  // Definir acciones de la tabla
+  const actions = [
+    {
+      label: "Editar",
+      icon: "edit",
+      variant: "primary" as const,
+      onClick: (producto: Producto) => {
+        // TODO: Implementar edición
+        console.log("Editar producto:", producto);
+      },
+    },
+    {
+      label: "Eliminar",
+      icon: "delete",
+      variant: "danger" as const,
+      onClick: (producto: Producto) => handleDelete(producto.id),
+    },
+  ];
+
   // Funciones para manejo de recetas
   const agregarIngrediente = () => {
     setReceta([
@@ -349,7 +442,7 @@ export default function ProductosManager() {
                     Seleccionar Receta:
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
                     value={recetaSeleccionada?.id || ""}
                     onChange={(e) =>
                       handleRecetaSeleccionada(parseInt(e.target.value))
@@ -374,7 +467,7 @@ export default function ProductosManager() {
                     type="number"
                     min="0.1"
                     step="0.1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
                     placeholder="Ej: 2 (para doble cantidad)"
                     value={multiplicadorReceta}
                     onChange={(e) =>
@@ -638,130 +731,19 @@ export default function ProductosManager() {
             Catálogo de Productos
           </h2>
           <p className="text-gray-600">Listado de productos disponibles</p>
-
-          <div className="mt-4">
-            <Input
-              icon="search"
-              placeholder="Buscar producto, categoría o descripción..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center">
-              <MaterialIcon
-                name="hourglass_empty"
-                className="w-8 h-8 text-gray-400 mx-auto mb-2 animate-spin"
-              />
-              <p className="text-gray-600">Cargando productos...</p>
-            </div>
-          ) : productosFiltrados.length === 0 ? (
-            <div className="p-8 text-center">
-              <MaterialIcon
-                name="shopping_bag"
-                className="w-12 h-12 text-gray-400 mx-auto mb-2"
-              />
-              <p className="text-gray-600">
-                {productos.length === 0
-                  ? "No hay productos registrados"
-                  : "No se encontraron resultados"}
-              </p>
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Producto
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categoría
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Precio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {productosFiltrados.map((producto: Producto) => (
-                  <tr key={producto.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {producto.nombre || "Sin nombre"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {producto.descripcion || "Sin descripción"}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {producto.categoria || "Sin categoría"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {producto.cantidad || 0} unidades
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCLP(producto.precio || 0)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {producto.fecha
-                        ? new Date(producto.fecha).toLocaleDateString("es-ES")
-                        : "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge
-                        variant={obtenerEstadoBadge(
-                          producto.estado || "Disponible",
-                          producto.cantidad || 0
-                        )}
-                      >
-                        {obtenerTextoEstado(
-                          producto.estado || "Disponible",
-                          producto.cantidad || 0
-                        )}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
-                        <button
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded"
-                          title="Editar"
-                        >
-                          <MaterialIcon name="edit" className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="bg-red-600 hover:bg-red-700 text-white p-1 rounded"
-                          onClick={() => handleDelete(producto.id)}
-                          title="Eliminar"
-                        >
-                          <MaterialIcon name="delete" className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {/* Tabla usando DataTable */}
+        <DataTable
+          data={productosFiltrados}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar productos..."
+          emptyMessage="No hay productos registrados"
+        />
       </div>
     </div>
   );

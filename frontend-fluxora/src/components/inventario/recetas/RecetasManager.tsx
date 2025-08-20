@@ -8,10 +8,12 @@ import {
 } from "@/types/produccion";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useRecetas } from "@/hooks/useRecetas";
+import { formatCLP } from "@/utils/currency";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
+import DataTable from "@/components/ui/DataTable";
 
 export default function RecetasManager() {
   const { materias } = useMaterias();
@@ -138,6 +140,77 @@ export default function RecetasManager() {
       console.error(err);
     }
   };
+
+  // Definir columnas de la tabla
+  const columns = [
+    {
+      key: "nombre",
+      label: "Receta",
+      render: (receta: RecetaMaestra) => (
+        <div>
+          <div className="text-sm font-medium text-gray-900">
+            {receta.nombre}
+          </div>
+          <div className="text-sm text-gray-500">{receta.descripcion}</div>
+        </div>
+      ),
+    },
+    {
+      key: "categoria",
+      label: "Categoría",
+      render: (receta: RecetaMaestra) => (
+        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+          {receta.categoria}
+        </span>
+      ),
+    },
+    {
+      key: "cantidad",
+      label: "Cantidad Base",
+      render: (receta: RecetaMaestra) => (
+        <span className="text-sm text-gray-900">
+          {receta.cantidadBase} {receta.unidadBase}
+        </span>
+      ),
+    },
+    {
+      key: "precio",
+      label: "Precio Estimado",
+      render: (receta: RecetaMaestra) => (
+        <span className="text-sm text-gray-900">
+          {formatCLP(receta.precioEstimado || 0)}
+        </span>
+      ),
+    },
+    {
+      key: "tiempo",
+      label: "Tiempo",
+      render: (receta: RecetaMaestra) => (
+        <span className="text-sm text-gray-900">
+          {receta.tiempoPreparacion} min
+        </span>
+      ),
+    },
+    {
+      key: "ingredientes",
+      label: "Ingredientes",
+      render: (receta: RecetaMaestra) => (
+        <span className="text-sm text-gray-900">
+          {receta.ingredientes.length} ingredientes
+        </span>
+      ),
+    },
+  ];
+
+  // Definir acciones de la tabla
+  const actions = [
+    {
+      label: "Eliminar",
+      icon: "delete",
+      variant: "danger" as const,
+      onClick: (receta: RecetaMaestra) => handleEliminarReceta(receta.id),
+    },
+  ];
 
   // Filtrar recetas
   const recetasFiltradas = recetas.filter(
@@ -390,7 +463,7 @@ export default function RecetasManager() {
                           Materia Prima:
                         </label>
                         <select
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
                           value={ingrediente.materiaPrimaId}
                           onChange={(e) =>
                             actualizarIngrediente(
@@ -418,7 +491,7 @@ export default function RecetasManager() {
                         <input
                           type="number"
                           step="0.01"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
                           placeholder="Ej: 2.5"
                           value={ingrediente.cantidadNecesaria}
                           onChange={(e) =>
@@ -433,12 +506,12 @@ export default function RecetasManager() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1 ">
                           Unidad:
                         </label>
                         <input
                           type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
                           value={ingrediente.unidad}
                           readOnly
                         />
@@ -498,108 +571,19 @@ export default function RecetasManager() {
           <p className="text-gray-600">
             Gestiona las recetas base para la producción
           </p>
-
-          <div className="mt-4">
-            <Input
-              icon="search"
-              placeholder="Buscar receta, categoría o descripción..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          {recetasFiltradas.length === 0 ? (
-            <div className="p-8 text-center">
-              <MaterialIcon
-                name="restaurant_menu"
-                className="w-12 h-12 text-gray-400 mx-auto mb-2"
-              />
-              <p className="text-gray-600">
-                {recetas.length === 0
-                  ? "No hay recetas creadas aún"
-                  : "No se encontraron resultados"}
-              </p>
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Receta
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categoría
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cantidad Base
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Precio/Unidad
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tiempo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ingredientes
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recetasFiltradas.map((receta: RecetaMaestra) => (
-                  <tr key={receta.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {receta.nombre}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {receta.descripcion}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="info">{receta.categoria}</Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {receta.cantidadBase} {receta.unidadBase}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${receta.precioUnidad?.toLocaleString("es-CL") || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {receta.tiempoPreparacion} min
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {receta.ingredientes.length} ingredientes
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
-                        <button
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded"
-                          title="Ver detalles"
-                        >
-                          <MaterialIcon name="visibility" className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="bg-red-600 hover:bg-red-700 text-white p-1 rounded"
-                          onClick={() => handleEliminarReceta(receta.id)}
-                          title="Eliminar"
-                        >
-                          <MaterialIcon name="delete" className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {/* Tabla usando DataTable */}
+        <DataTable
+          data={recetasFiltradas}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar receta, categoría o descripción..."
+          emptyMessage="No hay recetas creadas aún"
+        />
       </div>
     </div>
   );

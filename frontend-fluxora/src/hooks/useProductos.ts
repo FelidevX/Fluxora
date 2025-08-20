@@ -48,9 +48,7 @@ export function useProductos(): UseProductosResult {
       setProductos(productosLimpios);
     } catch (err) {
       console.error("Error al cargar productos:", err);
-      setError(
-        "No se pudo conectar con el servidor. Verifique que el microservicio esté ejecutándose."
-      );
+      setError("No se pudo conectar con el servidor.");
       setProductos([]);
     } finally {
       setLoading(false);
@@ -61,7 +59,6 @@ export function useProductos(): UseProductosResult {
     try {
       setLoading(true);
       setError(null);
-
 
       // Si el producto tiene receta, enviar al endpoint especial que maneja descuentos
       const endpoint =
@@ -76,7 +73,6 @@ export function useProductos(): UseProductosResult {
         },
         body: JSON.stringify(producto),
       });
-
 
       if (!response.ok) {
         const errorData = await response.text();

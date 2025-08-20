@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 
 export interface MateriaPrima {
   id: number;
@@ -25,6 +25,11 @@ interface UseMateriasResult {
   error: string | null;
   cargarMaterias: () => Promise<void>;
   crearMateria: (materia: MateriaPrimaDTO) => Promise<void>;
+  actualizarMateria: (
+    id: number,
+    materia: Partial<MateriaPrimaDTO>
+  ) => Promise<void>;
+  actualizarStock: (id: number, nuevaCantidad: number) => Promise<void>;
   eliminarMateria: (id: number) => Promise<void>;
   clearError: () => void;
 }
@@ -34,7 +39,7 @@ export function useMaterias(): UseMateriasResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const cargarMaterias = async () => {
+  const cargarMaterias = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -58,7 +63,7 @@ export function useMaterias(): UseMateriasResult {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const crearMateria = async (materia: MateriaPrimaDTO) => {
     try {
@@ -89,7 +94,6 @@ export function useMaterias(): UseMateriasResult {
       setError(
         err instanceof Error ? err.message : "Error al crear la materia prima"
       );
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -115,7 +119,68 @@ export function useMaterias(): UseMateriasResult {
     } catch (err) {
       console.error("Error al eliminar materia prima:", err);
       setError("Error al eliminar la materia prima");
-      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const actualizarMateria = async (
+    id: number,
+    materia: Partial<MateriaPrimaDTO>
+  ) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/materias-primas/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(materia),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al actualizar materia prima: ${response.status}`
+        );
+      }
+
+      await cargarMaterias(); // Recargar la lista después de actualizar
+    } catch (err) {
+      console.error("Error al actualizar materia prima:", err);
+      setError("Error al actualizar la materia prima");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const actualizarStock = async (id: number, nuevaCantidad: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/materias-primas/${id}/stock?cantidad=${nuevaCantidad}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error al actualizar stock: ${response.status}`);
+      }
+
+      await cargarMaterias(); // Recargar la lista después de actualizar
+    } catch (err) {
+      console.error("Error al actualizar stock:", err);
+      setError("Error al actualizar el stock");
     } finally {
       setLoading(false);
     }
@@ -125,17 +190,14 @@ export function useMaterias(): UseMateriasResult {
     setError(null);
   };
 
-  // Cargar datos al montar el hook
-  useEffect(() => {
-    cargarMaterias();
-  }, []);
-
   return {
     materias,
     loading,
     error,
     cargarMaterias,
     crearMateria,
+    actualizarMateria,
+    actualizarStock,
     eliminarMateria,
     clearError,
   };

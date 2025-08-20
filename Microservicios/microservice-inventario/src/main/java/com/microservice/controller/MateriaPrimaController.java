@@ -25,6 +25,17 @@ public class MateriaPrimaController {
         return service.save(dto);
     }
 
+    @PutMapping("/{id}")
+    public MateriaPrimaDTO actualizar(@PathVariable Long id, @RequestBody MateriaPrimaDTO dto) {
+        dto.setId(id);
+        return service.save(dto);
+    }
+
+    @PatchMapping("/{id}/stock")
+    public MateriaPrimaDTO actualizarStock(@PathVariable Long id, @RequestParam Double cantidad) {
+        return service.actualizarStock(id, cantidad);
+    }
+
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {
         service.delete(id);

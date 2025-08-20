@@ -49,6 +49,15 @@ public class MateriaPrimaService {
         return toDTO(entity);
     }
 
+    public MateriaPrimaDTO actualizarStock(Long id, Double nuevaCantidad) {
+        MateriaPrima entity = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Materia prima no encontrada con ID: " + id));
+        
+        entity.setCantidad(nuevaCantidad);
+        MateriaPrima updated = repository.save(entity);
+        return toDTO(updated);
+    }
+
     public void delete(Long id) {
         repository.deleteById(id);
     }

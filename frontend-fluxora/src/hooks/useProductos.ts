@@ -7,6 +7,7 @@ interface UseProductosResult {
   error: string | null;
   cargarProductos: () => Promise<void>;
   crearProducto: (producto: ProductoDTO) => Promise<void>;
+  actualizarStockProducto: (id: number, nuevaCantidad: number) => Promise<void>;
   eliminarProducto: (id: number) => Promise<void>;
   clearError: () => void;
 }
@@ -42,6 +43,7 @@ export function useProductos(): UseProductosResult {
             categoria: producto.categoria || "Sin categoría",
             descripcion: producto.descripcion || "Sin descripción",
             fecha: producto.fecha || new Date().toISOString().split("T")[0],
+            receta: producto.receta || [], // ¡Preservar la receta!
           }))
         : [];
 
@@ -96,6 +98,36 @@ export function useProductos(): UseProductosResult {
     }
   };
 
+  const actualizarStockProducto = async (id: number, nuevaCantidad: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/productos/${id}/stock`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ cantidad: nuevaCantidad }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error al actualizar stock: ${response.status}`);
+      }
+
+      await cargarProductos(); // Recargar la lista después de actualizar
+    } catch (err) {
+      console.error("Error al actualizar stock del producto:", err);
+      setError("Error al actualizar el stock del producto");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const eliminarProducto = async (id: number) => {
     try {
       setLoading(true);
@@ -137,6 +169,7 @@ export function useProductos(): UseProductosResult {
     error,
     cargarProductos,
     crearProducto,
+    actualizarStockProducto,
     eliminarProducto,
     clearError,
   };

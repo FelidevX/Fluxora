@@ -2,6 +2,7 @@ package com.microservice.controller;
 
 import com.microservice.dto.ProductoDTO;
 import com.microservice.dto.ProductoConRecetaDTO;
+import com.microservice.dto.StockUpdateRequest;
 import com.microservice.service.ProductoService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -29,6 +30,11 @@ public class ProductoController {
     @PostMapping("/con-receta")
     public ProductoDTO crearConReceta(@RequestBody ProductoConRecetaDTO dto) {
         return service.saveConReceta(dto);
+    }
+
+    @PatchMapping("/{id}/stock")
+    public ProductoDTO actualizarStock(@PathVariable Long id, @RequestBody StockUpdateRequest request) {
+        return service.updateStock(id, request.getCantidad());
     }
 
     @DeleteMapping("/{id}")

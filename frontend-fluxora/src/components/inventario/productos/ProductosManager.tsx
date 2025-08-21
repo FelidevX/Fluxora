@@ -16,6 +16,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
+import Modal from "@/components/ui/Modal";
 
 export default function ProductosManager() {
   const {
@@ -23,6 +24,7 @@ export default function ProductosManager() {
     loading,
     error,
     crearProducto,
+    actualizarStockProducto,
     eliminarProducto,
     clearError,
   } = useProductos();
@@ -49,6 +51,19 @@ export default function ProductosManager() {
     categoria: "Panadería",
     descripcion: "",
     fecha: new Date().toISOString().split("T")[0],
+  });
+
+  // Estado para modal de confirmación de productos duplicados
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [productoConflicto, setProductoConflicto] = useState<Producto | null>(
+    null
+  );
+
+  // Estado para modal de éxito
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({
+    title: "",
+    details: "",
   });
 
   // Efecto para cargar recetas disponibles
@@ -137,6 +152,109 @@ export default function ProductosManager() {
     setMultiplicadorReceta(1);
   };
 
+  // Función para comparar dos recetas y ver si son iguales
+  const recetasSonIguales = (receta1: RecetaItem[], receta2: RecetaItem[]) => {
+    if (receta1.length !== receta2.length) return false;
+
+    // Ordenar ambas recetas por materiaPrimaId para comparar
+    const ordenada1 = [...receta1].sort(
+      (a, b) => a.materiaPrimaId - b.materiaPrimaId
+    );
+    const ordenada2 = [...receta2].sort(
+      (a, b) => a.materiaPrimaId - b.materiaPrimaId
+    );
+
+    return ordenada1.every((item1, index) => {
+      const item2 = ordenada2[index];
+      return (
+        item1.materiaPrimaId === item2.materiaPrimaId &&
+        item1.cantidadNecesaria === item2.cantidadNecesaria &&
+        item1.unidad === item2.unidad
+      );
+    });
+  };
+
+  // Función para buscar un producto existente con la misma receta
+  const buscarProductoConRecetaIgual = (recetaNueva: RecetaItem[]) => {
+    if (recetaNueva.length === 0) return null;
+
+    return productos.find((producto) => {
+      if (!producto.receta || producto.receta.length === 0) return false;
+      return recetasSonIguales(recetaNueva, producto.receta);
+    });
+  };
+
+  // Funciones para manejar la modal de confirmación
+  const handleConfirmConsolidation = async () => {
+    if (!productoConflicto) return;
+
+    try {
+      // Actualizar stock del producto existente
+      await actualizarStockProducto(productoConflicto.id, formulario.cantidad);
+
+      // Mostrar modal de éxito en lugar del alert
+      setSuccessMessage({
+        title: "Stock actualizado exitosamente",
+        details: `Producto: ${productoConflicto.nombre}\nStock anterior: ${
+          productoConflicto.cantidad
+        } unidades\nCantidad agregada: +${
+          formulario.cantidad
+        } unidades\nStock nuevo: ${
+          productoConflicto.cantidad + formulario.cantidad
+        } unidades`,
+      });
+
+      // Limpiar y cerrar modal de confirmación
+      resetFormulario();
+      setShowForm(false);
+      setShowConfirmModal(false);
+      setProductoConflicto(null);
+
+      // Mostrar modal de éxito
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error al actualizar stock:", error);
+      alert("Error al actualizar el stock del producto");
+    }
+  };
+
+  const handleCancelConsolidation = async () => {
+    // El usuario eligió crear un producto duplicado
+    setShowConfirmModal(false);
+    setProductoConflicto(null);
+
+    await crearProductoFinal();
+  };
+
+  const handleCloseModal = () => {
+    setShowConfirmModal(false);
+    setProductoConflicto(null);
+  };
+
+  // Función auxiliar para crear el producto
+  const crearProductoFinal = async () => {
+    try {
+      const productoConReceta = {
+        ...formulario,
+        receta: receta,
+      };
+
+      await crearProducto(productoConReceta);
+      alert("Producto registrado exitosamente");
+
+      // Limpiar formulario y receta
+      resetFormulario();
+      setShowForm(false);
+    } catch (err) {
+      console.error("Error en crearProductoFinal:", err);
+      alert(
+        `Error al crear el producto: ${
+          err instanceof Error ? err.message : "Error desconocido"
+        }`
+      );
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -166,19 +284,18 @@ export default function ProductosManager() {
     }
 
     try {
-      // Crear el producto con receta
-      const productoConReceta = {
-        ...formulario,
-        receta: receta,
-      };
+      // Verificar si ya existe un producto con la misma receta
+      const productoExistente = buscarProductoConRecetaIgual(receta);
 
-      await crearProducto(productoConReceta);
+      if (productoExistente && receta.length > 0) {
+        // Mostrar modal de confirmación en lugar del alert
+        setProductoConflicto(productoExistente);
+        setShowConfirmModal(true);
+        return;
+      }
 
-      alert("Producto registrado exitosamente");
-
-      // Limpiar formulario y receta
-      resetFormulario();
-      setShowForm(false);
+      // Crear el producto sin conflicto
+      await crearProductoFinal();
     } catch (err) {
       console.error("Error en handleSubmit:", err);
       alert(
@@ -745,6 +862,173 @@ export default function ProductosManager() {
           emptyMessage="No hay productos registrados"
         />
       </div>
+
+      {/* Modal de confirmación para productos duplicados */}
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmConsolidation}
+        title="Producto Duplicado Detectado"
+        confirmText="Consolidar Stock"
+        cancelText="Crear Duplicado"
+        confirmVariant="primary"
+        size="lg"
+      >
+        {productoConflicto && (
+          <div className="space-y-4">
+            <div className="flex items-center p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <MaterialIcon
+                name="warning"
+                className="w-6 h-6 text-amber-600 mr-3"
+              />
+              <div>
+                <p className="font-medium text-amber-800">
+                  Ya existe un producto con la misma receta
+                </p>
+                <p className="text-sm text-amber-700">
+                  ¿Deseas consolidar el stock o crear un producto separado?
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Producto existente */}
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+                  <MaterialIcon name="inventory" className="w-5 h-5 mr-2" />
+                  Producto Existente
+                </h4>
+                <div className="space-y-2 text-sm text-blue-800">
+                  <p>
+                    <span className="font-medium">Nombre:</span>{" "}
+                    {productoConflicto.nombre}
+                  </p>
+                  <p>
+                    <span className="font-medium">Stock actual:</span>{" "}
+                    {productoConflicto.cantidad} unidades
+                  </p>
+                  <p>
+                    <span className="font-medium">Precio:</span>{" "}
+                    {formatCLP(productoConflicto.precio)}
+                  </p>
+                  <p>
+                    <span className="font-medium">Categoría:</span>{" "}
+                    {productoConflicto.categoria}
+                  </p>
+                </div>
+              </div>
+
+              {/* Producto nuevo */}
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-semibold text-green-900 mb-2 flex items-center">
+                  <MaterialIcon name="add_box" className="w-5 h-5 mr-2" />
+                  Producto Nuevo
+                </h4>
+                <div className="space-y-2 text-sm text-green-800">
+                  <p>
+                    <span className="font-medium">Nombre:</span>{" "}
+                    {formulario.nombre}
+                  </p>
+                  <p>
+                    <span className="font-medium">Cantidad a agregar:</span>{" "}
+                    {formulario.cantidad} unidades
+                  </p>
+                  <p>
+                    <span className="font-medium">Precio:</span>{" "}
+                    {formatCLP(formulario.precio)}
+                  </p>
+                  <p>
+                    <span className="font-medium">Categoría:</span>{" "}
+                    {formulario.categoria}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Receta */}
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <h4 className="font-semibold text-purple-900 mb-3 flex items-center">
+                <MaterialIcon name="restaurant_menu" className="w-5 h-5 mr-2" />
+                Receta Común
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-purple-800">
+                {receta.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start text-sm bg-white p-2 rounded border"
+                  >
+                    <MaterialIcon
+                      name="circle"
+                      className="w-2 h-2 text-purple-500 mr-5"
+                    />
+                    <span className="font-medium mr-1">
+                      {item.materiaPrimaNombre}:
+                    </span>
+                    <span>
+                      {item.cantidadNecesaria} {item.unidad}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Resultado de consolidación */}
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <MaterialIcon name="calculate" className="w-5 h-5 mr-2" />
+                Si consolidas el stock:
+              </h4>
+              <div className="text-sm space-y-1 text-gray-700">
+                <p>
+                  • Stock final:{" "}
+                  <span className="font-semibold">
+                    {productoConflicto.cantidad + formulario.cantidad} unidades
+                  </span>
+                </p>
+                <p>• Se mantendrá el producto "{productoConflicto.nombre}"</p>
+                <p>• No se creará un producto duplicado</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal de éxito */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Operación Exitosa"
+        showActions={false}
+        size="md"
+      >
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <MaterialIcon
+              name="check_circle"
+              className="w-10 h-10 text-green-600"
+            />
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {successMessage.title}
+            </h3>
+            <div className="text-sm text-gray-600 whitespace-pre-line">
+              {successMessage.details}
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <Button
+              variant="success"
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full"
+            >
+              Continuar
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

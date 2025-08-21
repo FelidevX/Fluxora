@@ -36,6 +36,24 @@ public class ProductoService {
         String descripcionFinal = entity.getDescripcion() != null ? entity.getDescripcion() :
                                  entity.getTipo() != null ? entity.getTipo() : "Sin descripción";
         
+        // Obtener recetas asociadas al producto
+        List<RecetaDTO> recetas = recetaRepo.findByProductoId(entity.getId())
+                .stream()
+                .map(receta -> {
+                    // Obtener el nombre de la materia prima
+                    String materiaPrimaNombre = materiaPrimaRepo.findById(receta.getMateriaPrimaId())
+                            .map(mp -> mp.getNombre())
+                            .orElse("Materia prima no encontrada");
+                    
+                    return RecetaDTO.builder()
+                            .materiaPrimaId(receta.getMateriaPrimaId())
+                            .materiaPrimaNombre(materiaPrimaNombre)
+                            .cantidadNecesaria(receta.getCantidadNecesaria())
+                            .unidad(receta.getUnidad())
+                            .build();
+                })
+                .collect(Collectors.toList());
+        
         return ProductoDTO.builder()
                 .id(entity.getId())
                 .nombre(entity.getNombre() != null ? entity.getNombre() : "Sin nombre")
@@ -45,6 +63,7 @@ public class ProductoService {
                 .categoria(entity.getCategoria() != null ? entity.getCategoria() : "General")
                 .descripcion(descripcionFinal)
                 .fecha(entity.getFecha() != null ? entity.getFecha() : LocalDate.now())
+                .receta(recetas)
                 .build();
     }
 
@@ -119,6 +138,26 @@ public class ProductoService {
             materiaPrimaRepo.save(materia);
         }
 
+        return toDTO(producto);
+    }
+
+    public ProductoDTO updateStock(Long id, int nuevaCantidad) {
+        Producto producto = productoRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        
+        // Calcular cantidad a agregar (puede ser positiva o negativa)
+        Double cantidadActual = producto.getCantidad() != null ? producto.getCantidad() : 
+                                producto.getStockActual() != null ? producto.getStockActual() : 0.0;
+        
+        Double cantidadFinal = cantidadActual + nuevaCantidad;
+        
+        // Actualizar cantidad
+        producto.setCantidad(cantidadFinal);
+        if (producto.getStockActual() != null) {
+            producto.setStockActual(cantidadFinal);
+        }
+        
+        producto = productoRepo.save(producto);
         return toDTO(producto);
     }
 }

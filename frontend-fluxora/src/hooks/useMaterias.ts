@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export interface MateriaPrima {
   id: number;
@@ -68,6 +68,11 @@ export function useMaterias(): UseMateriasResult {
       setLoading(false);
     }
   }, []);
+
+  // Cargar materias automáticamente al montar el componente
+  useEffect(() => {
+    cargarMaterias();
+  }, [cargarMaterias]);
 
   const crearMateria = async (materia: MateriaPrimaDTO) => {
     try {

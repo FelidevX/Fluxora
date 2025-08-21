@@ -17,8 +17,8 @@ export default function InventarioPage() {
 
   // Manejar parámetros de query para navegación directa
   useEffect(() => {
-    const view = searchParams.get('view');
-    if (view && ['materias', 'productos', 'recetas'].includes(view)) {
+    const view = searchParams.get("view");
+    if (view && ["materias", "productos", "recetas"].includes(view)) {
       setActiveView(view as "materias" | "productos" | "recetas");
     }
   }, [searchParams]);

@@ -32,7 +32,7 @@ export default function AlertasNotificaciones() {
     if (materias.length === 0) {
       return;
     }
-    
+
     const nuevasAlertas: Alerta[] = [];
 
     // Alertas de stock bajo en materias primas

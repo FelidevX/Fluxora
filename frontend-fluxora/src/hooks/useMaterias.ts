@@ -39,7 +39,9 @@ export function useMaterias(): UseMateriasResult {
   const [materias, setMaterias] = useState<MateriaPrima[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [onMateriaCreated, setOnMateriaCreated] = useState<(() => Promise<void>) | null>(null);
+  const [onMateriaCreated, setOnMateriaCreated] = useState<
+    (() => Promise<void>) | null
+  >(null);
 
   const cargarMaterias = useCallback(async () => {
     try {
@@ -91,7 +93,7 @@ export function useMaterias(): UseMateriasResult {
       }
 
       await cargarMaterias(); // Recargar la lista después de crear
-      
+
       // Disparar callback si está configurado (para verificación de recetas)
       if (onMateriaCreated) {
         await onMateriaCreated();
@@ -207,6 +209,7 @@ export function useMaterias(): UseMateriasResult {
     actualizarStock,
     eliminarMateria,
     clearError,
-    setOnMateriaCreated: (callback: (() => Promise<void>) | null) => setOnMateriaCreated(callback),
+    setOnMateriaCreated: (callback: (() => Promise<void>) | null) =>
+      setOnMateriaCreated(callback),
   };
 }

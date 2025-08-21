@@ -20,7 +20,7 @@ export default function RecetasManager() {
   const { materias, setOnMateriaCreated } = useMaterias();
   const { recetas, loading, error, crearReceta, eliminarReceta, clearError } =
     useRecetas();
-  
+
   const reparadorRef = useRef<ReparadorRecetasRef>(null);
 
   const [busqueda, setBusqueda] = useState("");
@@ -52,7 +52,7 @@ export default function RecetasManager() {
         }, 100);
       });
     }
-    
+
     // Limpiar el callback al desmontar
     return () => {
       if (setOnMateriaCreated) {

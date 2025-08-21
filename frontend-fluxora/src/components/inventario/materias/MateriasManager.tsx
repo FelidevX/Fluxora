@@ -52,17 +52,17 @@ export default function MateriasManager() {
 
   // Detectar si se debe abrir el formulario automáticamente
   useEffect(() => {
-    const action = searchParams.get('action');
-    const suggestion = searchParams.get('suggestion');
-    
-    if (action === 'create') {
+    const action = searchParams.get("action");
+    const suggestion = searchParams.get("suggestion");
+
+    if (action === "create") {
       setShowForm(true);
-      
+
       // Si hay una sugerencia de nombre, pre-llenar el formulario
       if (suggestion) {
-        setFormulario(prev => ({
+        setFormulario((prev) => ({
           ...prev,
-          nombre: suggestion
+          nombre: suggestion,
         }));
       }
     }

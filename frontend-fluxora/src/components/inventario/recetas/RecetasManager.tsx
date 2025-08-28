@@ -15,6 +15,7 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import ReparadorRecetas, { ReparadorRecetasRef } from "./ReparadorRecetas";
+import Modal from "@/components/ui/Modal";
 
 export default function RecetasManager() {
   const { materias, setOnMateriaCreated } = useMaterias();
@@ -22,9 +23,17 @@ export default function RecetasManager() {
     useRecetas();
 
   const reparadorRef = useRef<ReparadorRecetasRef>(null);
+  // Ejecutar reparación manual
+  const handleRepararManual = async () => {
+    if (reparadorRef.current) {
+      await reparadorRef.current.verificarYReparar();
+    }
+  };
 
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showRepairModal, setShowRepairModal] = useState(false);
+  const [missingMaterials, setMissingMaterials] = useState<string[]>([]);
 
   const [formulario, setFormulario] = useState<RecetaMaestraDTO>({
     nombre: "",
@@ -165,6 +174,33 @@ export default function RecetasManager() {
     }
   };
 
+  // Verificar materias primas faltantes en recetas rotas
+  const checkMissingMaterials = () => {
+    const faltantes: string[] = [];
+    recetas.forEach((receta) => {
+      receta.ingredientes.forEach((ing) => {
+        if (!materias.some((m) => m.id === ing.materiaPrimaId)) {
+          if (!faltantes.includes(ing.materiaPrimaNombre)) {
+            faltantes.push(ing.materiaPrimaNombre);
+          }
+        }
+      });
+    });
+    setMissingMaterials(faltantes);
+  };
+
+  // Abrir modal y verificar faltantes
+  const handleOpenRepairModal = () => {
+    checkMissingMaterials();
+    setShowRepairModal(true);
+  };
+
+  // Confirmar reparación
+  const handleConfirmRepair = async () => {
+    setShowRepairModal(false);
+    await handleRepararManual();
+  };
+
   // Definir columnas de la tabla
   const columns = [
     {
@@ -274,6 +310,13 @@ export default function RecetasManager() {
           </Button>
           <Button variant="secondary" icon="download">
             Exportar
+          </Button>
+          <Button
+            variant="warning"
+            icon="build"
+            onClick={handleOpenRepairModal}
+          >
+            Reparar recetas manualmente
           </Button>
         </div>
       </div>
@@ -612,6 +655,38 @@ export default function RecetasManager() {
           emptyMessage="No hay recetas creadas aún"
         />
       </div>
+
+      {/* Modal de reparación de recetas */}
+      <Modal
+        isOpen={showRepairModal}
+        onClose={() => setShowRepairModal(false)}
+        onConfirm={
+          missingMaterials.length === 0 ? handleConfirmRepair : undefined
+        }
+        title="¿Desea reparar las recetas?"
+        confirmText="Reparar"
+        cancelText="Cancelar"
+        confirmVariant="success"
+        showActions={true}
+      >
+        {missingMaterials.length === 0 ? (
+          <div className="text-gray-700 text-center">
+            ¿Está seguro que desea reparar las recetas?
+            <br />
+            Se actualizarán los ingredientes rotos automáticamente.
+          </div>
+        ) : (
+          <div className="text-red-700 text-center">
+            Para reparar las recetas, primero debe crear la materia prima
+            faltante:
+            <ul className="mt-2 list-disc list-inside text-red-600">
+              {missingMaterials.map((mat) => (
+                <li key={mat}>{mat}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

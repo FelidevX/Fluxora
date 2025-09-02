@@ -26,7 +26,7 @@ export default function InventarioCard({
         <div className={`p-2 ${iconColor} rounded-lg`}>
           <MaterialIcon name={icon} className="w-6 h-6" />
         </div>
-        <h2 className="ml-3 text-lg font-semibold">{title}</h2>
+        <h2 className="ml-3 text-lg font-semibold text-gray-900">{title}</h2>
       </div>
       <p className="text-gray-600 mb-4">{description}</p>
       <Button variant={buttonVariant} onClick={onClick} className="w-full">

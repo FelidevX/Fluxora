@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ClientForm from "@/components/ui/ClientForm";
-import ClientList from "@/components/ui/ClientList";
+import ClientForm from "@/components/clientes/ClientForm";
+import ClientList from "@/components/clientes/ClientList";
 import { useRouter } from "next/navigation";
 
 interface Client {

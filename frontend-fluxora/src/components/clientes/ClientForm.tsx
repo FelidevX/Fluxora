@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import AddressAutocomplete from "./AddressAutoComplete";
+import AddressAutocomplete from "../ui/AddressAutoComplete";
 import Badge from "@/components/ui/Badge";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 
 // Importación dinámica del mapa para evitar problemas de SSR
-const MapSelector = dynamic(() => import("./MapSelector"), {
+const MapSelector = dynamic(() => import("../ui/MapSelector"), {
   ssr: false,
   loading: () => (
     <div className="h-64 bg-gray-100 rounded-md flex items-center justify-center">

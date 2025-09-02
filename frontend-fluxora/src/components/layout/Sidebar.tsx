@@ -13,7 +13,7 @@ const items: Item[] = [
   { href: "/dashboard/inventario", label: "Inventario", icon: "inventory_2" },
   { href: "/dashboard/entregas", label: "Entregas", icon: "local_shipping" },
   {
-    href: "/dashboard/clientes-rutas",
+    href: "/dashboard/clientes",
     label: "Clientes y Rutas",
     icon: "groups",
   },

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import ClientForm from "@/components/clientes/ClientForm";
 import ClientList from "@/components/clientes/ClientList";
 import { useRouter } from "next/navigation";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 
 interface Client {
   id: number;
@@ -105,21 +106,17 @@ const ClientesPage = () => {
             Gestión de clientes
           </h1>
           <p className="text-gray-600">
-            📅{" "}
-            {new Date().toLocaleDateString("es-CL", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {" Gestiona clienes y rutas de reparto "}
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-            🖨️ Imprimir hoja de ruta
+          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors text-gray-600">
+            <MaterialIcon name="print" className="text-green-600 mr-1" />{" "}
+            Imprimir hoja de ruta
           </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-            📊 Exportar a Excel
+          <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+            <MaterialIcon name="file_export" className="text-white mr-1" />{" "}
+            Exportar a Excel
           </button>
         </div>
       </div>
@@ -134,7 +131,7 @@ const ClientesPage = () => {
           }`}
           onClick={() => handleTabClick("clientes")}
         >
-          clientes
+          Clientes
         </button>
         <button
           className={`px-6 py-2 rounded-r-lg font-semibold transition-colors ${
@@ -144,7 +141,7 @@ const ClientesPage = () => {
           }`}
           onClick={() => handleTabClick("repartos")}
         >
-          repartos
+          Repartos
         </button>
       </div>
 

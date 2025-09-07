@@ -28,4 +28,6 @@ public class Ruta {
     @Column(name = "longitud")
     private Double longitud;
 
+    private Long id_driver;
+
 }

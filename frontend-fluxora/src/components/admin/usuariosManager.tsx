@@ -20,6 +20,12 @@ const UsuariosManager: React.FC = () => {
     password: "",
     rolId: "",
   });
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+
+  const handleDeleteUser = (id: number) => {
+    setDeleteUserId(id);
+    setShowConfirmModal(true);
+  };
 
   // Fecha actual formateada
   const currentDateFormatted = new Date().toLocaleDateString("es-ES", {
@@ -134,6 +140,43 @@ const UsuariosManager: React.FC = () => {
       fetchUsuarios();
     } catch (err: any) {
       setError(err.message || "Error al crear usuario");
+    }
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteUserId) return;
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) throw new Error("No se encontró el token de autenticación");
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios/${deleteUserId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) {
+        let errorMsg = "Error al eliminar usuario";
+        if (res.status === 401 || res.status === 403) {
+          errorMsg = "No autorizado para eliminar usuarios.";
+        } else if (res.status === 404) {
+          errorMsg = "Usuario no encontrado.";
+        }
+        setError(errorMsg);
+        setShowConfirmModal(false);
+        setDeleteUserId(null);
+        return;
+      }
+      setShowConfirmModal(false);
+      setDeleteUserId(null);
+      fetchUsuarios();
+    } catch (err: any) {
+      setError(err.message || "Error al eliminar usuario");
+      setShowConfirmModal(false);
+      setDeleteUserId(null);
     }
   };
 
@@ -295,6 +338,7 @@ const UsuariosManager: React.FC = () => {
                         <MaterialIcon name="edit" className="text-blue-500" />
                       </button>
                       <button
+                        onClick={() => handleDeleteUser(Number(usuario.id))}
                         title="Eliminar"
                         className="p-2 rounded hover:bg-red-100"
                       >
@@ -317,6 +361,40 @@ const UsuariosManager: React.FC = () => {
             )}
           </div>
         </div>
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
+              <div className="p-5 text-center">
+                <div className="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-red-100 mb-3">
+                  <MaterialIcon
+                    name="delete"
+                    className="h-5 w-5 text-red-600"
+                  />
+                </div>
+                <h3 className="text-base font-medium text-gray-900 mb-2">
+                  Confirmar eliminación
+                </h3>
+                <p className="text-gray-600 mb-2 text-sm">
+                  ¿Está seguro de que desea eliminar este usuario?
+                </p>
+                <div className="flex gap-2 justify-center mt-4">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowConfirmModal(false);
+                      setDeleteUserId(null);
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button variant="danger" onClick={confirmDeleteUser}>
+                    Eliminar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

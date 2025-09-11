@@ -29,7 +29,8 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/login").permitAll()
-            .requestMatchers(HttpMethod.POST, "/usuarios").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/usuarios").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/usuarios/*").authenticated()
             .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))

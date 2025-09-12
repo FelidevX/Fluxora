@@ -3,22 +3,23 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import DashboardCard from "@/components/ui/DashboardCard";
 import DashboardAdmin from "@/components/admin/dashboardAdmin";
-import UsuariosManager from "@/components/admin/usuariosManager";
+import UsuariosManager from "@/components/admin/usuarios/usuariosManager";
+import SistemaManager from "@/components/admin/sistema/SistemaManager";
 
 export default function AdminPage() {
   const searchParams = useSearchParams();
   const [activeView, setActiveView] = useState<
-    "overview" | "usuarios" | "configuracion"
+    "overview" | "usuarios" | "sistema"
   >("overview");
 
   useEffect(() => {
     const view = searchParams.get("view");
-    if (view && ["usuarios", "configuracion", "roles"].includes(view)) {
-      setActiveView(view as "usuarios" | "configuracion");
+    if (view && ["usuarios", "sistema"].includes(view)) {
+      setActiveView(view as "usuarios" | "sistema");
     }
   }, [searchParams]);
 
-  const handleCardClick = (view: "usuarios" | "configuracion") => {
+  const handleCardClick = (view: "usuarios" | "sistema") => {
     setActiveView(view);
   };
 
@@ -50,21 +51,42 @@ export default function AdminPage() {
             iconColor="bg-yellow-100 text-yellow-600"
             buttonText="Configurar Sistema"
             buttonVariant="warning"
-            onClick={() => handleCardClick("configuracion")}
+            onClick={() => handleCardClick("sistema")}
           />
         </div>
         <DashboardAdmin />;
       </div>
     );
   }
+
   if (activeView === "usuarios") {
-    return <UsuariosManager />;
-  }
-  if (activeView === "configuracion") {
     return (
-      <div className="p-6 min-h-screen bg-gray-50">
-        <h2 className="text-xl font-bold mb-4">Configuración del Sistema</h2>
-        {/* Aquí puedes agregar la configuración global */}
+      <div className="p-6">
+        <div className="mb-6">
+          <button
+            onClick={() => setActiveView("overview")}
+            className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2 font-bold"
+          >
+            ← Volver al inicio
+          </button>
+        </div>
+        <UsuariosManager />
+      </div>
+    );
+  }
+
+  if (activeView === "sistema") {
+    return (
+      <div className="p-6">
+        <div className="mb-6">
+          <button
+            onClick={() => setActiveView("overview")}
+            className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2 font-bold"
+          >
+            ← Volver al inicio
+          </button>
+        </div>
+        <SistemaManager />
       </div>
     );
   }

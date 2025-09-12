@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.microservice.usuario.dto.CreateUsuarioRequest;
+import com.microservice.usuario.dto.UpdateUsuarioRequest;
 import com.microservice.usuario.entity.Rol;
 import com.microservice.usuario.entity.Usuario;
 import com.microservice.usuario.repository.RolRepository;
@@ -48,6 +49,31 @@ public class UsuarioService {
             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         usuarioRepository.delete(u);
         return u;
+    }
+
+    public Usuario updateUsuario(Long id, UpdateUsuarioRequest req) { // Actualizar usuario
+        Usuario u = usuarioRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (req.getNombre() != null && !req.getNombre().isEmpty()) {
+            u.setNombre(req.getNombre());
+        }
+        if (req.getEmail() != null && !req.getEmail().isEmpty()) {
+            // validar que el nuevo email no esté en uso por otro usuario
+            if (!u.getEmail().equals(req.getEmail()) && usuarioRepository.existsByEmail(req.getEmail())) {
+                throw new IllegalArgumentException("Email ya registrado");
+            }
+            u.setEmail(req.getEmail());
+        }
+        if (req.getPassword() != null && !req.getPassword().isEmpty()) {
+            u.setPassword(passwordEncoder.encode(req.getPassword()));
+        }
+        if (req.getRolId() != null) {
+            Rol rol = rolRepository.findById(req.getRolId())
+                .orElseThrow(() -> new IllegalArgumentException("Rol no encontrado"));
+            u.setRol(rol);
+        }
+        return usuarioRepository.save(u);
     }
 
 }

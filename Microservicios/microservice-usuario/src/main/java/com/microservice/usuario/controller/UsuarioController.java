@@ -10,11 +10,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.usuario.dto.CreateUsuarioRequest;
+import com.microservice.usuario.dto.UpdateUsuarioRequest;
 import com.microservice.usuario.entity.Usuario;
 import com.microservice.usuario.service.UsuarioService;
 
@@ -38,6 +40,11 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Usuario> deleteUsuario(@PathVariable Long id){
         return ResponseEntity.status(HttpStatus.OK).body(usuarioService.deleteUsuario(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> updateUsuario(@PathVariable Long id, @Validated @RequestBody UpdateUsuarioRequest body){
+        return ResponseEntity.status(HttpStatus.OK).body(usuarioService.updateUsuario(id, body));
     }
 
 }

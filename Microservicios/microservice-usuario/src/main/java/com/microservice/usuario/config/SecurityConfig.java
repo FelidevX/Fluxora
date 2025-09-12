@@ -31,6 +31,7 @@ public class SecurityConfig {
             .requestMatchers("/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/usuarios/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/usuarios/*").authenticated()
             .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))

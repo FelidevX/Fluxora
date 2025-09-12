@@ -5,7 +5,8 @@ import { Usuario } from "@/types/usuario";
 import { Rol } from "@/types/rol";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Badge from "@/components/ui/Badge";
-import Button from "../ui/Button";
+import Button from "../../ui/Button";
+import UsuarioModal from "./UsuarioModal";
 
 const UsuariosManager: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -21,10 +22,20 @@ const UsuariosManager: React.FC = () => {
     rolId: "",
   });
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [usuarioAEditar, setUsuarioAEditar] = useState<Usuario | null>(null);
 
   const handleDeleteUser = (id: number) => {
     setDeleteUserId(id);
     setShowConfirmModal(true);
+  };
+
+  const handleUpdateUser = (id: number) => {
+    const usuario = usuarios.find((u) => Number(u.id) === id);
+    if (usuario) {
+      setUsuarioAEditar(usuario);
+      setEditModalOpen(true);
+    }
   };
 
   // Fecha actual formateada
@@ -180,6 +191,64 @@ const UsuariosManager: React.FC = () => {
     }
   };
 
+  const handleEditSubmit = async (form: {
+    nombre: string;
+    email: string;
+    password?: string;
+    rolId: string;
+  }) => {
+    if (!usuarioAEditar) return;
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) throw new Error("No se encontró el token de autenticación");
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios/${usuarioAEditar.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nombre: form.nombre,
+            email: form.email,
+            rolId: Number(form.rolId),
+            password: form.password,
+          }),
+        }
+      );
+      if (!res.ok) {
+        let errorMsg = "Error al actualizar usuario";
+        if (res.status === 401 || res.status === 403) {
+          errorMsg = "Este correo ya está en uso.";
+        } else if (res.status === 404) {
+          errorMsg = "Usuario no encontrado.";
+        } else if (res.status === 400 || res.status === 409) {
+          try {
+            const errorData = await res.json();
+            errorMsg = errorData.message || errorMsg;
+          } catch {
+            // Si la respuesta está vacía, mantener el mensaje por defecto
+          }
+        }
+        setError(errorMsg);
+        setEditModalOpen(false);
+        setUsuarioAEditar(null);
+        return;
+      }
+      setEditModalOpen(false);
+      setUsuarioAEditar(null);
+      fetchUsuarios();
+    } catch (err: any) {
+      setError(err.message || "Error al actualizar usuario");
+      setEditModalOpen(false);
+      setUsuarioAEditar(null);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="space-y-6">
@@ -204,7 +273,9 @@ const UsuariosManager: React.FC = () => {
         </div>
         {showForm && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-lg font-semibold mb-4">Nuevo Usuario</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-700">
+              Nuevo Usuario
+            </h2>
             <form
               onSubmit={handleSubmit}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -215,7 +286,7 @@ const UsuariosManager: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-500"
                   value={formulario.nombre}
                   onChange={(e) =>
                     setFormulario({ ...formulario, nombre: e.target.value })
@@ -229,7 +300,7 @@ const UsuariosManager: React.FC = () => {
                 </label>
                 <input
                   type="email"
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-500"
                   value={formulario.email}
                   onChange={(e) =>
                     setFormulario({ ...formulario, email: e.target.value })
@@ -243,7 +314,7 @@ const UsuariosManager: React.FC = () => {
                 </label>
                 <input
                   type="password"
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-500"
                   value={formulario.password}
                   onChange={(e) =>
                     setFormulario({ ...formulario, password: e.target.value })
@@ -256,7 +327,7 @@ const UsuariosManager: React.FC = () => {
                   Rol:
                 </label>
                 <select
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-500"
                   value={formulario.rolId}
                   onChange={(e) =>
                     setFormulario({ ...formulario, rolId: e.target.value })
@@ -332,6 +403,7 @@ const UsuariosManager: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap flex gap-2">
                       <button
+                        onClick={() => handleUpdateUser(Number(usuario.id))}
                         title="Editar"
                         className="p-2 rounded hover:bg-gray-200"
                       >
@@ -395,6 +467,26 @@ const UsuariosManager: React.FC = () => {
             </div>
           </div>
         )}
+        <UsuarioModal
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setUsuarioAEditar(null);
+          }}
+          onSubmit={handleEditSubmit}
+          roles={roles}
+          initialValues={
+            usuarioAEditar
+              ? {
+                  nombre: usuarioAEditar.nombre,
+                  email: usuarioAEditar.email,
+                  password: "",
+                  rolId: usuarioAEditar.rol.id.toString(),
+                }
+              : undefined
+          }
+          isEdit={true}
+        />
       </div>
     </div>
   );

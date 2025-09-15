@@ -3,11 +3,9 @@ package com.microservice.entrega.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import com.google.ortools.Loader;
 import com.google.ortools.constraintsolver.Assignment;
 import com.google.ortools.constraintsolver.FirstSolutionStrategy;
@@ -38,10 +36,11 @@ public class RutaService {
     private ClienteServiceClient clienteServiceClient;
 
     public List<ClienteDTO> getOptimizedRouteORTools(List<ClienteDTO> clientes) {
+
         // Se construye la matriz de distancias
         int size = clientes.size() + 1;
         long[][] distanceMatrix = new long[size][size];
-        Optional<Ruta> origen = rutaRepository.findById(((long) 0));
+        Optional<Ruta> origen = rutaRepository.findById(((long) 1));
 
         List<double[]> locations = new ArrayList();
         locations.add(new double[] { origen.get().getLatitud(), origen.get().getLongitud() });

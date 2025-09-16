@@ -1,9 +1,11 @@
 package com.microservice.entrega.controller;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +33,7 @@ public class RutaController {
         this.usuarioServiceClient = usuarioServiceClient;
     }
 
-    @GetMapping("/optimizada-ortools")
+    @GetMapping("/optimized-ortools")
     public Map<String, Object> getOptimizedRouteORTools(@RequestParam Long driverId) {
         UsuarioDTO driver = usuarioServiceClient.getDriverById(driverId);
         List<ClienteDTO> clientes = clienteServiceClient.getAllClientes();
@@ -43,6 +45,47 @@ public class RutaController {
         result.put("orderedClients", orderedClients);
         result.put("osrmRoute", osrmRoute);
         return result;
+    }
+
+    @GetMapping("/test-optimization")
+    public ResponseEntity<Map<String, Object>> testRouteOptimization() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            List<ClienteDTO> testClientes = Arrays.asList(
+                    createTestCliente(1L, "Cliente A", -34.6037, -58.3816), // Buenos Aires
+                    createTestCliente(2L, "Cliente B", -34.6118, -58.3960), // Palermo
+                    createTestCliente(3L, "Cliente C", -34.5875, -58.3974), // Recoleta
+                    createTestCliente(4L, "Cliente D", -34.6092, -58.3731) // Puerto Madero
+            );
+
+            result.put("testClientes", testClientes);
+
+            List<ClienteDTO> optimizedRoute = rutaService.getOptimizedRouteORTools(testClientes);
+            result.put("optimizedRoute", optimizedRoute);
+
+            Ruta origen = rutaService.getOrigenRuta();
+            result.put("origen", origen);
+
+            String osrmRoute = rutaService.getOsrmRoute(optimizedRoute, origen);
+            result.put("osrmRoute", osrmRoute);
+
+            result.put("status", "SUCCESS");
+            result.put("message", "Optimización exitosa");
+        } catch (Exception e) {
+            result.put("status", "ERROR");
+            result.put("message", "Error al optimizar la ruta" + e.getMessage());
+            result.put("error", e.getClass().getSimpleName());
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    private ClienteDTO createTestCliente(Long id, String nombre, Double latitud, Double longitud) {
+        ClienteDTO cliente = new ClienteDTO();
+        cliente.setId(id);
+        cliente.setNombre(nombre);
+        cliente.setLatitud(latitud);
+        cliente.setLongitud(longitud);
+        return cliente;
     }
 
     @GetMapping("/clientes/{id_ruta}")

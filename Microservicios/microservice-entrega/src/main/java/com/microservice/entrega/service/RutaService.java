@@ -1,9 +1,15 @@
 package com.microservice.entrega.service;
 
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.google.ortools.Loader;
@@ -39,7 +45,6 @@ public class RutaService {
 
         // Se construye la matriz de distancias
         int size = clientes.size() + 1;
-        long[][] distanceMatrix = new long[size][size];
         Optional<Ruta> origen = rutaRepository.findById(((long) 1));
 
         List<double[]> locations = new ArrayList();
@@ -49,12 +54,7 @@ public class RutaService {
             locations.add(new double[] { c.getLatitud(), c.getLongitud() });
         }
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                distanceMatrix[i][j] = (long) haversine(locations.get(i)[0], locations.get(i)[1], locations.get(j)[0],
-                        locations.get(j)[1]) * 1000;
-            }
-        }
+        long[][] distanceMatrix = getDistanceMatrixFromOSRM(locations);
 
         RoutingIndexManager manager = new RoutingIndexManager(size, 1, 0);
         RoutingModel routing = new RoutingModel(manager);
@@ -86,17 +86,6 @@ public class RutaService {
         return orderedClients;
     }
 
-    private double haversine(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371;
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-
     public String getOsrmRoute(List<ClienteDTO> orderedClients, Ruta origen) {
         StringBuilder coords = new StringBuilder();
         // Agrega primero el punto de partida (driver)
@@ -112,8 +101,53 @@ public class RutaService {
         return restTemplate.getForObject(url, String.class);
     }
 
+    private long[][] getDistanceMatrixFromOSRM(List<double[]> locations) {
+        if (locations == null || locations.isEmpty()) {
+            throw new IllegalArgumentException("La lista de ubicaciones no puede ser nula o vacía");
+        }
+        StringBuilder coords = new StringBuilder();
+        for (double[] loc : locations) {
+            if (loc.length != 2) {
+                throw new IllegalArgumentException("Cada ubicación debe tener exactamente dos coordenadas");
+            }
+            coords.append(loc[1]) // Longitud
+                    .append(",")
+                    .append(loc[0]) // Latitud
+                    .append(";");
+        }
+
+        coords.setLength(coords.length() - 1);
+
+        String url = "http://router.project-osrm.org/table/v1/driving/" + coords.toString() + "?annotations=distance";
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                });
+
+        Map<String, Object> response = responseEntity.getBody();
+        if (response == null) {
+            throw new RuntimeException("Respuesta vacía de OSRM");
+        }
+
+        // Extraer la matriz de distancias desde el JSON
+        List<List<Number>> distances = (List<List<Number>>) response.get("distances");
+        if (distances == null) {
+            throw new RuntimeException("Matriz de distancias vacía");
+        }
+        int size = distances.size();
+        long[][] distanceMatrix = new long[size][size];
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                distanceMatrix[i][j] = distances.get(i).get(j).longValue();
+            }
+        }
+        return distanceMatrix;
+    }
+
     public Ruta getOrigenRuta() {
-        return rutaRepository.findById(0L).orElseThrow(() -> new RuntimeException("Ruta de origen no encontrada"));
+        return rutaRepository.findById(1L).orElseThrow(() -> new RuntimeException("Ruta de origen no encontrada"));
     }
 
     public List<ClienteDTO> getClientesDeRuta(Long id_ruta) {
@@ -125,4 +159,5 @@ public class RutaService {
     public List<Ruta> getAllRutas() {
         return rutaRepository.findAll();
     }
+
 }

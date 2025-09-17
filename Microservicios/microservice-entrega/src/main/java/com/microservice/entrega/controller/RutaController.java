@@ -97,4 +97,9 @@ public class RutaController {
     public List<Ruta> getAllRutas() {
         return rutaService.getAllRutas();
     }
+
+    @GetMapping("/clientes-sin-ruta")
+    public List<ClienteDTO> getClientesSinRuta() {
+        return rutaService.getClientesSinRuta();
+    }
 }

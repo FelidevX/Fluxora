@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -158,6 +160,18 @@ public class RutaService {
 
     public List<Ruta> getAllRutas() {
         return rutaRepository.findAll();
+    }
+
+    public List<ClienteDTO> getClientesSinRuta() {
+        try {
+            List<ClienteDTO> allClients = clienteServiceClient.getAllClientes();
+            List<Long> assignmentClient = rutaClienteRepository.findAllClienteIds();
+
+            return allClients.stream().filter(cliente -> !assignmentClient.contains(cliente.getId()))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener clientes sin ruta: " + e.getMessage());
+        }
     }
 
 }

@@ -8,6 +8,8 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -93,7 +95,7 @@ public class RutaController {
         return rutaService.getClientesDeRuta(id_ruta);
     }
 
-    @GetMapping("/")
+    @GetMapping()
     public List<Ruta> getAllRutas() {
         return rutaService.getAllRutas();
     }
@@ -101,5 +103,18 @@ public class RutaController {
     @GetMapping("/clientes-sin-ruta")
     public List<ClienteDTO> getClientesSinRuta() {
         return rutaService.getClientesSinRuta();
+    }
+
+    @PostMapping("/asignar-cliente")
+    public ResponseEntity<String> asignarClienteARuta(@RequestBody Map<String, Long> request) {
+        try {
+            Long idRuta = request.get("id_ruta");
+            Long idCliente = request.get("id_cliente");
+
+            rutaService.asignarClienteARuta(idRuta, idCliente);
+            return ResponseEntity.ok(("Cliente asignado correctamente a la ruta"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al asignar el cliente" + e.getMessage());
+        }
     }
 }

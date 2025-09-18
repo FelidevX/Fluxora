@@ -174,4 +174,27 @@ public class RutaService {
         }
     }
 
+    public void asignarClienteARuta(Long idRuta, Long idCliente) {
+        try {
+            // Verifica que la ruta existe
+            if (!rutaRepository.existsById(idRuta)) {
+                throw new RuntimeException("La ruta con ID " + idRuta + " no existe");
+            }
+
+            // Verifica que el cliente no esté asignado a una ruta
+            List<Long> clientesAsignados = rutaClienteRepository.findAllClienteIds();
+            if (clientesAsignados.contains(idCliente)) {
+                throw new RuntimeException("El cliente con ID " + idCliente + " ya está asignado a una ruta");
+            }
+
+            RutaCliente rutaCliente = new RutaCliente();
+            rutaCliente.setId_ruta(idRuta);
+            rutaCliente.setId_cliente(idCliente);
+            rutaCliente.setOrden(1); // Revisar si el orden afecta en algo
+
+            rutaClienteRepository.save(rutaCliente);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al asignar cliente a ruta: " + e.getMessage());
+        }
+    }
 }

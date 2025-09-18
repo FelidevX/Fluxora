@@ -3,14 +3,15 @@ package com.microservice.cliente.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.cliente.service.ClienteService;
+import com.microservice.cliente.dto.ClienteDTO;
 import com.microservice.cliente.entity.Cliente;
 
 @RestController
@@ -29,4 +30,10 @@ public class ClienteController {
     public Cliente addCliente(@RequestBody Cliente cliente) {
         return clienteService.addCliente(cliente);
     }
+
+    @GetMapping("/{id}")
+    public List<ClienteDTO> getClienteByIds(@PathVariable List<Long> id) {
+        return clienteService.getClienteByIds(id);
+    }
+
 }

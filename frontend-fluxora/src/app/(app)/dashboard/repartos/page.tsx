@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import PendingClientList from "@/components/ui/PendingClientList";
 
 const RepartosPage = () => {
   const router = useRouter();
@@ -56,6 +57,7 @@ const RepartosPage = () => {
       </div>
 
       <div>
+        <PendingClientList/>
       </div>
     </div>
   );

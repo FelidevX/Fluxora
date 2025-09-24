@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.microservice.usuario.dto.CreateUsuarioRequest;
 import com.microservice.usuario.dto.UpdateUsuarioRequest;
@@ -74,6 +75,12 @@ public class UsuarioService {
             u.setRol(rol);
         }
         return usuarioRepository.save(u);
+    public List<Usuario> getUsuariosByRol(String rol) {
+        return usuarioRepository.findByRolRol(rol);
+    }
+
+    public Usuario getUsuarioById(Long id) {
+        return usuarioRepository.findById(id).orElse(null);
     }
 
 }

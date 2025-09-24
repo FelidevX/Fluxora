@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/clientes/test").permitAll() // Endpoint público para pruebas
+                        .requestMatchers("/clientes/test", "/test").permitAll() // Endpoint público para pruebas
                         .anyRequest().authenticated()) // Todo lo demás requiere autenticación
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> {

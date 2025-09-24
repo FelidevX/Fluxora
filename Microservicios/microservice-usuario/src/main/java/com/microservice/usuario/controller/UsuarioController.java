@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.usuario.dto.CreateUsuarioRequest;
@@ -45,6 +46,15 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> updateUsuario(@PathVariable Long id, @Validated @RequestBody UpdateUsuarioRequest body){
         return ResponseEntity.status(HttpStatus.OK).body(usuarioService.updateUsuario(id, body));
+
+    @GetMapping(params = "rol")
+    public List<Usuario> getUsuariosByRol(@RequestParam String rol) {
+        return usuarioService.getUsuariosByRol(rol);
+    }
+
+    @GetMapping("/{id}")
+    public Usuario getUsuarioById(@PathVariable Long id) {
+        return usuarioService.getUsuarioById(id);
     }
 
 }

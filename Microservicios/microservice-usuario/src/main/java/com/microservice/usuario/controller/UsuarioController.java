@@ -46,6 +46,7 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> updateUsuario(@PathVariable Long id, @Validated @RequestBody UpdateUsuarioRequest body){
         return ResponseEntity.status(HttpStatus.OK).body(usuarioService.updateUsuario(id, body));
+    }
 
     @GetMapping(params = "rol")
     public List<Usuario> getUsuariosByRol(@RequestParam String rol) {

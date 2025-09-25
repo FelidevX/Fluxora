@@ -64,4 +64,15 @@ public class EntregaController {
     public List<Map<String, Object>> getHistorialCompleto() {
         return entregaService.getHistorialCompleto();
     }
+
+    // ENDPOINT TEMPORAL PARA DATOS DE PRUEBA - REMOVER EN PRODUCCIÓN
+    @PostMapping("/setup-datos-prueba")
+    public ResponseEntity<String> setupDatosPrueba() {
+        try {
+            entregaService.crearDatosPrueba();
+            return ResponseEntity.ok("Datos de prueba creados exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al crear datos de prueba: " + e.getMessage());
+        }
+    }
 }

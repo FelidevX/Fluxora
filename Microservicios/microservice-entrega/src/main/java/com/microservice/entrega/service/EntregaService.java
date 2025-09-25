@@ -221,4 +221,56 @@ public class EntregaService {
 
         return historialCompleto;
     }
+
+    // Método para crear datos de prueba
+    public void crearDatosPrueba() {
+        // Crear rutas de prueba
+        Ruta ruta1 = new Ruta();
+        ruta1.setNombre("Ruta Centro");
+        ruta1.setLatitud(-12.0464); // Lima, Perú - Centro
+        ruta1.setLongitud(-77.0428);
+        ruta1.setId_driver(1L); // Driver 1
+        rutaRepository.save(ruta1);
+
+        Ruta ruta2 = new Ruta();
+        ruta2.setNombre("Ruta Norte");
+        ruta2.setLatitud(-12.0200); // Lima Norte
+        ruta2.setLongitud(-77.0500);
+        ruta2.setId_driver(2L); // Driver 2
+        rutaRepository.save(ruta2);
+
+        // Crear asignaciones de clientes a rutas
+        RutaCliente rc1 = new RutaCliente();
+        rc1.setId_ruta(ruta1.getId());
+        rc1.setId_cliente(1L);
+        rc1.setOrden(1);
+        rutaClienteRepository.save(rc1);
+
+        RutaCliente rc2 = new RutaCliente();
+        rc2.setId_ruta(ruta1.getId());
+        rc2.setId_cliente(2L);
+        rc2.setOrden(2);
+        rutaClienteRepository.save(rc2);
+
+        RutaCliente rc3 = new RutaCliente();
+        rc3.setId_ruta(ruta2.getId());
+        rc3.setId_cliente(3L);
+        rc3.setOrden(1);
+        rutaClienteRepository.save(rc3);
+
+        // Crear algunas entregas de ejemplo
+        RegistroEntrega entrega1 = new RegistroEntrega();
+        entrega1.setId_cliente(1L);
+        entrega1.setHora_entregada(LocalDateTime.now().minusDays(1));
+        entrega1.setCorriente_entregado(10.0);
+        entrega1.setEspecial_entregado(5.0);
+        registroEntregaRepository.save(entrega1);
+
+        RegistroEntrega entrega2 = new RegistroEntrega();
+        entrega2.setId_cliente(2L);
+        entrega2.setHora_entregada(LocalDateTime.now().minusHours(2));
+        entrega2.setCorriente_entregado(8.0);
+        entrega2.setEspecial_entregado(3.0);
+        registroEntregaRepository.save(entrega2);
+    }
 }

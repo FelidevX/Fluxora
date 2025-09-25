@@ -7,6 +7,7 @@ interface RutasActivasProps {
   loading: boolean;
   onRefresh: () => void;
   onVerDetalle: (ruta: RutaActiva) => void;
+  onCrearDatosPrueba?: () => void;
 }
 
 export function RutasActivas({
@@ -14,6 +15,7 @@ export function RutasActivas({
   loading,
   onRefresh,
   onVerDetalle,
+  onCrearDatosPrueba,
 }: RutasActivasProps) {
   if (loading) {
     return (
@@ -43,7 +45,7 @@ export function RutasActivas({
         <p className="mt-1 text-sm text-gray-500">
           No se encontraron rutas con entregas pendientes.
         </p>
-        <div className="mt-6">
+        <div className="mt-6 space-x-4">
           <button
             onClick={onRefresh}
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
@@ -63,6 +65,27 @@ export function RutasActivas({
             </svg>
             Actualizar
           </button>
+          {onCrearDatosPrueba && (
+            <button
+              onClick={onCrearDatosPrueba}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <svg
+                className="h-4 w-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              Crear Datos de Prueba
+            </button>
+          )}
         </div>
       </div>
     );

@@ -29,17 +29,32 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
   const fetchClientesRuta = async () => {
     setLoading(true);
     try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/ruta/${ruta.id}/clientes`
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/ruta/${ruta.id}/clientes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
       if (response.ok) {
         const data = await response.json();
         setClientesConEntregas(data);
       } else {
-        console.error("Error al obtener clientes de la ruta");
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error al obtener clientes de la ruta:", error);
     } finally {
       setLoading(false);
     }
@@ -53,19 +68,32 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
     if (!clienteSeleccionado) return;
 
     try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
       const registroEntrega: RegistroEntrega = {
         id_cliente: clienteSeleccionado.cliente.id,
         corriente_entregado: formData.corriente_entregado,
         especial_entregado: formData.especial_entregado,
       };
 
-      const response = await fetch("/api/entregas/entrega/registrar", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(registroEntrega),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/registrar`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(registroEntrega),
+        }
+      );
 
       if (response.ok) {
         setShowRegistroModal(false);
@@ -75,11 +103,14 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
         onRefresh();
         alert("Entrega registrada exitosamente");
       } else {
-        alert("Error al registrar la entrega");
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error al registrar la entrega");
+      console.error("Error al registrar entrega:", error);
+      alert(
+        "Error al registrar la entrega: " +
+          (error instanceof Error ? error.message : "Error desconocido")
+      );
     }
   };
 

@@ -14,19 +14,32 @@ export function HistorialEntregas() {
   const fetchHistorialEntregas = async () => {
     setLoading(true);
     try {
-      // Por ahora, simulamos datos. En producción esto vendría del backend
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/historial`
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/historial`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
       if (response.ok) {
         const data = await response.json();
         setEntregas(data);
       } else {
-        // Datos de ejemplo para desarrollo
-        setEntregas([]);
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error al obtener historial de entregas:", error);
       setEntregas([]);
     } finally {
       setLoading(false);

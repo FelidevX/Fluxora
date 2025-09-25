@@ -153,8 +153,8 @@ public class RutaService {
     }
 
     public List<ClienteDTO> getClientesDeRuta(Long id_ruta) {
-        Optional<RutaCliente> rutaCliente = rutaClienteRepository.findById(id_ruta);
-        List<Long> idClientes = rutaCliente.stream().map(RutaCliente::getId_cliente).toList();
+        List<RutaCliente> rutaClientes = rutaClienteRepository.findByIdRuta(id_ruta);
+        List<Long> idClientes = rutaClientes.stream().map(RutaCliente::getId_cliente).toList();
         return clienteServiceClient.getClientesByIds(idClientes);
     }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { RutasActivas } from "./RutasActivas";
 import { DetalleRuta } from "./DetalleRuta";
 import { HistorialEntregas } from "./HistorialEntregas";
+import { CrearRuta } from "./CrearRuta";
 import { RutaActiva } from "@/interfaces/entregas";
 
 export default function GestionEntregas() {
@@ -162,6 +163,25 @@ export default function GestionEntregas() {
         </svg>
       ),
     },
+    {
+      id: "crear-ruta",
+      name: "Crear Ruta",
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -225,6 +245,13 @@ export default function GestionEntregas() {
         )}
 
         {activeTab === "historial" && <HistorialEntregas />}
+
+        {activeTab === "crear-ruta" && (
+          <CrearRuta
+            onRutaCreada={handleRefresh}
+            onBack={() => setActiveTab("rutas-activas")}
+          />
+        )}
       </div>
     </div>
   );

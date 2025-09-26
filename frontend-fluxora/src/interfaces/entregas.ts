@@ -50,6 +50,22 @@ export interface ClienteConEntrega {
   entregaRealizada: boolean;
   ultimaEntrega: RegistroEntrega | null;
   orden: number;
+  kg_corriente_programado: number;
+  kg_especial_programado: number;
+  estado: string;
+  fecha_programada: string;
+}
+
+export interface ProgramacionEntrega {
+  id: number;
+  id_ruta: number;
+  id_cliente: number;
+  kg_corriente_programado: number;
+  kg_especial_programado: number;
+  fecha_programada: string;
+  estado: string;
+  cliente?: ClienteDTO;
+  ruta?: RutaDTO;
 }
 
 export interface EntregaConductor {

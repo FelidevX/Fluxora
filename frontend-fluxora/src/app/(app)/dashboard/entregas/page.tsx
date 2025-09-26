@@ -1,4 +1,4 @@
-import GestionEntregas from "@/components/admin/entregas/GestionEntregas";
+import GestionEntregas from "@/components/admin/entregas/gestion/GestionEntregas";
 
 export default function EntregasPage() {
   return (

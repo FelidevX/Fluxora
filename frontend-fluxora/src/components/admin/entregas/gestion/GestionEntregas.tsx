@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RutasActivas } from "./RutasActivas";
-import { DetalleRuta } from "./DetalleRuta";
-import { HistorialEntregas } from "./HistorialEntregas";
-import { CrearRuta } from "./CrearRuta";
+import { RutasActivas } from "../rutas/RutasActivas";
+import { DetalleRuta } from "../rutas/DetalleRuta";
+import { HistorialEntregas } from "../historial/HistorialEntregas";
+import { GestionRutas } from "./GestionRutas";
 import { RutaActiva } from "@/interfaces/entregas";
 
 export default function GestionEntregas() {
@@ -164,8 +164,8 @@ export default function GestionEntregas() {
       ),
     },
     {
-      id: "crear-ruta",
-      name: "Crear Ruta",
+      id: "gestion-rutas",
+      name: "Gestión de Rutas",
       icon: (
         <svg
           className="h-5 w-5"
@@ -177,7 +177,7 @@ export default function GestionEntregas() {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M12 4v16m8-8H4"
+            d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"
           />
         </svg>
       ),
@@ -246,10 +246,12 @@ export default function GestionEntregas() {
 
         {activeTab === "historial" && <HistorialEntregas />}
 
-        {activeTab === "crear-ruta" && (
-          <CrearRuta
-            onRutaCreada={handleRefresh}
-            onBack={() => setActiveTab("rutas-activas")}
+        {activeTab === "gestion-rutas" && (
+          <GestionRutas
+            rutas={rutasActivas}
+            loading={loading}
+            onRefresh={handleRefresh}
+            onVerDetalle={handleVerDetalleRuta}
           />
         )}
       </div>

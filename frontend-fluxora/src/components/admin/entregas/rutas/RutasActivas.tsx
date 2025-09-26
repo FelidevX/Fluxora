@@ -72,27 +72,6 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
   );
   const [loadingFecha, setLoadingFecha] = useState(false);
 
-  // Función para editar un cliente específico
-  const editarClienteEspecifico = (idRuta: number, clienteData: any) => {
-    setRutaSeleccionada({ id: idRuta } as any);
-    setClientesParaProgramar([
-      {
-        id: clienteData?.cliente?.id || 0,
-        nombre:
-          clienteData?.cliente?.nombre ||
-          (clienteData?.cliente as any)?.nombreNegocio ||
-          `Cliente ${clienteData?.cliente?.id || "N/A"}`,
-        direccion: clienteData?.cliente?.direccion || "Dirección no disponible",
-        kg_corriente_programado:
-          clienteData?.rutaCliente?.kg_corriente_programado || 0,
-        kg_especial_programado:
-          clienteData?.rutaCliente?.kg_especial_programado || 0,
-        orden: clienteData?.rutaCliente?.orden || 1,
-      },
-    ]);
-    setShowProgramarClientesModal(true);
-  };
-
   const fetchRutasPorFecha = async (fecha: string) => {
     setLoadingFecha(true);
     try {
@@ -155,131 +134,6 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
   const handleFechaChange = (nuevaFecha: string) => {
     setFechaSeleccionada(nuevaFecha);
     fetchRutasPorFecha(nuevaFecha);
-  };
-
-  const abrirModalProgramarClientes = async (
-    idRutaOrRutaProgramada: number | RutaProgramadaPorFecha,
-    clientes?: any[]
-  ) => {
-    // Si se pasa un número, significa que es idRuta con lista de clientes
-    if (typeof idRutaOrRutaProgramada === "number" && clientes) {
-      setRutaSeleccionada({ id: idRutaOrRutaProgramada } as any);
-
-      const clientesFormateados = clientes.map((clienteData) => ({
-        id: clienteData?.cliente?.id || 0,
-        nombre:
-          clienteData?.cliente?.nombre ||
-          (clienteData?.cliente as any)?.nombreNegocio ||
-          `Cliente ${clienteData?.cliente?.id || "N/A"}`,
-        direccion: clienteData?.cliente?.direccion || "Dirección no disponible",
-        kg_corriente_programado:
-          clienteData?.rutaCliente?.kg_corriente_programado || 0,
-        kg_especial_programado:
-          clienteData?.rutaCliente?.kg_especial_programado || 0,
-        orden: clienteData?.rutaCliente?.orden || 1,
-      }));
-
-      setClientesParaProgramar(clientesFormateados);
-      setShowProgramarClientesModal(true);
-    } else {
-      // Caso original: se pasa un objeto RutaProgramadaPorFecha
-      const rutaProgramada = idRutaOrRutaProgramada as RutaProgramadaPorFecha;
-      setRutaProgramadaSeleccionada(rutaProgramada);
-
-      // Si ya hay clientes programados, usarlos. Si no, obtener del día anterior
-      if (rutaProgramada.clientes.length > 0) {
-        const clientesParaEditar = rutaProgramada.clientes.map(
-          (clienteData) => ({
-            id: clienteData?.cliente?.id || 0,
-            nombre:
-              clienteData?.cliente?.nombre ||
-              (clienteData?.cliente as any)?.nombreNegocio ||
-              `Cliente ${clienteData?.cliente?.id || "N/A"}`,
-            direccion:
-              clienteData?.cliente?.direccion || "Dirección no disponible",
-            kg_corriente_programado:
-              clienteData?.rutaCliente?.kg_corriente_programado || 0,
-            kg_especial_programado:
-              clienteData?.rutaCliente?.kg_especial_programado || 0,
-            orden: clienteData?.rutaCliente?.orden || 1,
-          })
-        );
-
-        setClientesParaProgramar(clientesParaEditar);
-        setShowProgramarClientesModal(true);
-      } else {
-        // TODO: Implementar obtención de clientes de la ruta y valores del día anterior
-        alert(
-          "Esta funcionalidad se implementará para obtener clientes de la ruta y valores del día anterior"
-        );
-      }
-    }
-  };
-
-  const handleGuardarProgramacionClientes = async () => {
-    if (!rutaProgramadaSeleccionada) return;
-
-    try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      const programacionData = clientesParaProgramar.map((cliente) => ({
-        id_cliente: cliente.id,
-        kg_corriente_programado: cliente.kg_corriente_programado,
-        kg_especial_programado: cliente.kg_especial_programado,
-        orden: cliente.orden,
-      }));
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programar-entregas-individuales`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id_ruta: rutaProgramadaSeleccionada.ruta.id,
-            fecha: fechaSeleccionada,
-            entregas: programacionData,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        setShowProgramarClientesModal(false);
-        setRutaProgramadaSeleccionada(null);
-        setClientesParaProgramar([]);
-        fetchRutasPorFecha(fechaSeleccionada);
-        alert("Entregas programadas exitosamente");
-      } else {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("Error al programar entregas:", error);
-      alert(
-        "Error al programar entregas: " +
-          (error instanceof Error ? error.message : "Error desconocido")
-      );
-    }
-  };
-
-  const actualizarClienteProgramacion = (
-    clienteId: number,
-    campo: "kg_corriente_programado" | "kg_especial_programado",
-    valor: number
-  ) => {
-    setClientesParaProgramar((prev) =>
-      prev.map((cliente) =>
-        cliente.id === clienteId ? { ...cliente, [campo]: valor } : cliente
-      )
-    );
   };
 
   // Cargar rutas por fecha inicial
@@ -568,17 +422,6 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
                                 </div>
                               </div>
                             </div>
-                            <button
-                              onClick={() =>
-                                editarClienteEspecifico(
-                                  rutaProgramada.ruta.id,
-                                  clienteData
-                                )
-                              }
-                              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
-                            >
-                              Actualizar kg
-                            </button>
                           </div>
                         </div>
                       )
@@ -611,34 +454,6 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
                       </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Botón de programar entregas */}
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={() =>
-                      abrirModalProgramarClientes(
-                        rutaProgramada.ruta.id,
-                        rutaProgramada.clientes
-                      )
-                    }
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    Programar Entregas
-                  </button>
                 </div>
               </div>
             </div>

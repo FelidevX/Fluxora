@@ -123,10 +123,27 @@ public class EntregaController {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> entregas = (List<Map<String, Object>>) datos.get("entregas");
             
-            entregaService.programarEntregasIndividuales(idRuta, fecha, entregas);
-            return ResponseEntity.ok("Entregas programadas exitosamente");
+            String mensaje = entregaService.programarEntregasIndividuales(idRuta, fecha, entregas);
+            return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al programar entregas: " + e.getMessage());
+        }
+    }
+
+    // Actualizar programación individual de un cliente
+    @PostMapping("/actualizar-programacion-cliente")
+    public ResponseEntity<String> actualizarProgramacionCliente(@RequestBody Map<String, Object> datos) {
+        try {
+            Long idRuta = Long.valueOf(datos.get("idRuta").toString());
+            Long idCliente = Long.valueOf(datos.get("idCliente").toString());
+            String fecha = datos.get("fecha").toString();
+            Double kgCorriente = Double.valueOf(datos.get("kgCorriente").toString());
+            Double kgEspecial = Double.valueOf(datos.get("kgEspecial").toString());
+            
+            String mensaje = entregaService.actualizarProgramacionCliente(idRuta, idCliente, fecha, kgCorriente, kgEspecial);
+            return ResponseEntity.ok(mensaje);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al actualizar programación: " + e.getMessage());
         }
     }
 

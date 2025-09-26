@@ -42,6 +42,15 @@ export function GestionRutas({
   );
   const [driverId, setDriverId] = useState("");
 
+  // Estados para programación de entregas por fecha
+  const [showProgramacionModal, setShowProgramacionModal] = useState(false);
+  const [fechaProgramacion, setFechaProgramacion] = useState("");
+  const [rutasProgramadas, setRutasProgramadas] = useState<any[]>([]);
+  const [loadingProgramacion, setLoadingProgramacion] = useState(false);
+  const [rutaParaProgramar, setRutaParaProgramar] = useState<RutaActiva | null>(
+    null
+  );
+
   // Función para obtener todos los drivers
   const fetchDrivers = async () => {
     setLoadingDrivers(true);
@@ -200,6 +209,114 @@ export function GestionRutas({
     }
   };
 
+  // Función para abrir modal de programación
+  const handleProgramarEntregas = (ruta: RutaActiva) => {
+    setRutaParaProgramar(ruta);
+    const today = new Date().toISOString().split("T")[0];
+    setFechaProgramacion(today);
+    setShowProgramacionModal(true);
+  };
+
+  // Función para obtener rutas programadas por fecha
+  const fetchRutasProgramadas = async (fecha: string) => {
+    if (!fecha) return;
+
+    setLoadingProgramacion(true);
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fecha}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setRutasProgramadas(data);
+      } else {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error al obtener rutas programadas:", error);
+      alert(
+        "Error al obtener rutas programadas: " +
+          (error instanceof Error ? error.message : "Error desconocido")
+      );
+    } finally {
+      setLoadingProgramacion(false);
+    }
+  };
+
+  // Función para actualizar kg de un cliente específico
+  const handleActualizarKg = async (
+    idRuta: number,
+    idCliente: number,
+    kgCorriente: number,
+    kgEspecial: number
+  ) => {
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/actualizar-programacion-cliente`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idRuta,
+            idCliente,
+            fecha: fechaProgramacion,
+            kgCorriente,
+            kgEspecial,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        // Refrescar los datos
+        await fetchRutasProgramadas(fechaProgramacion);
+        alert("Programación actualizada exitosamente");
+      } else {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error al actualizar programación:", error);
+      alert(
+        "Error al actualizar programación: " +
+          (error instanceof Error ? error.message : "Error desconocido")
+      );
+    }
+  };
+
+  // Efecto para cargar datos cuando cambie la fecha
+  useEffect(() => {
+    if (fechaProgramacion && showProgramacionModal) {
+      fetchRutasProgramadas(fechaProgramacion);
+    }
+  }, [fechaProgramacion, showProgramacionModal]);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -331,36 +448,58 @@ export function GestionRutas({
                 </div>
               </div>
 
-              <div className="mt-4 flex space-x-2">
-                <button
-                  onClick={() => onVerDetalle(ruta)}
-                  className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <div className="mt-4 space-y-2">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => onVerDetalle(ruta)}
+                    className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                  Ver Detalle
-                </button>
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                    Ver Detalle
+                  </button>
+
+                  <button
+                    onClick={() => abrirModalAsignar(ruta)}
+                    className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    Driver
+                  </button>
+                </div>
 
                 <button
-                  onClick={() => abrirModalAsignar(ruta)}
-                  className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  onClick={() => handleProgramarEntregas(ruta)}
+                  className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
                 >
                   <svg
                     className="w-4 h-4 mr-1"
@@ -372,10 +511,10 @@ export function GestionRutas({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  Driver
+                  Programar Entregas
                 </button>
               </div>
             </div>
@@ -586,6 +725,216 @@ export function GestionRutas({
           </div>
         </div>
       )}
+
+      {/* Modal de Programación de Entregas */}
+      {showProgramacionModal && rutaParaProgramar && (
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
+          <div className="relative mx-auto p-5 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto w-[90vw] max-w-6xl">
+            <div className="mb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Programar Entregas - {rutaParaProgramar.nombre}
+              </h3>
+              <div className="flex items-center space-x-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de Programación
+                  </label>
+                  <input
+                    type="date"
+                    value={fechaProgramacion}
+                    onChange={(e) => setFechaProgramacion(e.target.value)}
+                    className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
+                  />
+                </div>
+                <div className="text-sm text-gray-500 mt-6">
+                  Selecciona una fecha para ver y modificar las programaciones
+                </div>
+              </div>
+            </div>
+
+            {loadingProgramacion ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {rutasProgramadas.length > 0 ? (
+                  rutasProgramadas.map((rutaProg) => (
+                    <div
+                      key={rutaProg.ruta.id}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-lg font-medium text-gray-900">
+                          {rutaProg.ruta.nombre}
+                        </h4>
+                        <div className="text-sm text-gray-500">
+                          {rutaProg.totalClientes} clientes • Total:{" "}
+                          {rutaProg.totalKgCorriente}kg corriente,{" "}
+                          {rutaProg.totalKgEspecial}kg especial
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {rutaProg.clientes.map((clienteData: any) => (
+                          <ClienteProgramacionCard
+                            key={clienteData.cliente.id}
+                            clienteData={clienteData}
+                            onActualizarKg={handleActualizarKg}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No hay datos de programación para la fecha seleccionada
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowProgramacionModal(false);
+                  setRutaParaProgramar(null);
+                  setRutasProgramadas([]);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Componente para mostrar cada cliente en la programación
+interface ClienteProgramacionCardProps {
+  clienteData: any;
+  onActualizarKg: (
+    idRuta: number,
+    idCliente: number,
+    kgCorriente: number,
+    kgEspecial: number
+  ) => void;
+}
+
+function ClienteProgramacionCard({
+  clienteData,
+  onActualizarKg,
+}: ClienteProgramacionCardProps) {
+  const [kgCorriente, setKgCorriente] = useState(
+    clienteData.rutaCliente.kg_corriente_programado || 0
+  );
+  const [kgEspecial, setKgEspecial] = useState(
+    clienteData.rutaCliente.kg_especial_programado || 0
+  );
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleGuardar = () => {
+    onActualizarKg(
+      clienteData.rutaCliente.id_ruta,
+      clienteData.rutaCliente.id_cliente,
+      parseFloat(kgCorriente.toString()) || 0,
+      parseFloat(kgEspecial.toString()) || 0
+    );
+    setIsEditing(false);
+  };
+
+  const handleCancelar = () => {
+    setKgCorriente(clienteData.rutaCliente.kg_corriente_programado || 0);
+    setKgEspecial(clienteData.rutaCliente.kg_especial_programado || 0);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+      <div className="mb-3">
+        <h5 className="font-medium text-gray-900">
+          {clienteData.cliente.nombre}
+        </h5>
+        <p className="text-sm text-gray-500">
+          {clienteData.cliente.nombreNegocio}
+        </p>
+        <p className="text-xs text-gray-400">{clienteData.cliente.direccion}</p>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Kg Corriente
+          </label>
+          {isEditing ? (
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              value={kgCorriente}
+              onChange={(e) => setKgCorriente(parseFloat(e.target.value) || 0)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
+            />
+          ) : (
+            <div className="text-sm font-medium text-gray-900">
+              {kgCorriente} kg
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Kg Especial
+          </label>
+          {isEditing ? (
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              value={kgEspecial}
+              onChange={(e) => setKgEspecial(parseFloat(e.target.value) || 0)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
+            />
+          ) : (
+            <div className="text-sm font-medium text-gray-900">
+              {kgEspecial} kg
+            </div>
+          )}
+        </div>
+
+        <div className="pt-2">
+          {isEditing ? (
+            <div className="flex space-x-2">
+              <button
+                onClick={handleGuardar}
+                className="flex-1 px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={handleCancelar}
+                className="flex-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md"
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="w-full px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md"
+            >
+              Editar Kg
+            </button>
+          )}
+        </div>
+
+        <div className="text-xs text-gray-500 pt-1">
+          Estado: {clienteData.rutaCliente.estado || "Sin programar"}
+        </div>
+      </div>
     </div>
   );
 }

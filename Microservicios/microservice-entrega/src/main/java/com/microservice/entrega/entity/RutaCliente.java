@@ -1,5 +1,6 @@
 package com.microservice.entrega.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,6 +26,13 @@ public class RutaCliente {
     private Long id_ruta;
     private Long id_cliente;
     private Integer orden; // Revisar, ya que creo que OSRM lo hace automatico para obtener la mejor ruta
+    
+    // Campos adicionales que existen en la base de datos
+    private String estado;
+    private LocalDate fecha_programada;
+    private Double kg_corriente_programado;
+    private Double kg_especial_programado;
+    
     // Anotación para setear automáticamente la fecha
     @CreationTimestamp
     private LocalDateTime fecha_actualizacion;

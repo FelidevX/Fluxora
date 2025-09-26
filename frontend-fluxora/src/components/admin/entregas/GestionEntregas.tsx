@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { RutasActivas } from "./RutasActivas";
 import { DetalleRuta } from "./DetalleRuta";
 import { HistorialEntregas } from "./HistorialEntregas";
-import { GestionRutas } from "./GestionRutas";
+import { GestionRutas } from "./gestion/GestionRutas";
 import { RutaActiva } from "@/interfaces/entregas";
 
 export default function GestionEntregas() {

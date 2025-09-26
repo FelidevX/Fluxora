@@ -53,13 +53,7 @@ interface RutasActivasProps {
   onCrearDatosPrueba?: () => void;
 }
 
-export function RutasActivas({
-  rutas,
-  loading,
-  onRefresh,
-  onVerDetalle,
-  onCrearDatosPrueba,
-}: RutasActivasProps) {
+export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
   const [showProgramarClientesModal, setShowProgramarClientesModal] =
     useState(false);
   const [rutaSeleccionada, setRutaSeleccionada] = useState<RutaActiva | null>(
@@ -77,10 +71,6 @@ export function RutasActivas({
     []
   );
   const [loadingFecha, setLoadingFecha] = useState(false);
-
-
-
-
 
   // Función para editar un cliente específico
   const editarClienteEspecifico = (idRuta: number, clienteData: any) => {
@@ -101,48 +91,6 @@ export function RutasActivas({
       },
     ]);
     setShowProgramarClientesModal(true);
-  };
-
-  const crearDatosPrueba = async () => {
-    try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/setup-datos-prueba`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        alert("Datos de prueba creados exitosamente");
-        // Recargar las rutas para la fecha actual
-        const fechaFormateada = fechaSeleccionada
-          .split("-")
-          .reverse()
-          .join("-");
-        await fetchRutasPorFecha(fechaFormateada);
-      } else {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("Error al crear datos de prueba:", error);
-      alert(
-        "Error al crear datos de prueba: " +
-          (error instanceof Error ? error.message : "Error desconocido")
-      );
-    }
   };
 
   const fetchRutasPorFecha = async (fecha: string) => {
@@ -370,27 +318,6 @@ export function RutasActivas({
             </svg>
             Actualizar
           </button>
-          {onCrearDatosPrueba && (
-            <button
-              onClick={onCrearDatosPrueba}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <svg
-                className="h-4 w-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Crear Datos de Prueba
-            </button>
-          )}
         </div>
       </div>
     );
@@ -451,15 +378,6 @@ export function RutasActivas({
             </svg>
             Actualizar
           </button>
-
-          {onCrearDatosPrueba && (
-            <button
-              onClick={onCrearDatosPrueba}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Crear Datos
-            </button>
-          )}
         </div>
       </div>
 
@@ -710,8 +628,6 @@ export function RutasActivas({
           ))}
         </div>
       )}
-
-
     </div>
   );
 }

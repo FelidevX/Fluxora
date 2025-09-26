@@ -124,11 +124,16 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
           data.forEach((ruta: any, index: number) => {
             console.log(`=== DEBUG: Ruta ${index} ===`, ruta);
             if (ruta.clientes && ruta.clientes.length > 0) {
-              ruta.clientes.forEach((clienteData: any, clienteIndex: number) => {
-                console.log(`  Cliente ${clienteIndex}:`, clienteData);
-                console.log(`  - Cliente objeto:`, clienteData?.cliente);
-                console.log(`  - Dirección del cliente:`, clienteData?.cliente?.direccion);
-              });
+              ruta.clientes.forEach(
+                (clienteData: any, clienteIndex: number) => {
+                  console.log(`  Cliente ${clienteIndex}:`, clienteData);
+                  console.log(`  - Cliente objeto:`, clienteData?.cliente);
+                  console.log(
+                    `  - Dirección del cliente:`,
+                    clienteData?.cliente?.direccion
+                  );
+                }
+              );
             }
           });
           setRutasPorFecha(data);

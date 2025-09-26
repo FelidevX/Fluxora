@@ -84,8 +84,6 @@ export function GestionRutas({
     fetchDrivers();
   }, []);
 
-
-
   // Función para crear nueva ruta
   const crearNuevaRuta = async () => {
     if (!nuevaRuta.nombre.trim()) {

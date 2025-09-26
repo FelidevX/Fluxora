@@ -117,8 +117,20 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("=== DEBUG: Datos completos recibidos ===", data);
         // Validar que los datos sean un array válido
         if (Array.isArray(data)) {
+          // Log detallado de cada ruta y sus clientes
+          data.forEach((ruta: any, index: number) => {
+            console.log(`=== DEBUG: Ruta ${index} ===`, ruta);
+            if (ruta.clientes && ruta.clientes.length > 0) {
+              ruta.clientes.forEach((clienteData: any, clienteIndex: number) => {
+                console.log(`  Cliente ${clienteIndex}:`, clienteData);
+                console.log(`  - Cliente objeto:`, clienteData?.cliente);
+                console.log(`  - Dirección del cliente:`, clienteData?.cliente?.direccion);
+              });
+            }
+          });
           setRutasPorFecha(data);
         } else {
           console.warn("Los datos recibidos no son un array válido:", data);

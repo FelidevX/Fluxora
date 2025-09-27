@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import InventarioCard from "@/components/inventario/InventarioCard";
 import MateriasManager from "@/components/inventario/materias/MateriasManager";
@@ -9,7 +9,7 @@ import RecetasManager from "@/components/inventario/recetas/RecetasManager";
 import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEstadisticas";
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
 
-export default function InventarioPage() {
+function InventarioContent() {
   const searchParams = useSearchParams();
   const [activeView, setActiveView] = useState<
     "overview" | "materias" | "productos" | "recetas"
@@ -133,4 +133,16 @@ export default function InventarioPage() {
       </div>
     );
   }
+}
+
+export default function InventarioPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-gray-600">Cargando inventario...</div>
+      </div>
+    }>
+      <InventarioContent />
+    </Suspense>
+  );
 }

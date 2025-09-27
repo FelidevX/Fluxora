@@ -1,0 +1,107 @@
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: fluxora
+      POSTGRES_PASSWORD: fluxora123
+      POSTGRES_DB: fluxora_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fluxora-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fluxora"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./Microservicios/microservice-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    networks:
+      - fluxora-network
+
+  # Eureka Server
+  eureka-server:
+    build:
+      context: ./Microservicios/microservice-eureka
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - fluxora-network
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend-fluxora
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend-fluxora/.env
+    depends_on:
+      - api-gateway
+    networks:
+      - fluxora-network
+
+  # Microservicios
+  cliente-service:
+    build:
+      context: ./Microservicios/microservice-cliente
+    container_name: cliente-service
+    ports:
+      - "8083:8083"
+    env_file:
+      - ./Microservicios/microservice-cliente/.env
+    depends_on:
+      - db
+      - eureka-server
+    networks:
+      - fluxora-network
+
+  usuario-service:
+    build:
+      context: ./Microservicios/microservice-usuario
+    container_name: usuario-service
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./Microservicios/microservice-usuario/.env
+    depends_on:
+      - db
+      - eureka-server
+    networks:
+      - fluxora-network
+
+  entrega-service:
+    build:
+      context: ./Microservicios/microservice-entrega
+    container_name: entrega-service
+    ports:
+      - "8084:8084"
+    env_file:
+      - ./Microservicios/microservice-entrega/.env
+    depends_on:
+      - db
+      - eureka-server
+    networks:
+      - fluxora-network
+
+networks:
+  fluxora-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

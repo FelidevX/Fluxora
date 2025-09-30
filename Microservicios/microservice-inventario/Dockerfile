@@ -12,7 +12,7 @@ COPY src ./src
 # Construir la aplicación
 RUN mvn clean package -DskipTests
 
-# Etapa de ejecución (JRE es más pequeño que JDK)
+# Etapa de ejecución
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 

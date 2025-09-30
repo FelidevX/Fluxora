@@ -148,12 +148,12 @@ public class RutaService {
         return distanceMatrix;
     }
 
-    public Ruta getOrigenRuta() {
-        return rutaRepository.findById(1L).orElseThrow(() -> new RuntimeException("Ruta de origen no encontrada"));
+    public Ruta getOrigenRuta(Long id_ruta) {
+        return rutaRepository.findById(id_ruta).orElseThrow(() -> new RuntimeException("Ruta de origen no encontrada"));
     }
 
     public List<ClienteDTO> getClientesDeRuta(Long id_ruta) {
-        Optional<RutaCliente> rutaCliente = rutaClienteRepository.findById(id_ruta);
+        List<RutaCliente> rutaCliente = rutaClienteRepository.findById_ruta(id_ruta);
         List<Long> idClientes = rutaCliente.stream().map(RutaCliente::getId_cliente).toList();
         return clienteServiceClient.getClientesByIds(idClientes);
     }

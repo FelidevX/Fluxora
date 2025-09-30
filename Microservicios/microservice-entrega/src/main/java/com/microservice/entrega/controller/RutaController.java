@@ -35,12 +35,11 @@ public class RutaController {
         this.usuarioServiceClient = usuarioServiceClient;
     }
 
-    @GetMapping("/optimized-ortools")
-    public Map<String, Object> getOptimizedRouteORTools(@RequestParam Long driverId) {
-        UsuarioDTO driver = usuarioServiceClient.getDriverById(driverId);
-        List<ClienteDTO> clientes = clienteServiceClient.getAllClientes();
+    @GetMapping("/optimized-ortools/{id_ruta}")
+    public Map<String, Object> getOptimizedRouteORTools(@PathVariable Long id_ruta) {
+        List<ClienteDTO> clientes = rutaService.getClientesDeRuta(id_ruta);
         List<ClienteDTO> orderedClients = rutaService.getOptimizedRouteORTools(clientes);
-        Ruta origen = rutaService.getOrigenRuta();
+        Ruta origen = rutaService.getOrigenRuta(id_ruta);
         String osrmRoute = rutaService.getOsrmRoute(orderedClients, origen);
 
         Map<String, Object> result = new HashMap<>();
@@ -65,7 +64,7 @@ public class RutaController {
             List<ClienteDTO> optimizedRoute = rutaService.getOptimizedRouteORTools(testClientes);
             result.put("optimizedRoute", optimizedRoute);
 
-            Ruta origen = rutaService.getOrigenRuta();
+            Ruta origen = rutaService.getOrigenRuta(1L);
             result.put("origen", origen);
 
             String osrmRoute = rutaService.getOsrmRoute(optimizedRoute, origen);

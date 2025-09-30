@@ -30,12 +30,6 @@ public class EntregaController {
         return entregaService.getRutasActivas();
     }
 
-    // Obtener clientes de una ruta específica con información de entregas
-    // @GetMapping("/ruta/{id}/clientes")
-    // public List<Map<String, Object>> getClientesDeRutaConEntregas(@PathVariable Long id) {
-    //     return entregaService.getClientesDeRutaConEntregas(id);
-    // }
-
     // Registrar entrega a un cliente
     @PostMapping("/registrar")
     public ResponseEntity<String> registrarEntrega(@RequestBody RegistroEntrega registroEntrega) {
@@ -52,47 +46,6 @@ public class EntregaController {
     public List<RegistroEntrega> getHistorialEntregas(@PathVariable Long id) {
         return entregaService.getHistorialEntregasCliente(id);
     }
-
-    // Obtener entregas de un conductor/ruta
-    // @GetMapping("/conductor/{id}/entregas")
-    // public List<Map<String, Object>> getEntregasConductor(@PathVariable Long id) {
-    //     return entregaService.getEntregasConductor(id);
-    // }
-
-    // Obtener historial completo de todas las entregas
-    // @GetMapping("/historial")
-    // public List<Map<String, Object>> getHistorialCompleto() {
-    //     return entregaService.getHistorialCompleto();
-    // }
-
-    // Actualizar programación completa (cantidades y fecha) - Método obsoleto
-    // @PostMapping("/actualizar-programacion")
-    // public ResponseEntity<String> actualizarProgramacion(@RequestBody Map<String, Object> datos) {
-    //     try {
-    //         Long idRuta = Long.valueOf(datos.get("id_ruta").toString());
-    //         Long idCliente = Long.valueOf(datos.get("id_cliente").toString());
-    //         Double kgCorriente = Double.valueOf(datos.get("kg_corriente_programado").toString());
-    //         Double kgEspecial = Double.valueOf(datos.get("kg_especial_programado").toString());
-    //         String fechaProgramada = datos.get("fecha_programada").toString();
-    //         
-    //         entregaService.actualizarProgramacionCompleta(idRuta, idCliente, kgCorriente, kgEspecial, fechaProgramada);
-    //         return ResponseEntity.ok("Programación actualizada exitosamente");
-    //     } catch (Exception e) {
-    //         return ResponseEntity.badRequest().body("Error al actualizar programación: " + e.getMessage());
-    //     }
-    // }
-
-    // Obtener rutas programadas para una fecha específica - Método obsoleto, usar rutas-por-fecha
-    // @GetMapping("/programaciones/{fecha}")
-    // public List<Map<String, Object>> getProgramacionesPorFecha(@PathVariable String fecha) {
-    //     return entregaService.getProgramacionesPorFecha(fecha);
-    // }
-
-    // Obtener programaciones de un driver específico - Método no implementado
-    // @GetMapping("/driver/{idDriver}/programaciones")
-    // public List<Map<String, Object>> getProgramacionesDriver(@PathVariable Long idDriver) {
-    //     return entregaService.getProgramacionesDriver(idDriver);
-    // }
 
     // Asignar driver a una ruta
     @PostMapping("/asignar-driver")

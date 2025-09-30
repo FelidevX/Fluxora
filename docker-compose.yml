@@ -99,6 +99,20 @@ services:
     networks:
       - fluxora-network
 
+  inventario-service:
+    build:
+      context: ./Microservicios/microservice-inventario
+    container_name: inventario-service
+    ports:
+      - "8082:8082"
+    env_file:
+      - ./Microservicios/microservice-inventario/.env
+    depends_on:
+      - db
+      - eureka-server
+    networks:
+      - fluxora-network
+
 networks:
   fluxora-network:
     driver: bridge

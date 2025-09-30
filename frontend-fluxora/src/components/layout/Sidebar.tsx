@@ -2,9 +2,66 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { JSX, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Image from "next/image";
+
+// Utilidad para decodificar el JWT y extraer usuario
+function getUserFromToken() {
+  if (typeof window === "undefined") return null;
+  const token = localStorage.getItem("auth_token");
+  if (!token) return null;
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+// Pie del sidebar con usuario real y logout
+function SidebarUserFooter() {
+  const [user, setUser] = useState<{ email?: string; role?: string } | null>(
+    null
+  );
+
+  useEffect(() => {
+    const u = getUserFromToken();
+    console.log("JWT sidebar", u);
+    setUser(u);
+  }, []);
+
+  return (
+    <div className="mt-auto px-4 py-4 border-t border-white/10 flex flex-col gap-2">
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col flex-1">
+          <span className="text-sm font-semibold text-white">
+            {user?.email || "Usuario"}
+          </span>
+          <span className="text-xs text-blue-100">{user?.role || "Rol"}</span>
+        </div>
+        <button
+          title="Cerrar sesión"
+          onClick={() => {
+            localStorage.removeItem("auth_token");
+            window.location.href = "/login";
+          }}
+          className="p-2 rounded-full hover:bg-white/10 transition"
+        >
+          <MaterialIcon name="logout" className="text-xl text-white" />
+        </button>
+      </div>
+      <div className="text-xs text-white/60 mt-2">v1.0</div>
+    </div>
+  );
+}
 
 type Item = { href: string; label: string; icon: string };
 
@@ -12,11 +69,7 @@ const items: Item[] = [
   { href: "/dashboard", label: "Inicio", icon: "home" },
   { href: "/dashboard/inventario", label: "Inventario", icon: "inventory_2" },
   { href: "/dashboard/entregas", label: "Entregas", icon: "local_shipping" },
-  {
-    href: "/dashboard/clientes-rutas",
-    label: "Clientes y Rutas",
-    icon: "groups",
-  },
+  { href: "/dashboard/clientes", label: "Clientes y Rutas", icon: "groups" },
   { href: "/dashboard/prediccion", label: "Predicción", icon: "trending_up" },
   {
     href: "/dashboard/facturacion",
@@ -51,8 +104,7 @@ export default function Sidebar() {
 
   // Evitar scroll del body cuando está abierto en móvil
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
+    document.body.style.overflow = open ? "hidden" : "";
   }, [open]);
 
   return (
@@ -120,11 +172,11 @@ export default function Sidebar() {
             {items.map((item, idx) => {
               const active =
                 pathname === item.href || pathname?.startsWith(item.href + "/");
-              const common =
+              const base =
                 "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
               const classes = active
-                ? `${common} bg-white/15 text-white`
-                : `${common} text-white/90 hover:bg-white/10 hover:text-white`;
+                ? `${base} bg-white/15 text-white`
+                : `${base} text-white/90 hover:bg-white/10 hover:text-white`;
 
               return (
                 <li key={item.href}>
@@ -145,10 +197,8 @@ export default function Sidebar() {
           </ul>
         </nav>
 
-        {/* Pie del sidebar (ej. versión/app) */}
-        <div className="px-4 py-3 border-t border-white/10 text-xs text-white/80">
-          <span>v1.0</span>
-        </div>
+        {/* Pie del sidebar: usuario y logout */}
+        <SidebarUserFooter />
       </aside>
     </>
   );

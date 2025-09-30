@@ -243,7 +243,7 @@ export default function MateriasManager() {
             Gestión de Materias Primas
           </h1>
           <div className="flex items-center text-gray-600 mt-1">
-            <MaterialIcon name="calendar_today" className="w-4 h-4 mr-1" />
+            <MaterialIcon name="calendar_today" className="mr-1" />
             <span>{currentDateFormatted}</span>
           </div>
         </div>

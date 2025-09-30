@@ -4,12 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+import { useEffect } from "react";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Limpia cualquier token previo al montar la página de login
+  useEffect(() => {
+    localStorage.removeItem("auth_token");
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +45,26 @@ export default function LoginPage() {
         `${data.tokenType} ${data.accessToken}`
       );
 
-      // Redirige a tu página protegida (ajusta la ruta)
-      router.push("/");
+      // Decodifica el token para obtener el rol del usuario
+      try {
+        const tokenParts = data.accessToken.split(".");
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log("JWT payload en login:", payload);
+
+        // Redirige según el rol
+        if (payload.role === "DRIVER") {
+          console.log("Redirigiendo a /driver");
+          // Usar window.location.href para forzar una navegación completa
+          window.location.href = "/driver";
+        } else {
+          console.log("Redirigiendo a /dashboard");
+          router.push("/dashboard"); // Admins van al dashboard
+        }
+      } catch (error) {
+        console.log("Error decodificando token:", error);
+        // Si hay error decodificando, redirige al dashboard por defecto
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       setError(err.message ?? "Error al iniciar sesión");
     } finally {

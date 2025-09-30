@@ -1,7 +1,6 @@
 package com.microservice.cliente.service;
 
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,7 @@ public class ClienteService {
         List<Cliente> clientes = clienteRepository.findAllById(ids);
         return clientes.stream()
                 .map(cliente -> new ClienteDTO(cliente.getId(), cliente.getNombre(),
-                        cliente.getLatitud(), cliente.getLongitud()))
+                        cliente.getDireccion(), cliente.getLatitud(), cliente.getLongitud()))
                 .collect(Collectors.toList());
     }
 

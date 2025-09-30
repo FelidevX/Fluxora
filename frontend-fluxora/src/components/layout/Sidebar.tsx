@@ -34,7 +34,7 @@ function SidebarUserFooter() {
 
   useEffect(() => {
     const u = getUserFromToken();
-    console.log("JWT payload Sidebar:", u);
+    console.log("JWT sidebar", u);
     setUser(u);
   }, []);
 

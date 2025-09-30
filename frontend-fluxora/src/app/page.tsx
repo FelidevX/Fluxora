@@ -38,8 +38,26 @@ export default function LoginPage() {
         `${data.tokenType} ${data.accessToken}`
       );
 
-      // Redirige al dashboard
-      router.push("/dashboard");
+      // Decodifica el token para obtener el rol del usuario
+      try {
+        const tokenParts = data.accessToken.split(".");
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log("JWT payload en login:", payload);
+
+        // Redirige según el rol
+        if (payload.role === "DRIVER") {
+          console.log("Redirigiendo a /driver");
+          // Usar window.location.href para forzar una navegación completa
+          window.location.href = "/driver";
+        } else {
+          console.log("Redirigiendo a /dashboard");
+          router.push("/dashboard"); // Admins van al dashboard
+        }
+      } catch (error) {
+        console.log("Error decodificando token:", error);
+        // Si hay error decodificando, redirige al dashboard por defecto
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       setError(err.message ?? "Error al iniciar sesión");
     } finally {

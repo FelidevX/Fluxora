@@ -15,6 +15,9 @@ public interface RutaClienteRepository extends JpaRepository<RutaCliente, Long> 
     @Query("SELECT DISTINCT rc.id_cliente FROM RutaCliente rc")
     List<Long> findAllClienteIds();
 
+    @Query("SELECT rc FROM RutaCliente rc WHERE rc.id_ruta = :idRuta")
+    List<RutaCliente> findByIdRuta(@Param("idRuta") Long idRuta);
+
 
     @Query("SELECT rc FROM RutaCliente rc WHERE rc.id_ruta =:idRuta")
     List<RutaCliente> findById_ruta(@Param("idRuta") Long idRuta);

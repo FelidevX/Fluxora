@@ -75,6 +75,8 @@ public class UsuarioService {
             u.setRol(rol);
         }
         return usuarioRepository.save(u);
+    }
+        
     public List<Usuario> getUsuariosByRol(String rol) {
         return usuarioRepository.findByRolRol(rol);
     }

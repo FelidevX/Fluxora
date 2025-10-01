@@ -1,5 +1,6 @@
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
+import Link from "next/dist/client/link";
 
 interface InventarioCardProps {
   title: string;
@@ -8,7 +9,7 @@ interface InventarioCardProps {
   iconColor: string;
   buttonText: string;
   buttonVariant: "primary" | "success" | "warning";
-  onClick?: () => void;
+  href: string;
 }
 
 export default function InventarioCard({
@@ -18,7 +19,7 @@ export default function InventarioCard({
   iconColor,
   buttonText,
   buttonVariant,
-  onClick,
+  href,
 }: InventarioCardProps) {
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -29,9 +30,11 @@ export default function InventarioCard({
         <h2 className="ml-3 text-lg font-semibold text-gray-900">{title}</h2>
       </div>
       <p className="text-gray-600 mb-4">{description}</p>
-      <Button variant={buttonVariant} onClick={onClick} className="w-full">
-        {buttonText}
-      </Button>
+      <Link href={href}>
+        <Button variant={buttonVariant} className="w-full cursor-pointer">
+          {buttonText}
+        </Button>
+      </Link>
     </div>
   );
 }

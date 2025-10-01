@@ -150,7 +150,6 @@ function DataTable<T extends Record<string, any>>({
                               >
                                 <MaterialIcon
                                   name={action.icon}
-                                  className="w-4 h-4"
                                 />
                                 {action.label}
                               </Button>

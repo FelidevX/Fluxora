@@ -11,6 +11,7 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import FormattedDate from "@/components/ui/FormattedDate";
+import Link from "next/link";
 
 function MateriaContent() {
   const searchParams = useSearchParams();
@@ -236,6 +237,15 @@ function MateriaContent() {
 
   return (
     <div className="space-y-6 p-6">
+      <div className="mb-4">
+        <Link
+          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+          href={"/dashboard/inventario"}
+          >
+            <MaterialIcon name="arrow_back" className="mr-1" />
+            <span>Volver al inicio</span>
+        </Link>
+      </div>
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -277,7 +287,7 @@ function MateriaContent() {
 
       {/* Formulario */}
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white p-6 rounded-lg shadow-md text-black">
           <h2 className="text-lg font-semibold mb-4">Nueva Materia Prima</h2>
           <form
             onSubmit={handleSubmit}

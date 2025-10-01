@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import InventarioCard from "@/components/inventario/InventarioCard";
 import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEstadisticas";
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
-import Link from "next/link";
 
 function InventarioContent() {
   const searchParams = useSearchParams();
@@ -54,7 +53,7 @@ function InventarioContent() {
             buttonVariant="primary"
             href="/dashboard/inventario/productos"
           />
-          
+
           <InventarioCard
             title="Recetas"
             description="Crear y gestionar recetas base para producción"

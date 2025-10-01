@@ -8,7 +8,7 @@ interface InventarioCardProps {
   iconColor: string;
   buttonText: string;
   buttonVariant: "primary" | "success" | "warning";
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export default function InventarioCard({

@@ -171,7 +171,7 @@ export default function Sidebar() {
           <ul className="space-y-1">
             {items.map((item, idx) => {
               const active =
-                pathname === item.href || pathname?.startsWith(item.href + "/");
+                pathname === item.href;
               const base =
                 "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
               const classes = active
@@ -183,7 +183,7 @@ export default function Sidebar() {
                   <Link
                     ref={idx === 0 ? firstLinkRef : undefined}
                     href={item.href}
-                    className={classes}
+                    className={classes}   
                   >
                     <MaterialIcon
                       name={item.icon}

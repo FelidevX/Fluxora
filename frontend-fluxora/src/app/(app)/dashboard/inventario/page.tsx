@@ -3,11 +3,12 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import InventarioCard from "@/components/inventario/InventarioCard";
-import MateriasManager from "@/components/inventario/materias/MateriasManager";
 import ProductosManager from "@/components/inventario/productos/ProductosManager";
 import RecetasManager from "@/components/inventario/recetas/RecetasManager";
 import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEstadisticas";
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
+import Link from "next/link";
+import MateriasPage from "./materias/page";
 
 function InventarioContent() {
   const searchParams = useSearchParams();
@@ -41,35 +42,38 @@ function InventarioContent() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <InventarioCard
-            title="Materias Primas"
-            description="Gestiona las materias primas disponibles en el inventario"
-            icon="inventory"
-            iconColor="bg-blue-100 text-blue-600"
-            buttonText="Gestionar Materias Primas"
-            buttonVariant="primary"
-            onClick={() => handleCardClick("materias")}
-          />
+          <Link href="/dashboard/inventario/materias">
+            <InventarioCard
+              title="Materias Primas"
+              description="Gestiona las materias primas disponibles en el inventario"
+              icon="inventory"
+              iconColor="bg-blue-100 text-blue-600"
+              buttonText="Gestionar Materias Primas"
+              buttonVariant="primary"
+            />
+          </Link>
 
-          <InventarioCard
-            title="Productos"
-            description="Administra el catálogo de productos terminados"
-            icon="shopping_bag"
-            iconColor="bg-green-100 text-green-600"
-            buttonText="Gestionar Productos"
-            buttonVariant="success"
-            onClick={() => handleCardClick("productos")}
-          />
+          <Link href="/dashboard/inventario/productos">
+            <InventarioCard
+              title="Productos"
+              description="Administra el catálogo de productos terminados"
+              icon="inventory"
+              iconColor="bg-blue-100 text-blue-600"
+              buttonText="Gestionar Productos"
+              buttonVariant="primary"
+            />
+          </Link>
 
-          <InventarioCard
-            title="Recetas"
-            description="Crear y gestionar recetas base para producción"
-            icon="restaurant_menu"
-            iconColor="bg-purple-100 text-purple-600"
-            buttonText="Gestionar Recetas"
-            buttonVariant="primary"
-            onClick={() => handleCardClick("recetas")}
-          />
+          <Link href="/dashboard/inventario/recetas">
+            <InventarioCard
+              title="Recetas"
+              description="Crear y gestionar recetas base para producción"
+              icon="restaurant_menu"
+              iconColor="bg-purple-100 text-purple-600"
+              buttonText="Gestionar Recetas"
+              buttonVariant="primary"
+            />
+          </Link>
         </div>
 
         {/* Dashboard de Estadísticas */}
@@ -97,7 +101,7 @@ function InventarioContent() {
             ← Volver al inicio
           </button>
         </div>
-        <MateriasManager />
+        <MateriasPage />
       </div>
     );
   }

@@ -27,14 +27,16 @@ export function ProgramacionEntregasModal({
   loadingProgramacion,
   onActualizarKg,
 }: ProgramacionEntregasModalProps) {
-  if (!isOpen || !ruta) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
       <div className="relative mx-auto p-5 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto w-[90vw] max-w-6xl">
         <div className="mb-4">
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Programar Entregas - {ruta.nombre}
+            {ruta
+              ? `Programar Entregas - ${ruta.nombre}`
+              : "Programar Entregas"}
           </h3>
           <div className="flex items-center space-x-4">
             <div>

@@ -221,8 +221,8 @@ export function GestionRutas({
   };
 
   // Función para abrir modal de programación
-  const handleProgramarEntregas = (ruta: RutaActiva) => {
-    setRutaParaProgramar(ruta);
+  const handleProgramarEntregas = () => {
+    setRutaParaProgramar(null); // Sin ruta específica
     const today = new Date().toISOString().split("T")[0];
     setFechaProgramacion(today);
     setShowProgramacionModal(true);
@@ -339,25 +339,46 @@ export function GestionRutas({
             Administra las rutas existentes, crea nuevas rutas y asigna drivers
           </p>
         </div>
-        <button
-          onClick={() => setShowCrearModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-        >
-          <svg
-            className="h-4 w-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="flex space-x-3">
+          <button
+            onClick={handleProgramarEntregas}
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Crear Nueva Ruta
-        </button>
+            <svg
+              className="h-4 w-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            Programar Entregas
+          </button>
+          <button
+            onClick={() => setShowCrearModal(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <svg
+              className="h-4 w-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Crear Nueva Ruta
+          </button>
+        </div>
       </div>
 
       {/* Lista de rutas existentes */}
@@ -398,7 +419,6 @@ export function GestionRutas({
               ruta={ruta}
               onVerDetalle={onVerDetalle}
               onAsignarDriver={abrirModalAsignar}
-              onProgramarEntregas={handleProgramarEntregas}
             />
           ))}
         </div>

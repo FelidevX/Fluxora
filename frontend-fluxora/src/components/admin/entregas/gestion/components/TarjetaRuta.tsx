@@ -4,14 +4,12 @@ interface TarjetaRutaProps {
   ruta: RutaActiva;
   onVerDetalle: (ruta: RutaActiva) => void;
   onAsignarDriver: (ruta: RutaActiva) => void;
-  onProgramarEntregas: (ruta: RutaActiva) => void;
 }
 
 export function TarjetaRuta({
   ruta,
   onVerDetalle,
   onAsignarDriver,
-  onProgramarEntregas,
 }: TarjetaRutaProps) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
@@ -126,26 +124,6 @@ export function TarjetaRuta({
             Driver
           </button>
         </div>
-
-        <button
-          onClick={() => onProgramarEntregas(ruta)}
-          className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-        >
-          <svg
-            className="w-4 h-4 mr-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          Programar Entregas
-        </button>
       </div>
     </div>
   );

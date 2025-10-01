@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RutaActiva } from "@/interfaces/entregas";
-
-interface Driver {
-  id: number;
-  nombre: string;
-  email: string;
-  rol: string;
-}
+import { RutaActiva } from "@/interfaces/entregas/entregas";
+import { Driver } from "@/interfaces/entregas/driver";
+import { TarjetaRuta } from "@/components/admin/entregas/gestion/components/TarjetaRuta";
+import { CrearRutaModal } from "@/components/admin/entregas/gestion/components/CrearRutaModal";
+import { AsignarDriverModal } from "@/components/admin/entregas/gestion/components/AsignarDriverModal";
+import { ProgramacionEntregasModal } from "@/components/admin/entregas/gestion/components/ProgramacionEntregasModal";
 
 interface GestionRutasProps {
   rutas: RutaActiva[];
@@ -93,14 +91,29 @@ export function GestionRutas({
     fetchDrivers();
   }, []);
 
-  // Función para crear nueva ruta
-  const crearNuevaRuta = async () => {
-    if (!nuevaRuta.nombre.trim()) {
+  // Función para actualizar la ruta a crear
+  const crearNuevaRuta = (rutaData: {
+    nombre: string;
+    descripcion: string;
+    origen_coordenada: string;
+    id_driver: string;
+  }) => {
+    if (!rutaData.nombre.trim()) {
       alert("El nombre de la ruta es obligatorio");
       return;
     }
 
     setLoadingCreate(true);
+    crearRutaReal(rutaData);
+  };
+
+  // Función real para crear nueva ruta
+  const crearRutaReal = async (rutaData: {
+    nombre: string;
+    descripcion: string;
+    origen_coordenada: string;
+    id_driver: string;
+  }) => {
     try {
       let token = localStorage.getItem("auth_token");
       if (!token) {
@@ -120,12 +133,10 @@ export function GestionRutas({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            nombre: nuevaRuta.nombre,
-            descripcion: nuevaRuta.descripcion,
-            origen_coordenada: nuevaRuta.origen_coordenada,
-            id_driver: nuevaRuta.id_driver
-              ? parseInt(nuevaRuta.id_driver)
-              : null,
+            nombre: rutaData.nombre,
+            descripcion: rutaData.descripcion,
+            origen_coordenada: rutaData.origen_coordenada,
+            id_driver: rutaData.id_driver ? parseInt(rutaData.id_driver) : null,
           }),
         }
       );
@@ -163,7 +174,7 @@ export function GestionRutas({
   };
 
   // Función para asignar driver
-  const handleAsignarDriver = async () => {
+  const handleAsignarDriver = async (driverId: string) => {
     if (!rutaSeleccionada || !driverId) return;
 
     try {
@@ -378,563 +389,72 @@ export function GestionRutas({
         </div>
       )}
 
+      {/* Lista de rutas usando TarjetaRuta */}
       {!loading && rutas.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rutas.map((ruta) => (
-            <div
+            <TarjetaRuta
               key={ruta.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {ruta.nombre}
-                  </h3>
-
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                      {ruta.totalClientes} clientes
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                      {ruta.id_driver
-                        ? `Driver #${ruta.id_driver}`
-                        : "Sin driver asignado"}
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                        />
-                      </svg>
-                      {ruta.progreso.toFixed(1)}% completado
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => onVerDetalle(ruta)}
-                    className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                    Ver Detalle
-                  </button>
-
-                  <button
-                    onClick={() => abrirModalAsignar(ruta)}
-                    className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    Driver
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => handleProgramarEntregas(ruta)}
-                  className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                >
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Programar Entregas
-                </button>
-              </div>
-            </div>
+              ruta={ruta}
+              onVerDetalle={onVerDetalle}
+              onAsignarDriver={abrirModalAsignar}
+              onProgramarEntregas={handleProgramarEntregas}
+            />
           ))}
         </div>
       )}
 
-      {/* Modal de Crear Ruta */}
-      {showCrearModal && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="relative  mx-auto p-5 border w-96 shadow-lg rounded-md bg-white max-h-[80vh] overflow-y-auto">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Crear Nueva Ruta
-              </h3>
+      {/* Modal CrearRuta */}
+      <CrearRutaModal
+        isOpen={showCrearModal}
+        onClose={() => {
+          setShowCrearModal(false);
+          setNuevaRuta({
+            nombre: "",
+            descripcion: "",
+            origen_coordenada: "-36.612523, -72.082921",
+            id_driver: "",
+          });
+        }}
+        onCrear={crearNuevaRuta}
+        drivers={drivers}
+        loadingDrivers={loadingDrivers}
+        loadingCreate={loadingCreate}
+      />
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre de la Ruta *
-                  </label>
-                  <input
-                    type="text"
-                    value={nuevaRuta.nombre}
-                    onChange={(e) =>
-                      setNuevaRuta({ ...nuevaRuta, nombre: e.target.value })
-                    }
-                    placeholder="Ej: Ruta Centro, Ruta Norte, Ruta Las Condes"
-                    className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    required
-                  />
-                </div>
+      {/* Modal AsignarDriver */}
+      <AsignarDriverModal
+        isOpen={showAsignarModal}
+        onClose={() => {
+          setShowAsignarModal(false);
+          setRutaSeleccionada(null);
+          setDriverId("");
+        }}
+        onAsignar={handleAsignarDriver}
+        ruta={rutaSeleccionada}
+        drivers={drivers}
+        loadingDrivers={loadingDrivers}
+        driverId={driverId}
+        setDriverId={setDriverId}
+      />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Descripción
-                  </label>
-                  <textarea
-                    value={nuevaRuta.descripcion}
-                    onChange={(e) =>
-                      setNuevaRuta({
-                        ...nuevaRuta,
-                        descripcion: e.target.value,
-                      })
-                    }
-                    placeholder="Descripción detallada de la ruta, zonas que cubre, etc."
-                    rows={3}
-                    className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coordenadas de Origen (Panadería)
-                  </label>
-                  <input
-                    type="text"
-                    value={nuevaRuta.origen_coordenada}
-                    onChange={(e) =>
-                      setNuevaRuta({
-                        ...nuevaRuta,
-                        origen_coordenada: e.target.value,
-                      })
-                    }
-                    placeholder="-36.612523, -72.082921"
-                    className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50"
-                    readOnly
-                  />
-                  <p className="mt-1 text-sm text-gray-500">
-                    📍 Coordenadas fijas de la panadería (punto de inicio de
-                    todas las rutas)
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Driver Asignado
-                  </label>
-                  {loadingDrivers ? (
-                    <div className="flex items-center py-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                      <span className="text-sm text-gray-500">
-                        Cargando drivers...
-                      </span>
-                    </div>
-                  ) : (
-                    <select
-                      value={nuevaRuta.id_driver}
-                      onChange={(e) =>
-                        setNuevaRuta({
-                          ...nuevaRuta,
-                          id_driver: e.target.value,
-                        })
-                      }
-                      className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    >
-                      <option value="">Seleccionar driver (opcional)</option>
-                      {drivers.map((driver) => (
-                        <option key={driver.id} value={driver.id.toString()}>
-                          {driver.nombre} - {driver.email}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  <p className="mt-1 text-sm text-gray-500">
-                    {drivers.length > 0
-                      ? `${drivers.length} driver(s) disponible(s). Puedes asignar después si prefieres.`
-                      : "No se encontraron drivers disponibles. Puedes asignar después."}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowCrearModal(false);
-                    setNuevaRuta({
-                      nombre: "",
-                      descripcion: "",
-                      origen_coordenada: "-36.612523, -72.082921",
-                      id_driver: "",
-                    });
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  disabled={loadingCreate}
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={crearNuevaRuta}
-                  disabled={!nuevaRuta.nombre.trim() || loadingCreate}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center"
-                >
-                  {loadingCreate && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  )}
-                  {loadingCreate ? "Creando..." : "Crear Ruta"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Asignar Driver */}
-      {showAsignarModal && rutaSeleccionada && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Asignar Driver - {rutaSeleccionada.nombre}
-              </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Seleccionar Driver
-                  </label>
-                  {loadingDrivers ? (
-                    <div className="flex items-center py-3">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                      <span className="text-sm text-gray-500">
-                        Cargando drivers...
-                      </span>
-                    </div>
-                  ) : (
-                    <select
-                      value={driverId}
-                      onChange={(e) => setDriverId(e.target.value)}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Seleccionar un driver</option>
-                      {drivers.map((driver) => (
-                        <option key={driver.id} value={driver.id.toString()}>
-                          {driver.nombre} - {driver.email}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  <p className="mt-1 text-sm text-gray-500">
-                    {drivers.length > 0
-                      ? `${drivers.length} driver(s) disponible(s)`
-                      : "No se encontraron drivers disponibles"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowAsignarModal(false);
-                    setRutaSeleccionada(null);
-                    setDriverId("");
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleAsignarDriver}
-                  disabled={!driverId}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  Asignar Driver
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Programación de Entregas */}
-      {showProgramacionModal && rutaParaProgramar && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="relative mx-auto p-5 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto w-[90vw] max-w-6xl">
-            <div className="mb-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Programar Entregas - {rutaParaProgramar.nombre}
-              </h3>
-              <div className="flex items-center space-x-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fecha de Programación
-                  </label>
-                  <input
-                    type="date"
-                    value={fechaProgramacion}
-                    onChange={(e) => setFechaProgramacion(e.target.value)}
-                    className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
-                  />
-                </div>
-                <div className="text-sm text-gray-500 mt-6">
-                  Selecciona una fecha para ver y modificar las programaciones
-                </div>
-              </div>
-            </div>
-
-            {loadingProgramacion ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {rutasProgramadas.length > 0 ? (
-                  rutasProgramadas.map((rutaProg) => (
-                    <div
-                      key={rutaProg.ruta.id}
-                      className="border border-gray-200 rounded-lg p-4"
-                    >
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          {rutaProg.ruta.nombre}
-                        </h4>
-                        <div className="text-sm text-gray-500">
-                          {rutaProg.totalClientes} clientes • Total:{" "}
-                          {rutaProg.totalKgCorriente}kg corriente,{" "}
-                          {rutaProg.totalKgEspecial}kg especial
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {rutaProg.clientes.map((clienteData: any) => (
-                          <ClienteProgramacionCard
-                            key={clienteData.cliente.id}
-                            clienteData={clienteData}
-                            onActualizarKg={handleActualizarKg}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No hay datos de programación para la fecha seleccionada
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowProgramacionModal(false);
-                  setRutaParaProgramar(null);
-                  setRutasProgramadas([]);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal ProgramacionEntregas */}
+      <ProgramacionEntregasModal
+        isOpen={showProgramacionModal}
+        onClose={() => {
+          setShowProgramacionModal(false);
+          setRutaParaProgramar(null);
+          setRutasProgramadas([]);
+        }}
+        ruta={rutaParaProgramar}
+        fechaProgramacion={fechaProgramacion}
+        setFechaProgramacion={setFechaProgramacion}
+        rutasProgramadas={rutasProgramadas}
+        loadingProgramacion={loadingProgramacion}
+        onActualizarKg={handleActualizarKg}
+      />
     </div>
   );
 }
 
-// Componente para mostrar cada cliente en la programación
-interface ClienteProgramacionCardProps {
-  clienteData: any;
-  onActualizarKg: (
-    idRuta: number,
-    idCliente: number,
-    kgCorriente: number,
-    kgEspecial: number
-  ) => void;
-}
-
-function ClienteProgramacionCard({
-  clienteData,
-  onActualizarKg,
-}: ClienteProgramacionCardProps) {
-  const [kgCorriente, setKgCorriente] = useState(
-    clienteData.rutaCliente.kg_corriente_programado || 0
-  );
-  const [kgEspecial, setKgEspecial] = useState(
-    clienteData.rutaCliente.kg_especial_programado || 0
-  );
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleGuardar = () => {
-    onActualizarKg(
-      clienteData.rutaCliente.id_ruta,
-      clienteData.rutaCliente.id_cliente,
-      parseFloat(kgCorriente.toString()) || 0,
-      parseFloat(kgEspecial.toString()) || 0
-    );
-    setIsEditing(false);
-  };
-
-  const handleCancelar = () => {
-    setKgCorriente(clienteData.rutaCliente.kg_corriente_programado || 0);
-    setKgEspecial(clienteData.rutaCliente.kg_especial_programado || 0);
-    setIsEditing(false);
-  };
-
-  return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-      <div className="mb-3">
-        <h5 className="font-medium text-gray-900">
-          {clienteData.cliente.nombre}
-        </h5>
-        <p className="text-sm text-gray-500">
-          {clienteData.cliente.nombreNegocio}
-        </p>
-        <p className="text-xs text-gray-400">{clienteData.cliente.direccion}</p>
-      </div>
-
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Kg Corriente
-          </label>
-          {isEditing ? (
-            <input
-              type="number"
-              step="0.5"
-              min="0"
-              value={kgCorriente}
-              onChange={(e) => setKgCorriente(parseFloat(e.target.value) || 0)}
-              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
-            />
-          ) : (
-            <div className="text-sm font-medium text-gray-900">
-              {kgCorriente} kg
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Kg Especial
-          </label>
-          {isEditing ? (
-            <input
-              type="number"
-              step="0.5"
-              min="0"
-              value={kgEspecial}
-              onChange={(e) => setKgEspecial(parseFloat(e.target.value) || 0)}
-              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
-            />
-          ) : (
-            <div className="text-sm font-medium text-gray-900">
-              {kgEspecial} kg
-            </div>
-          )}
-        </div>
-
-        <div className="pt-2">
-          {isEditing ? (
-            <div className="flex space-x-2">
-              <button
-                onClick={handleGuardar}
-                className="flex-1 px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
-              >
-                Guardar
-              </button>
-              <button
-                onClick={handleCancelar}
-                className="flex-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md"
-              >
-                Cancelar
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="w-full px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md"
-            >
-              Editar Kg
-            </button>
-          )}
-        </div>
-
-        <div className="text-xs text-gray-500 pt-1">
-          Estado: {clienteData.rutaCliente.estado || "Sin programar"}
-        </div>
-      </div>
-    </div>
-  );
-}
+export default GestionRutas;

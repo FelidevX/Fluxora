@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RutaActiva } from "@/interfaces/entregas";
+import { RutaActiva } from "@/interfaces/entregas/entregas";
 
 // Nuevas interfaces para el sistema de programación por fecha
 interface RutaProgramadaPorFecha {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import PantallaRuta from "@/components/driver/ruta/PantallaRuta";
 import PantallaClientes from "@/components/driver/clientes/PantallaClientes";
 import PantallaFormulario from "@/components/driver/formulario/PantallaFormulario";
-import { Entrega } from "@/interfaces/driver";
+import { Entrega } from "@/interfaces/entregas/driver";
 
 // Función para obtener datos del usuario del token
 function getUserFromToken() {

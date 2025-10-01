@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RutasActivas } from "../rutas/RutasActivas";
-import { DetalleRuta } from "../rutas/DetalleRuta";
-import { HistorialEntregas } from "../historial/HistorialEntregas";
-import { GestionRutas } from "./GestionRutas";
-import { RutaActiva } from "@/interfaces/entregas";
+import { RutasActivas } from "./rutas/RutasActivas";
+import { DetalleRuta } from "./rutas/DetalleRuta";
+import { HistorialEntregas } from "./historial/HistorialEntregas";
+import GestionRutas from "./gestion/GestionRutas";
+import { RutaActiva } from "@/interfaces/entregas/entregas";
 
 export default function GestionEntregas() {
   const [activeTab, setActiveTab] = useState("rutas-activas");

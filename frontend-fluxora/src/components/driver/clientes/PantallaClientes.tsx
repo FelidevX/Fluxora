@@ -1,6 +1,6 @@
 "use client";
 
-import { Entrega } from "@/interfaces/driver";
+import { Entrega } from "@/interfaces/entregas/driver";
 
 interface PantallaClientesProps {
   entregas: Entrega[];

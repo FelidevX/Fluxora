@@ -25,8 +25,8 @@ export function AsignarDriverModal({
   if (!isOpen || !ruta) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
+      <div className="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div className="mt-3">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             Asignar Driver - {ruta.nombre}
@@ -48,7 +48,7 @@ export function AsignarDriverModal({
                 <select
                   value={driverId}
                   onChange={(e) => setDriverId(e.target.value)}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-700"
                 >
                   <option value="">Seleccionar un driver</option>
                   {drivers.map((driver) => (

@@ -147,14 +147,16 @@ export default function Sidebar() {
       >
         {/* Branding */}
         <div className="flex items-center gap-2 px-4 h-16 border-b border-white/10">
-          <Image
-            src="/images/logos/fluxora-logo.svg"
-            alt="Fluxora Logo"
-            width={32}
-            height={32}
-            className="mr-3 brightness-0 invert"
-          />
-          <span className="text-lg font-semibold">Fluxora</span>
+          <Link href="/dashboard" className="flex items-center">
+            <Image
+              src="/images/logos/fluxora-logo.svg"
+              alt="Fluxora Logo"
+              width={32}
+              height={32}
+              className="mr-3 brightness-0 invert"
+            />
+            <span className="text-lg font-semibold">Fluxora</span>
+          </Link>
           {/* Cerrar en móvil */}
           <button
             type="button"

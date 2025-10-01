@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { EntregaConductor } from "@/interfaces/entregas";
+import { EntregaConductor } from "@/interfaces/entregas/entregas";
 
 export function HistorialEntregas() {
   const [entregas, setEntregas] = useState<EntregaConductor[]>([]);

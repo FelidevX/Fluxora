@@ -47,83 +47,17 @@ public class EntregaService {
         if (fecha.contains("-") && fecha.length() == 10) {
             String[] partes = fecha.split("-");
             if (partes.length == 3 && partes[2].length() == 4) {
-                // Formato dd-MM-yyyy, convertir a yyyy-MM-dd
                 fechaBusqueda = LocalDate.parse(partes[2] + "-" + partes[1] + "-" + partes[0]);
             } else {
-                // Formato yyyy-MM-dd
                 fechaBusqueda = LocalDate.parse(fecha);
             }
         } else {
             fechaBusqueda = LocalDate.parse(fecha);
         }
-        
-        // SIEMPRE obtener todas las rutas con sus clientes
-        // Siempre mostrar todas las rutas disponibles para la fecha
         return obtenerTodasLasRutasParaFecha(fechaBusqueda);
     }
     
-    // Programar entregas individuales para cada cliente de una ruta
-    public String programarEntregasIndividuales(Long idRuta, String fecha, List<Map<String, Object>> entregas) {
-        try {
-            // Convertir formato de fecha si es necesario
-            LocalDate fechaProgramada;
-            if (fecha.contains("-") && fecha.length() == 10) {
-                String[] partes = fecha.split("-");
-                if (partes.length == 3 && partes[2].length() == 4) {
-                    // Formato dd-MM-yyyy, convertir a yyyy-MM-dd
-                    fechaProgramada = LocalDate.parse(partes[2] + "-" + partes[1] + "-" + partes[0]);
-                } else {
-                    // Formato yyyy-MM-dd
-                    fechaProgramada = LocalDate.parse(fecha);
-                }
-            } else {
-                fechaProgramada = LocalDate.parse(fecha);
-            }
-            
-            // Procesar cada entrega
-            for (int i = 0; i < entregas.size(); i++) {
-                Map<String, Object> entregaData = entregas.get(i);
-                Long idCliente = Long.valueOf(entregaData.get("idCliente").toString());
-                
-                // Buscar si ya existe una programación para esta combinación
-                Optional<RutaCliente> rutaClienteOpt = rutaClienteRepository
-                    .findByIdRutaAndIdClienteAndFechaProgramada(idRuta, idCliente, fechaProgramada);
-                
-                RutaCliente rutaCliente;
-                if (rutaClienteOpt.isPresent()) {
-                    // Actualizar existente
-                    rutaCliente = rutaClienteOpt.get();
-                } else {
-                    // Crear nuevo
-                    rutaCliente = new RutaCliente();
-                    rutaCliente.setId_ruta(idRuta);
-                    rutaCliente.setId_cliente(idCliente);
-                }
-                
-                // Actualizar datos de programación
-                rutaCliente.setFecha_programada(fechaProgramada);
-                rutaCliente.setKg_corriente_programado(
-                    entregaData.get("kgCorriente") != null ? 
-                    Double.valueOf(entregaData.get("kgCorriente").toString()) : 0.0
-                );
-                rutaCliente.setKg_especial_programado(
-                    entregaData.get("kgEspecial") != null ? 
-                    Double.valueOf(entregaData.get("kgEspecial").toString()) : 0.0
-                );
-                rutaCliente.setOrden(i + 1);
-                rutaCliente.setEstado("PROGRAMADO");
-                
-                rutaClienteRepository.save(rutaCliente);
-            }
-            
-            return "Entregas programadas exitosamente para " + entregas.size() + " clientes";
-            
-        } catch (Exception e) {
-            return "Error al programar entregas: " + e.getMessage();
-        }
-    }
-
-    // Actualizar programación individual de un cliente específico
+    // Actualizar programación individual de un cliente específico  //
     public String actualizarProgramacionCliente(Long idRuta, Long idCliente, String fecha, Double kgCorriente, Double kgEspecial) {
         try {
             // Convertir formato de fecha si es necesario
@@ -196,7 +130,7 @@ public class EntregaService {
         }
     }
 
-    // Obtener programación del día anterior para preasignar valores
+    // Obtener programación del día anterior para preasignar valores, se podria mejorar, agregar un boton que llame a una funcion que llame a los datos de los clientes pasados
     public List<Map<String, Object>> obtenerProgramacionAnterior(Long idRuta, String fecha) {
         LocalDate fechaActual = LocalDate.parse(fecha);
         LocalDate fechaAnterior = fechaActual.minusDays(1);
@@ -230,38 +164,7 @@ public class EntregaService {
         return resultado;
     }
 
-    // Programar ruta completa copiando del día anterior
-    public void programarRutaCompletaPorFecha(Long idRuta, String fecha, List<Map<String, Object>> clientesProgramacion) {
-        LocalDate fechaProgramada = LocalDate.parse(fecha);
-        
-        // Si no se proporcionan clientes, copiar del día anterior
-        if (clientesProgramacion == null || clientesProgramacion.isEmpty()) {
-            LocalDate fechaAnterior = fechaProgramada.minusDays(1);
-            List<ProgramacionEntrega> programacionAnterior = programacionEntregaRepository
-                .findByIdRutaAndFechaProgramada(idRuta, fechaAnterior);
-            
-            for (ProgramacionEntrega progAnterior : programacionAnterior) {
-                // Verificar si ya existe programación para este día
-                ProgramacionEntrega existente = programacionEntregaRepository
-                    .findByIdRutaAndIdClienteAndFechaProgramada(idRuta, progAnterior.getId_cliente(), fechaProgramada);
-                
-                if (existente == null) {
-                    // Crear nueva programación copiando del día anterior
-                    ProgramacionEntrega nuevaProg = new ProgramacionEntrega();
-                    nuevaProg.setId_ruta(idRuta);
-                    nuevaProg.setId_cliente(progAnterior.getId_cliente());
-                    nuevaProg.setKg_corriente_programado(progAnterior.getKg_corriente_programado());
-                    nuevaProg.setKg_especial_programado(progAnterior.getKg_especial_programado());
-                    nuevaProg.setOrden(progAnterior.getOrden());
-                    nuevaProg.setFecha_programada(fechaProgramada);
-                    programacionEntregaRepository.save(nuevaProg);
-                }
-            }
-        } else {
-            // Usar la programación proporcionada
-            programarEntregasIndividuales(idRuta, fecha, clientesProgramacion);
-        }
-    }
+
 
     // Métodos básicos necesarios
     public List<Map<String, Object>> getRutasActivas() {
@@ -321,205 +224,10 @@ public class EntregaService {
         rutaRepository.save(ruta);
     }
 
-    public void crearDatosPrueba() {
-        // Crear rutas de prueba
-        Ruta ruta1 = new Ruta();
-        ruta1.setNombre("Ruta Centro");
-        ruta1.setLatitud(-12.0464);
-        ruta1.setLongitud(-77.0428);
-        ruta1.setId_driver(1L);
-        rutaRepository.save(ruta1);
-
-        Ruta ruta2 = new Ruta();
-        ruta2.setNombre("Ruta Norte");
-        ruta2.setLatitud(-12.0200);
-        ruta2.setLongitud(-77.0500);
-        ruta2.setId_driver(2L);
-        rutaRepository.save(ruta2);
-
-        // Crear asignaciones básicas de clientes a rutas
-        RutaCliente rc1 = new RutaCliente();
-        rc1.setId_ruta(ruta1.getId());
-        rc1.setId_cliente(1L);
-        rc1.setOrden(1);
-        rutaClienteRepository.save(rc1);
-
-        RutaCliente rc2 = new RutaCliente();
-        rc2.setId_ruta(ruta1.getId());
-        rc2.setId_cliente(2L);
-        rc2.setOrden(2);
-        rutaClienteRepository.save(rc2);
-
-        RutaCliente rc3 = new RutaCliente();
-        rc3.setId_ruta(ruta2.getId());
-        rc3.setId_cliente(3L);
-        rc3.setOrden(1);
-        rutaClienteRepository.save(rc3);
-
-        // Crear programaciones de prueba
-        ProgramacionEntrega prog1 = new ProgramacionEntrega();
-        prog1.setId_ruta(ruta1.getId());
-        prog1.setId_cliente(1L);
-        prog1.setKg_corriente_programado(15.0);
-        prog1.setKg_especial_programado(8.0);
-        prog1.setFecha_programada(LocalDate.now());
-        prog1.setOrden(1);
-        programacionEntregaRepository.save(prog1);
-
-        ProgramacionEntrega prog2 = new ProgramacionEntrega();
-        prog2.setId_ruta(ruta1.getId());
-        prog2.setId_cliente(2L);
-        prog2.setKg_corriente_programado(12.0);
-        prog2.setKg_especial_programado(6.0);
-        prog2.setFecha_programada(LocalDate.now());
-        prog2.setOrden(2);
-        programacionEntregaRepository.save(prog2);
-
-        ProgramacionEntrega prog3 = new ProgramacionEntrega();
-        prog3.setId_ruta(ruta2.getId());
-        prog3.setId_cliente(3L);
-        prog3.setKg_corriente_programado(20.0);
-        prog3.setKg_especial_programado(10.0);
-        prog3.setFecha_programada(LocalDate.now().plusDays(1));
-        prog3.setOrden(1);
-        programacionEntregaRepository.save(prog3);
-
-        // Crear programación del día anterior para testing
-        ProgramacionEntrega progAyer1 = new ProgramacionEntrega();
-        progAyer1.setId_ruta(ruta1.getId());
-        progAyer1.setId_cliente(1L);
-        progAyer1.setKg_corriente_programado(18.0);
-        progAyer1.setKg_especial_programado(9.0);
-        progAyer1.setFecha_programada(LocalDate.now().minusDays(1));
-        progAyer1.setOrden(1);
-        programacionEntregaRepository.save(progAyer1);
-
-        ProgramacionEntrega progAyer2 = new ProgramacionEntrega();
-        progAyer2.setId_ruta(ruta1.getId());
-        progAyer2.setId_cliente(2L);
-        progAyer2.setKg_corriente_programado(14.0);
-        progAyer2.setKg_especial_programado(7.0);
-        progAyer2.setFecha_programada(LocalDate.now().minusDays(1));
-        progAyer2.setOrden(2);
-        programacionEntregaRepository.save(progAyer2);
-    }
-
-    // Método para obtener rutas con clientes cuando no hay programación
-    private List<Map<String, Object>> obtenerRutasConClientesSinProgramacion(LocalDate fecha) {
-        List<Ruta> todasLasRutas = rutaRepository.findAll();
-        List<Map<String, Object>> resultado = new ArrayList<>();
-        
-        for (Ruta ruta : todasLasRutas) {
-            List<RutaCliente> rutaClientes = rutaClienteRepository.findByIdRuta(ruta.getId());
-            
-            if (!rutaClientes.isEmpty()) {
-                Map<String, Object> rutaData = new HashMap<>();
-                
-                // Información de la ruta
-                Map<String, Object> rutaInfo = new HashMap<>();
-                rutaInfo.put("id", ruta.getId());
-                rutaInfo.put("nombre", ruta.getNombre());
-                rutaInfo.put("id_driver", ruta.getId_driver());
-                rutaData.put("ruta", rutaInfo);
-                rutaData.put("fecha", fecha.toString());
-                
-                List<Map<String, Object>> clientesData = new ArrayList<>();
-                
-                for (RutaCliente rutaCliente : rutaClientes) {
-                    Map<String, Object> clienteData = new HashMap<>();
-                    
-                    // Obtener información del cliente
-                    try {
-                        List<Long> clienteIds = List.of(rutaCliente.getId_cliente());
-                        List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(clienteIds);
-                        if (!clientes.isEmpty()) {
-                            clienteData.put("cliente", clientes.get(0));
-                        } else {
-                            // Cliente por defecto si no se encuentra
-                            Map<String, Object> clienteDefault = new HashMap<>();
-                            clienteDefault.put("id", rutaCliente.getId_cliente());
-                            clienteDefault.put("nombre", "Cliente " + rutaCliente.getId_cliente());
-                            clienteDefault.put("nombreNegocio", "Cliente " + rutaCliente.getId_cliente());
-                            clienteDefault.put("direccion", "Dirección no disponible");
-                            clienteData.put("cliente", clienteDefault);
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Error al obtener cliente " + rutaCliente.getId_cliente() + ": " + e.getMessage());
-                        // Cliente por defecto
-                        Map<String, Object> clienteDefault = new HashMap<>();
-                        clienteDefault.put("id", rutaCliente.getId_cliente());
-                        clienteDefault.put("nombre", "Cliente " + rutaCliente.getId_cliente());
-                        clienteDefault.put("nombreNegocio", "Cliente " + rutaCliente.getId_cliente());
-                        clienteDefault.put("direccion", "Dirección no disponible");
-                        clienteData.put("cliente", clienteDefault);
-                    }
-                    
-                    // Obtener programación del día anterior si existe
-                    LocalDate fechaAnterior = fecha.minusDays(1);
-                    ProgramacionEntrega progAnterior = programacionEntregaRepository
-                        .findByIdRutaAndIdClienteAndFechaProgramada(ruta.getId(), rutaCliente.getId_cliente(), fechaAnterior);
-                    
-                    Map<String, Object> rutaClienteInfo = new HashMap<>();
-                    rutaClienteInfo.put("id", rutaCliente.getId());
-                    rutaClienteInfo.put("id_ruta", rutaCliente.getId_ruta());
-                    rutaClienteInfo.put("id_cliente", rutaCliente.getId_cliente());
-                    rutaClienteInfo.put("orden", rutaCliente.getOrden());
-                    rutaClienteInfo.put("fecha_programada", fecha.toString());
-                    
-                    // Usar valores del día anterior si existen, sino valores por defecto
-                    if (progAnterior != null) {
-                        rutaClienteInfo.put("kg_corriente_programado", progAnterior.getKg_corriente_programado());
-                        rutaClienteInfo.put("kg_especial_programado", progAnterior.getKg_especial_programado());
-                    } else {
-                        rutaClienteInfo.put("kg_corriente_programado", 10.0); // Valor por defecto
-                        rutaClienteInfo.put("kg_especial_programado", 5.0);   // Valor por defecto
-                    }
-                    
-                    clienteData.put("rutaCliente", rutaClienteInfo);
-                    clientesData.add(clienteData);
-                }
-                
-                // Ordenar por orden
-                clientesData.sort((a, b) -> {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> rutaClienteA = (Map<String, Object>) a.get("rutaCliente");
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> rutaClienteB = (Map<String, Object>) b.get("rutaCliente");
-                    Integer ordenA = (Integer) rutaClienteA.get("orden");
-                    Integer ordenB = (Integer) rutaClienteB.get("orden");
-                    return ordenA.compareTo(ordenB);
-                });
-                
-                rutaData.put("clientes", clientesData);
-                rutaData.put("totalClientes", clientesData.size());
-                
-                // Calcular totales
-                double totalCorriente = 0.0;
-                double totalEspecial = 0.0;
-                
-                for (Map<String, Object> clienteData : clientesData) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> rutaCliente = (Map<String, Object>) clienteData.get("rutaCliente");
-                    Double kgCorriente = (Double) rutaCliente.get("kg_corriente_programado");
-                    Double kgEspecial = (Double) rutaCliente.get("kg_especial_programado");
-                    totalCorriente += (kgCorriente != null ? kgCorriente : 0.0);
-                    totalEspecial += (kgEspecial != null ? kgEspecial : 0.0);
-                }
-                
-                rutaData.put("totalKgCorriente", totalCorriente);
-                rutaData.put("totalKgEspecial", totalEspecial);
-                
-                resultado.add(rutaData);
-            }
-        }
-        
-        return resultado;
-    }
-
     /**
      * Obtiene todas las rutas disponibles para una fecha específica,
      * usando valores programados cuando existan o valores del día anterior/por defecto
-     */
+     */ // Eliminar
     private List<Map<String, Object>> obtenerTodasLasRutasParaFecha(LocalDate fecha) {
         List<Ruta> todasLasRutas = rutaRepository.findAll();
         List<Map<String, Object>> resultado = new ArrayList<>();

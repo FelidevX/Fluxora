@@ -67,22 +67,6 @@ public class EntregaController {
         return entregaService.getRutasProgramadasPorFecha(fecha);
     }
 
-    // Programar entregas individuales para clientes
-    @PostMapping("/programar-entregas-individuales")
-    public ResponseEntity<String> programarEntregasIndividuales(@RequestBody Map<String, Object> datos) {
-        try {
-            Long idRuta = Long.valueOf(datos.get("idRuta").toString());
-            String fecha = datos.get("fecha").toString();
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> entregas = (List<Map<String, Object>>) datos.get("entregas");
-            
-            String mensaje = entregaService.programarEntregasIndividuales(idRuta, fecha, entregas);
-            return ResponseEntity.ok(mensaje);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al programar entregas: " + e.getMessage());
-        }
-    }
-
     // Actualizar programación individual de un cliente
     @PostMapping("/actualizar-programacion-cliente")
     public ResponseEntity<String> actualizarProgramacionCliente(@RequestBody Map<String, Object> datos) {
@@ -108,17 +92,6 @@ public class EntregaController {
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al crear ruta: " + e.getMessage());
-        }
-    }
-
-    // ENDPOINT TEMPORAL PARA DATOS DE PRUEBA - REMOVER EN PRODUCCIÓN
-    @PostMapping("/setup-datos-prueba")
-    public ResponseEntity<String> setupDatosPrueba() {
-        try {
-            entregaService.crearDatosPrueba();
-            return ResponseEntity.ok("Datos de prueba creados exitosamente");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al crear datos de prueba: " + e.getMessage());
         }
     }
 }

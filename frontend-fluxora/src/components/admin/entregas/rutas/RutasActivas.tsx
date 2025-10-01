@@ -50,7 +50,6 @@ interface RutasActivasProps {
   loading: boolean;
   onRefresh: () => void;
   onVerDetalle: (ruta: RutaActiva) => void;
-  onCrearDatosPrueba?: () => void;
 }
 
 export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {

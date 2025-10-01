@@ -70,7 +70,7 @@ export function CrearRutaModal({
                   setNuevaRuta({ ...nuevaRuta, nombre: e.target.value })
                 }
                 placeholder="Ej: Ruta Centro, Ruta Norte, Ruta Las Condes"
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
                 required
               />
             </div>
@@ -89,7 +89,7 @@ export function CrearRutaModal({
                 }
                 placeholder="Descripción detallada de la ruta, zonas que cubre, etc."
                 rows={3}
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
               />
             </div>
 
@@ -107,7 +107,7 @@ export function CrearRutaModal({
                   })
                 }
                 placeholder="-36.612523, -72.082921"
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50 text-gray-400"
                 readOnly
               />
               <p className="mt-1 text-sm text-gray-500">
@@ -122,8 +122,8 @@ export function CrearRutaModal({
               </label>
               {loadingDrivers ? (
                 <div className="flex items-center py-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                  <span className="text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2 text-gray-700"></div>
+                  <span className="text-sm text-gray-700">
                     Cargando drivers...
                   </span>
                 </div>
@@ -136,7 +136,7 @@ export function CrearRutaModal({
                       id_driver: e.target.value,
                     })
                   }
-                  className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-600"
                 >
                   <option value="">Seleccionar driver (opcional)</option>
                   {drivers.map((driver) => (

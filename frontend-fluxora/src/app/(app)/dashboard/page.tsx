@@ -35,10 +35,22 @@ interface Cliente {
   coordenadas: number[];
 }
 
+interface MateriaPrima {
+  id: number;
+  nombre: string;
+  tipo: string;
+  cantidad: number;
+  proveedor: string;
+  estado: string;
+  unidad: string;
+  fecha: string;
+}
+
 export default function DashboardHome() {
 
   const [clients, setClients] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [materiaPrima, setMateriaPrima] = useState<MateriaPrima[]>([]);
 
   // Datos simulados para el gráfico de ventas de la semana (//cambiar)
   const ventasSemanaLabels = [
@@ -114,11 +126,38 @@ export default function DashboardHome() {
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching clients:", error);
+      setIsLoading(false);
+    }
+  }
+
+  const fetchMateriasPrimas = async () => {
+    setIsLoading(true);
+    try {
+      let token = localStorage.getItem("auth_token");
+
+      if (!token) throw new Error("No se encontró el token de autenticación");
+
+      if(token.startsWith("Bearer ")){
+        token = token.substring(7);
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`, {
+        headers : {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const response = await res.json();
+      setMateriaPrima(response);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching materias primas:", error);
+      setIsLoading(false);
     }
   }
 
   useEffect(() => {
     fetchClients();
+    fetchMateriasPrimas();
   }, []);
 
   return (

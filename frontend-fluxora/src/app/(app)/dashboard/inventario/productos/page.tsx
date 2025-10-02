@@ -592,8 +592,8 @@ export default function ProductosPage() {
                   </label>
                   <input
                     type="number"
-                    min="0.1"
-                    step="0.1"
+                    min="0"
+                    step="1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
                     placeholder="Ej: 2 (para doble cantidad)"
                     value={multiplicadorReceta}
@@ -647,7 +647,7 @@ export default function ProductosPage() {
               onChange={(e) =>
                 setFormulario({ ...formulario, nombre: e.target.value })
               }
-              disabled={!recetaSeleccionada}
+              disabled={true}
               required
             />
 
@@ -662,7 +662,7 @@ export default function ProductosPage() {
                   cantidad: parseFloat(e.target.value) || 0,
                 })
               }
-              disabled={!recetaSeleccionada}
+              disabled={true}
               required
             />
 
@@ -678,7 +678,7 @@ export default function ProductosPage() {
                   precio: parseFloat(e.target.value) || 0,
                 })
               }
-              disabled={!recetaSeleccionada}
+              disabled={true}
               required
             />
 
@@ -687,16 +687,12 @@ export default function ProductosPage() {
                 Categoría:
               </label>
               <select
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 ${
-                  !recetaSeleccionada
-                    ? "bg-gray-100 cursor-not-allowed text-gray-500"
-                    : ""
-                }`}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-100 cursor-not-allowed text-gray-500`}
                 value={formulario.categoria}
                 onChange={(e) =>
                   setFormulario({ ...formulario, categoria: e.target.value })
                 }
-                disabled={!recetaSeleccionada}
+                disabled={true}
               >
                 <option value="Panadería">Panadería</option>
                 <option value="Pastelería">Pastelería</option>
@@ -723,7 +719,7 @@ export default function ProductosPage() {
                 onChange={(e) =>
                   setFormulario({ ...formulario, descripcion: e.target.value })
                 }
-                disabled={!recetaSeleccionada}
+                disabled={true}
                 required
               />
             </div>
@@ -758,7 +754,7 @@ export default function ProductosPage() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Materia Prima:
                           </label>
-                          <div className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-blue-100">
+                          <div className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-200 text-gray-400">
                             {item.materiaPrimaNombre}
                           </div>
                         </div>
@@ -767,7 +763,7 @@ export default function ProductosPage() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Cantidad Total Necesaria:
                           </label>
-                          <div className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-blue-100">
+                          <div className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-200 text-gray-400">
                             {item.cantidadNecesaria} {item.unidad}
                           </div>
                         </div>
@@ -776,7 +772,7 @@ export default function ProductosPage() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Por Unidad Base:
                           </label>
-                          <div className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-blue-100">
+                          <div className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-200 text-gray-400">
                             {recetaSeleccionada
                               ? (
                                   item.cantidadNecesaria / multiplicadorReceta

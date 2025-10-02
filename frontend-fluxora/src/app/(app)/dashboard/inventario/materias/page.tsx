@@ -37,6 +37,7 @@ function MateriaContent() {
   const [materiaAActualizar, setMateriaAActualizar] =
     useState<MateriaPrima | null>(null);
   const [cantidadAAgregar, setCantidadAAgregar] = useState(0);
+  const [cantidadInput, setCantidadInput] = useState("");
   const [formulario, setFormulario] = useState<MateriaPrimaDTO>({
     nombre: "",
     cantidad: 0,
@@ -72,16 +73,25 @@ function MateriaContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Convertir el string a número para validación
+    const cantidadNumerica = parseFloat(cantidadInput) || 0;
+
     if (
       !formulario.nombre ||
       !formulario.proveedor ||
-      formulario.cantidad <= 0
+      cantidadNumerica <= 0
     ) {
       return;
     }
 
     try {
-      await crearMateria(formulario);
+      // Usar la cantidad numérica para enviar
+      await crearMateria({
+        ...formulario,
+        cantidad: cantidadNumerica
+      });
+      
+      // Reset del formulario
       setFormulario({
         nombre: "",
         cantidad: 0,
@@ -90,6 +100,7 @@ function MateriaContent() {
         unidad: "kg",
         fecha: currentDate || new Date().toISOString().split("T")[0],
       });
+      setCantidadInput(""); // Reset del input
       setShowForm(false);
     } catch (err) {
       console.error(err);
@@ -306,15 +317,11 @@ function MateriaContent() {
             <Input
               label="Cantidad:"
               type="number"
-              value={formulario.cantidad}
-              onChange={(e) =>
-                setFormulario({
-                  ...formulario,
-                  cantidad: parseFloat(e.target.value) || 0,
-                })
-              }
+              value={cantidadInput}
+              onChange={(e) => setCantidadInput(e.target.value)}
               min="0"
               step="0.1"
+              placeholder="Ej: 0.5, 2.3, 10"
               required
             />
 

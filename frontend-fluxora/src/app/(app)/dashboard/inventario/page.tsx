@@ -45,8 +45,8 @@ function InventarioContent() {
           />
 
           <InventarioCard
-            title="Productos"
-            description="Administra el catálogo de productos terminados"
+            title="Producción"
+            description="Administra la producción de productos"
             icon="inventory"
             iconColor="bg-blue-100 text-blue-600"
             buttonText="Gestionar Productos"

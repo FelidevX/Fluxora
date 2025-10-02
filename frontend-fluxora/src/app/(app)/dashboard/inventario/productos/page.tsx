@@ -17,6 +17,7 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import Modal from "@/components/ui/Modal";
+import Link from "next/link";
 
 export default function ProductosPage() {
   const {
@@ -486,6 +487,15 @@ export default function ProductosPage() {
 
   return (
     <div className="space-y-6 p-6">
+      <div className="mb-4">
+        <Link
+          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+          href={"/dashboard/inventario"}
+          >
+            <MaterialIcon name="arrow_back" className="mr-1" />
+            <span>Volver al inicio</span>
+        </Link>
+      </div>
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -841,15 +851,6 @@ export default function ProductosPage() {
         </div>
       )}
 
-      {/* Tabla de productos */}
-      <div className="bg-white rounded-lg border border-green-200">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Catálogo de Productos
-          </h2>
-          <p className="text-gray-600">Listado de productos disponibles</p>
-        </div>
-
         {/* Tabla usando DataTable */}
         <DataTable
           data={productosFiltrados}
@@ -861,7 +862,6 @@ export default function ProductosPage() {
           searchPlaceholder="Buscar productos..."
           emptyMessage="No hay productos registrados"
         />
-      </div>
 
       {/* Modal de confirmación para productos duplicados */}
       <Modal

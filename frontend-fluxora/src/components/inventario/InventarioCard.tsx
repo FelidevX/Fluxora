@@ -22,14 +22,14 @@ export default function InventarioCard({
   href,
 }: InventarioCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-6 h-full flex flex-col">
       <div className="flex items-center mb-4">
         <div className={`p-2 ${iconColor} rounded-lg`}>
           <MaterialIcon name={icon} className="w-6 h-6" />
         </div>
         <h2 className="ml-3 text-lg font-semibold text-gray-900">{title}</h2>
       </div>
-      <p className="text-gray-600 mb-4">{description}</p>
+      <p className="text-gray-600 mb-4 flex-1 line-clamp-2 overflow-hidden">{description}</p>
       <Link href={href}>
         <Button variant={buttonVariant} className="w-full cursor-pointer">
           {buttonText}

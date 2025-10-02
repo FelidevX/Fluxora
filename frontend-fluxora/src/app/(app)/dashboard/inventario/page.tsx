@@ -3,9 +3,6 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import InventarioCard from "@/components/inventario/InventarioCard";
-import MateriasManager from "@/components/inventario/materias/MateriasManager";
-import ProductosManager from "@/components/inventario/productos/ProductosManager";
-import RecetasManager from "@/components/inventario/recetas/RecetasManager";
 import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEstadisticas";
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
 
@@ -22,10 +19,6 @@ function InventarioContent() {
       setActiveView(view as "materias" | "productos" | "recetas");
     }
   }, [searchParams]);
-
-  const handleCardClick = (view: "materias" | "productos" | "recetas") => {
-    setActiveView(view);
-  };
 
   if (activeView === "overview") {
     return (
@@ -48,17 +41,17 @@ function InventarioContent() {
             iconColor="bg-blue-100 text-blue-600"
             buttonText="Gestionar Materias Primas"
             buttonVariant="primary"
-            onClick={() => handleCardClick("materias")}
+            href="/dashboard/inventario/materias"
           />
 
           <InventarioCard
-            title="Productos"
-            description="Administra el catálogo de productos terminados"
-            icon="shopping_bag"
-            iconColor="bg-green-100 text-green-600"
+            title="Producción"
+            description="Administra la producción de productos"
+            icon="inventory"
+            iconColor="bg-blue-100 text-blue-600"
             buttonText="Gestionar Productos"
-            buttonVariant="success"
-            onClick={() => handleCardClick("productos")}
+            buttonVariant="primary"
+            href="/dashboard/inventario/productos"
           />
 
           <InventarioCard
@@ -68,7 +61,7 @@ function InventarioContent() {
             iconColor="bg-purple-100 text-purple-600"
             buttonText="Gestionar Recetas"
             buttonVariant="primary"
-            onClick={() => handleCardClick("recetas")}
+            href="/dashboard/inventario/recetas"
           />
         </div>
 
@@ -81,55 +74,6 @@ function InventarioContent() {
         <div className="mt-6">
           <AlertasNotificaciones />
         </div>
-      </div>
-    );
-  }
-
-  // Mostrar el componente específico según la vista activa
-  if (activeView === "materias") {
-    return (
-      <div className="p-6">
-        <div className="mb-6">
-          <button
-            onClick={() => setActiveView("overview")}
-            className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2 font-bold"
-          >
-            ← Volver al inicio
-          </button>
-        </div>
-        <MateriasManager />
-      </div>
-    );
-  }
-
-  if (activeView === "productos") {
-    return (
-      <div className="p-6">
-        <div className="mb-6">
-          <button
-            onClick={() => setActiveView("overview")}
-            className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2 font-bold"
-          >
-            ← Volver al inicio
-          </button>
-        </div>
-        <ProductosManager />
-      </div>
-    );
-  }
-
-  if (activeView === "recetas") {
-    return (
-      <div className="p-6">
-        <div className="mb-6">
-          <button
-            onClick={() => setActiveView("overview")}
-            className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2 font-bold"
-          >
-            ← Volver al inicio
-          </button>
-        </div>
-        <RecetasManager />
       </div>
     );
   }

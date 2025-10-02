@@ -17,8 +17,9 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import Modal from "@/components/ui/Modal";
+import Link from "next/link";
 
-export default function ProductosManager() {
+export default function ProductosPage() {
   const {
     productos,
     loading,
@@ -174,7 +175,7 @@ export default function ProductosManager() {
     });
   };
 
-  // Función para buscar un producto existente con la misma receta
+  // Función para buscar un producto existente with la misma receta
   const buscarProductoConRecetaIgual = (recetaNueva: RecetaItem[]) => {
     if (recetaNueva.length === 0) return null;
 
@@ -485,7 +486,16 @@ export default function ProductosManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
+      <div className="mb-4">
+        <Link
+          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+          href={"/dashboard/inventario"}
+          >
+            <MaterialIcon name="arrow_back" className="mr-1" />
+            <span>Volver al inicio</span>
+        </Link>
+      </div>
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -493,7 +503,7 @@ export default function ProductosManager() {
             Gestión de Productos
           </h1>
           <div className="flex items-center text-gray-600 mt-1">
-            <MaterialIcon name="calendar_today" className="w-4 h-4 mr-1" />
+            <MaterialIcon name="calendar_today" className="mr-1" />
             <span>
               {new Date().toLocaleDateString("es-ES", {
                 weekday: "long",
@@ -582,8 +592,8 @@ export default function ProductosManager() {
                   </label>
                   <input
                     type="number"
-                    min="0.1"
-                    step="0.1"
+                    min="0"
+                    step="1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
                     placeholder="Ej: 2 (para doble cantidad)"
                     value={multiplicadorReceta}
@@ -637,7 +647,7 @@ export default function ProductosManager() {
               onChange={(e) =>
                 setFormulario({ ...formulario, nombre: e.target.value })
               }
-              disabled={!recetaSeleccionada}
+              disabled={true}
               required
             />
 
@@ -652,7 +662,7 @@ export default function ProductosManager() {
                   cantidad: parseFloat(e.target.value) || 0,
                 })
               }
-              disabled={!recetaSeleccionada}
+              disabled={true}
               required
             />
 
@@ -668,7 +678,7 @@ export default function ProductosManager() {
                   precio: parseFloat(e.target.value) || 0,
                 })
               }
-              disabled={!recetaSeleccionada}
+              disabled={true}
               required
             />
 
@@ -677,16 +687,12 @@ export default function ProductosManager() {
                 Categoría:
               </label>
               <select
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 ${
-                  !recetaSeleccionada
-                    ? "bg-gray-100 cursor-not-allowed text-gray-500"
-                    : ""
-                }`}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-100 cursor-not-allowed text-gray-500`}
                 value={formulario.categoria}
                 onChange={(e) =>
                   setFormulario({ ...formulario, categoria: e.target.value })
                 }
-                disabled={!recetaSeleccionada}
+                disabled={true}
               >
                 <option value="Panadería">Panadería</option>
                 <option value="Pastelería">Pastelería</option>
@@ -713,7 +719,7 @@ export default function ProductosManager() {
                 onChange={(e) =>
                   setFormulario({ ...formulario, descripcion: e.target.value })
                 }
-                disabled={!recetaSeleccionada}
+                disabled={true}
                 required
               />
             </div>
@@ -748,7 +754,7 @@ export default function ProductosManager() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Materia Prima:
                           </label>
-                          <div className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-blue-100">
+                          <div className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-200 text-gray-400">
                             {item.materiaPrimaNombre}
                           </div>
                         </div>
@@ -757,7 +763,7 @@ export default function ProductosManager() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Cantidad Total Necesaria:
                           </label>
-                          <div className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-blue-100">
+                          <div className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-200 text-gray-400">
                             {item.cantidadNecesaria} {item.unidad}
                           </div>
                         </div>
@@ -766,7 +772,7 @@ export default function ProductosManager() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Por Unidad Base:
                           </label>
-                          <div className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-blue-100">
+                          <div className="w-full px-3 py-2 bg-gray-100 rounded-lg border border-gray-200 text-gray-400">
                             {recetaSeleccionada
                               ? (
                                   item.cantidadNecesaria / multiplicadorReceta
@@ -841,15 +847,6 @@ export default function ProductosManager() {
         </div>
       )}
 
-      {/* Tabla de productos */}
-      <div className="bg-white rounded-lg border border-green-200">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Catálogo de Productos
-          </h2>
-          <p className="text-gray-600">Listado de productos disponibles</p>
-        </div>
-
         {/* Tabla usando DataTable */}
         <DataTable
           data={productosFiltrados}
@@ -861,7 +858,6 @@ export default function ProductosManager() {
           searchPlaceholder="Buscar productos..."
           emptyMessage="No hay productos registrados"
         />
-      </div>
 
       {/* Modal de confirmación para productos duplicados */}
       <Modal

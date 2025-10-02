@@ -147,14 +147,16 @@ export default function Sidebar() {
       >
         {/* Branding */}
         <div className="flex items-center gap-2 px-4 h-16 border-b border-white/10">
-          <Image
-            src="/images/logos/fluxora-logo.svg"
-            alt="Fluxora Logo"
-            width={32}
-            height={32}
-            className="mr-3 brightness-0 invert"
-          />
-          <span className="text-lg font-semibold">Fluxora</span>
+          <Link href="/dashboard" className="flex items-center">
+            <Image
+              src="/images/logos/fluxora-logo.svg"
+              alt="Fluxora Logo"
+              width={32}
+              height={32}
+              className="mr-3 brightness-0 invert"
+            />
+            <span className="text-lg font-semibold">Fluxora</span>
+          </Link>
           {/* Cerrar en móvil */}
           <button
             type="button"
@@ -171,7 +173,7 @@ export default function Sidebar() {
           <ul className="space-y-1">
             {items.map((item, idx) => {
               const active =
-                pathname === item.href || pathname?.startsWith(item.href + "/");
+                pathname === item.href;
               const base =
                 "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
               const classes = active
@@ -183,7 +185,7 @@ export default function Sidebar() {
                   <Link
                     ref={idx === 0 ? firstLinkRef : undefined}
                     href={item.href}
-                    className={classes}
+                    className={classes}   
                   >
                     <MaterialIcon
                       name={item.icon}

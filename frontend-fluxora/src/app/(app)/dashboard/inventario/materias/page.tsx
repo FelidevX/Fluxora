@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { MateriaPrimaDTO, MateriaPrima } from "@/types/inventario";
 import { useMaterias } from "@/hooks/useMaterias";
@@ -11,8 +11,9 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import FormattedDate from "@/components/ui/FormattedDate";
+import Link from "next/link";
 
-export default function MateriasManager() {
+function MateriaContent() {
   const searchParams = useSearchParams();
   const {
     materias,
@@ -36,6 +37,7 @@ export default function MateriasManager() {
   const [materiaAActualizar, setMateriaAActualizar] =
     useState<MateriaPrima | null>(null);
   const [cantidadAAgregar, setCantidadAAgregar] = useState(0);
+  const [cantidadInput, setCantidadInput] = useState("");
   const [formulario, setFormulario] = useState<MateriaPrimaDTO>({
     nombre: "",
     cantidad: 0,
@@ -71,16 +73,25 @@ export default function MateriasManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Convertir el string a número para validación
+    const cantidadNumerica = parseFloat(cantidadInput) || 0;
+
     if (
       !formulario.nombre ||
       !formulario.proveedor ||
-      formulario.cantidad <= 0
+      cantidadNumerica <= 0
     ) {
       return;
     }
 
     try {
-      await crearMateria(formulario);
+      // Usar la cantidad numérica para enviar
+      await crearMateria({
+        ...formulario,
+        cantidad: cantidadNumerica
+      });
+      
+      // Reset del formulario
       setFormulario({
         nombre: "",
         cantidad: 0,
@@ -89,6 +100,7 @@ export default function MateriasManager() {
         unidad: "kg",
         fecha: currentDate || new Date().toISOString().split("T")[0],
       });
+      setCantidadInput(""); // Reset del input
       setShowForm(false);
     } catch (err) {
       console.error(err);
@@ -235,7 +247,16 @@ export default function MateriasManager() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
+      <div className="mb-4">
+        <Link
+          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+          href={"/dashboard/inventario"}
+          >
+            <MaterialIcon name="arrow_back" className="mr-1" />
+            <span>Volver al inicio</span>
+        </Link>
+      </div>
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -244,7 +265,13 @@ export default function MateriasManager() {
           </h1>
           <div className="flex items-center text-gray-600 mt-1">
             <MaterialIcon name="calendar_today" className="mr-1" />
-            <span>{currentDateFormatted}</span>
+            <span>{new Date().toLocaleDateString("es-ES", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+              </span>
           </div>
         </div>
         <Button
@@ -271,7 +298,7 @@ export default function MateriasManager() {
 
       {/* Formulario */}
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white p-6 rounded-lg shadow-md text-black">
           <h2 className="text-lg font-semibold mb-4">Nueva Materia Prima</h2>
           <form
             onSubmit={handleSubmit}
@@ -290,15 +317,11 @@ export default function MateriasManager() {
             <Input
               label="Cantidad:"
               type="number"
-              value={formulario.cantidad}
-              onChange={(e) =>
-                setFormulario({
-                  ...formulario,
-                  cantidad: parseFloat(e.target.value) || 0,
-                })
-              }
+              value={cantidadInput}
+              onChange={(e) => setCantidadInput(e.target.value)}
               min="0"
               step="0.1"
+              placeholder="Ej: 0.5, 2.3, 10"
               required
             />
 
@@ -478,4 +501,16 @@ export default function MateriasManager() {
       )}
     </div>
   );
+}
+
+export default function MateriasPage() {
+    return (
+        <Suspense fallback={
+                <div className="p-6 flex items-center justify-center min-h-[400px]">
+                    <div className="text-gray-600"> Cargando dashboard...</div>
+                </div>
+                }>
+                  <MateriaContent />
+        </Suspense>
+    )
 }

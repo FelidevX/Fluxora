@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useEffect, useState } from "react";
 
 ChartJS.register(
   CategoryScale,
@@ -22,7 +23,35 @@ ChartJS.register(
   Legend
 );
 
+interface Cliente {
+  id: number;
+  nombreNegocio: string;
+  nombre: string;
+  direccion: string;
+  contacto: string;
+  email: string;
+  latitud: number;
+  longitud: number;
+  coordenadas: number[];
+}
+
+interface MateriaPrima {
+  id: number;
+  nombre: string;
+  tipo: string;
+  cantidad: number;
+  proveedor: string;
+  estado: string;
+  unidad: string;
+  fecha: string;
+}
+
 export default function DashboardHome() {
+
+  const [clients, setClients] = useState<Cliente[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [materiaPrima, setMateriaPrima] = useState<MateriaPrima[]>([]);
+
   // Datos simulados para el gráfico de ventas de la semana (//cambiar)
   const ventasSemanaLabels = [
     "Lunes",
@@ -75,6 +104,62 @@ export default function DashboardHome() {
     month: "long",
     day: "numeric",
   });
+
+  const fetchClients = async () => {
+    setIsLoading(true);
+    try {
+      let token = localStorage.getItem("auth_token");
+
+      if (!token) throw new Error("No se encontró el token de autenticación");
+
+      if(token.startsWith("Bearer ")){
+        token = token.substring(7);
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`, {
+        headers : {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const response = await res.json();
+      setClients(response);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      setIsLoading(false);
+    }
+  }
+
+  const fetchMateriasPrimas = async () => {
+    setIsLoading(true);
+    try {
+      let token = localStorage.getItem("auth_token");
+
+      if (!token) throw new Error("No se encontró el token de autenticación");
+
+      if(token.startsWith("Bearer ")){
+        token = token.substring(7);
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`, {
+        headers : {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const response = await res.json();
+      setMateriaPrima(response);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching materias primas:", error);
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchClients();
+    fetchMateriasPrimas();
+  }, []);
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -209,51 +294,41 @@ export default function DashboardHome() {
                     Email
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
+                    Contacto
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* //cambiar: estos datos deben venir de la API */}
-                {[
-                  {
-                    nombre: "Juan Pérez",
-                    email: "juan@email.com",
-                    fecha: "2025-09-15",
-                  },
-                  {
-                    nombre: "Ana López",
-                    email: "ana@email.com",
-                    fecha: "2025-09-14",
-                  },
-                  {
-                    nombre: "Carlos Ruiz",
-                    email: "carlos@email.com",
-                    fecha: "2025-09-13",
-                  },
-                  {
-                    nombre: "María Torres",
-                    email: "maria@email.com",
-                    fecha: "2025-09-12",
-                  },
-                  {
-                    nombre: "Pedro Gómez",
-                    email: "pedro@email.com",
-                    fecha: "2025-09-11",
-                  },
-                ].map((cliente) => (
-                  <tr key={cliente.email} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                      {cliente.nombre}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
-                      {cliente.email}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                      {cliente.fecha}
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                      Cargando clientes...
                     </td>
                   </tr>
-                ))}
+                ) : clients.length > 0 ? (
+                  clients
+                    .sort((a, b) => b.id - a.id)
+                    .slice(0, 5)
+                    .map((cliente) => (
+                    <tr key={cliente.email || cliente.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                        {cliente.nombre}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
+                        {cliente.email}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {cliente.contacto}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                      No hay clientes registrados
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

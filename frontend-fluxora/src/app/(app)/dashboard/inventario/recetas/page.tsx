@@ -14,8 +14,9 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
-import ReparadorRecetas, { ReparadorRecetasRef } from "./ReparadorRecetas";
+import ReparadorRecetas, { ReparadorRecetasRef } from "@/components/inventario/recetas/ReparadorRecetas";
 import Modal from "@/components/ui/Modal";
+import Link from "next/link";
 
 export default function RecetasManager() {
   const { materias, setOnMateriaCreated } = useMaterias();
@@ -281,7 +282,16 @@ export default function RecetasManager() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
+      <div className="mb-4">
+        <Link
+          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+          href={"/dashboard/inventario"}
+          >
+            <MaterialIcon name="arrow_back" className="mr-1" />
+            <span>Volver al inicio</span>
+        </Link>
+      </div>
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -289,7 +299,7 @@ export default function RecetasManager() {
             Gestión de Recetas
           </h1>
           <div className="flex items-center text-gray-600 mt-1">
-            <MaterialIcon name="calendar_today" className="w-4 h-4 mr-1" />
+            <MaterialIcon name="calendar_today" className="mr-1" />
             <span>
               {new Date().toLocaleDateString("es-ES", {
                 weekday: "long",
@@ -635,14 +645,6 @@ export default function RecetasManager() {
       )}
 
       {/* Lista de recetas */}
-      <div className="bg-white rounded-lg border border-purple-200">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Recetas</h2>
-          <p className="text-gray-600">
-            Gestiona las recetas base para la producción
-          </p>
-        </div>
-
         {/* Tabla usando DataTable */}
         <DataTable
           data={recetasFiltradas}
@@ -654,7 +656,6 @@ export default function RecetasManager() {
           searchPlaceholder="Buscar receta, categoría o descripción..."
           emptyMessage="No hay recetas creadas aún"
         />
-      </div>
 
       {/* Modal de reparación de recetas */}
       <Modal

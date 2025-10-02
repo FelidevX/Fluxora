@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Entrega, FormularioEntrega } from "@/interfaces/driver";
+import { Entrega, FormularioEntrega } from "@/interfaces/entregas/driver";
 
 interface PantallaFormularioProps {
   entrega: Entrega;

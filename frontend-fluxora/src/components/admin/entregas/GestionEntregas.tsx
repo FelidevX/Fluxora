@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RutasActivas } from "../rutas/RutasActivas";
-import { DetalleRuta } from "../rutas/DetalleRuta";
-import { HistorialEntregas } from "../historial/HistorialEntregas";
-import { GestionRutas } from "./GestionRutas";
-import { RutaActiva } from "@/interfaces/entregas";
+import { RutasActivas } from "./rutas/RutasActivas";
+import { DetalleRuta } from "./rutas/DetalleRuta";
+import { HistorialEntregas } from "./historial/HistorialEntregas";
+import GestionRutas from "./gestion/GestionRutas";
+import { RutaActiva } from "@/interfaces/entregas/entregas";
 
 export default function GestionEntregas() {
   const [activeTab, setActiveTab] = useState("rutas-activas");
@@ -63,45 +63,6 @@ export default function GestionEntregas() {
   const handleVerDetalleRuta = (ruta: RutaActiva) => {
     setRutaSeleccionada(ruta);
     setActiveTab("detalle-ruta");
-  };
-
-  const crearDatosPrueba = async () => {
-    setLoading(true);
-    try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/setup-datos-prueba`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response.ok) {
-        alert("¡Datos de prueba creados exitosamente!");
-        fetchRutasActivas(); // Actualizar la lista
-      } else {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert(
-        "Error al crear datos de prueba: " +
-          (error instanceof Error ? error.message : "Error desconocido")
-      );
-    } finally {
-      setLoading(false);
-    }
   };
 
   const tabs = [
@@ -232,7 +193,6 @@ export default function GestionEntregas() {
             loading={loading}
             onRefresh={handleRefresh}
             onVerDetalle={handleVerDetalleRuta}
-            onCrearDatosPrueba={crearDatosPrueba}
           />
         )}
 

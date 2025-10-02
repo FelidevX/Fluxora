@@ -1,3 +1,10 @@
+export interface Driver {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: string;
+}
+
 export interface Entrega {
   id: number;
   direccion: string;

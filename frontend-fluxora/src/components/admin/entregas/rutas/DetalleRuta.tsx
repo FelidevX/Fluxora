@@ -5,7 +5,7 @@ import {
   RutaActiva,
   ClienteConEntrega,
   RegistroEntrega,
-} from "@/interfaces/entregas";
+} from "@/interfaces/entregas/entregas";
 
 interface DetalleRutaProps {
   ruta: RutaActiva;

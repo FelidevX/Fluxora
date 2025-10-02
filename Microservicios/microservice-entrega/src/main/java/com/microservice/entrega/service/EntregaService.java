@@ -176,28 +176,7 @@ public class EntregaService {
             rutaInfo.put("id", ruta.getId());
             rutaInfo.put("nombre", ruta.getNombre());
             rutaInfo.put("id_driver", ruta.getId_driver());
-
-            // Obtener clientes de la ruta
-            List<RutaCliente> rutaClientes = rutaClienteRepository.findByIdRuta(ruta.getId());
-            List<Long> clienteIds = rutaClientes.stream()
-                .map(RutaCliente::getId_cliente)
-                .toList();
-
-            if (!clienteIds.isEmpty()) {
-                try {
-                    List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(clienteIds);
-                    rutaInfo.put("clientes", clientes);
-                    rutaInfo.put("totalClientes", clientes.size());
-                } catch (Exception e) {
-                    System.err.println("Error al obtener clientes para ruta " + ruta.getId() + ": " + e.getMessage());
-                    rutaInfo.put("clientes", new ArrayList<>());
-                    rutaInfo.put("totalClientes", 0);
-                }
-            } else {
-                rutaInfo.put("clientes", new ArrayList<>());
-                rutaInfo.put("totalClientes", 0);
-            }
-
+            
             // Por simplicidad, por ahora no calculamos entregas completadas ni progreso
             rutaInfo.put("entregasCompletadas", 0);
             rutaInfo.put("progreso", 0);

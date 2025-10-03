@@ -22,6 +22,7 @@ public class MateriaPrima {
     private String estado;
     private String unidad;
     private LocalDate fecha;
+    private LocalDate fechaVencimiento;
 
     // Nota: Relaciones removidas temporalmente para simplificar el modelo
     // Se pueden restaurar después si son necesarias para la lógica de negocio

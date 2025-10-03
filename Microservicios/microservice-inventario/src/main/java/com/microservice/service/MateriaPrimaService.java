@@ -25,6 +25,7 @@ public class MateriaPrimaService {
                 .estado(entity.getEstado())
                 .unidad(entity.getUnidad())
                 .fecha(entity.getFecha())
+                .fechaVencimiento(entity.getFechaVencimiento())
                 .build();
     }
 
@@ -37,6 +38,7 @@ public class MateriaPrimaService {
                 .estado(dto.getEstado())
                 .unidad(dto.getUnidad())
                 .fecha(dto.getFecha())
+                .fechaVencimiento(dto.getFechaVencimiento())
                 .build();
     }
 
@@ -53,8 +55,8 @@ public class MateriaPrimaService {
 
     public MateriaPrimaDTO actualizarStock(Long id, Double nuevaCantidad) {
         MateriaPrima entity = repository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Materia prima no encontrada con ID: " + id));
-        
+                .orElseThrow(() -> new RuntimeException("Materia prima no encontrada con ID: " + id));
+
         entity.setCantidad(nuevaCantidad);
         MateriaPrima updated = repository.save(entity);
         return toDTO(updated);

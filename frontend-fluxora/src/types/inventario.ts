@@ -6,6 +6,7 @@ export interface MateriaPrima {
   estado: string;
   unidad: string;
   fecha: string;
+  fechaVencimiento?: string;
 }
 
 export interface MateriaPrimaDTO {
@@ -16,6 +17,7 @@ export interface MateriaPrimaDTO {
   estado: string;
   unidad: string;
   fecha: string;
+  fechaVencimiento?: string;
 }
 
 export interface Producto {

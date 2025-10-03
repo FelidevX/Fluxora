@@ -68,7 +68,7 @@ type Item = { href: string; label: string; icon: string };
 const items: Item[] = [
   { href: "/dashboard", label: "Inicio", icon: "home" },
   { href: "/dashboard/inventario", label: "Inventario", icon: "inventory_2" },
-  { href: "/dashboard/entregas", label: "Entregas", icon: "local_shipping" },
+  { href: "/dashboard/entregas", label: "Pedidos y Entregas", icon: "local_shipping" },
   { href: "/dashboard/clientes", label: "Clientes y Rutas", icon: "groups" },
 
   {

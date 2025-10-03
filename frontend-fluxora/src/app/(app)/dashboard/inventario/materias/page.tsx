@@ -45,6 +45,7 @@ function MateriaContent() {
     estado: "Disponible",
     unidad: "kg",
     fecha: currentDate || new Date().toISOString().split("T")[0],
+    fechaVencimiento: undefined,
   });
 
   // Cargar materias al montar el componente
@@ -99,6 +100,7 @@ function MateriaContent() {
         estado: "Disponible",
         unidad: "kg",
         fecha: currentDate || new Date().toISOString().split("T")[0],
+        fechaVencimiento: undefined,
       });
       setCantidadInput(""); // Reset del input
       setShowForm(false);
@@ -228,6 +230,19 @@ function MateriaContent() {
         </Badge>
       ),
     },
+    {
+      key: "fechaVencimiento",
+      label: "Vencimiento",
+      render: (materia: MateriaPrima) => (
+        <span>
+          {materia.fechaVencimiento ? (
+            <FormattedDate date={materia.fechaVencimiento} className="text-sm text-gray-900" />
+          ) : (
+            <span className="text-sm text-gray-900">Sin vencimiento</span>
+          )}
+        </span>
+      )
+    }
   ];
 
   // Definir acciones de la tabla
@@ -321,7 +336,6 @@ function MateriaContent() {
               onChange={(e) => setCantidadInput(e.target.value)}
               min="0"
               step="0.1"
-              placeholder="Ej: 0.5, 2.3, 10"
               required
             />
 
@@ -361,6 +375,15 @@ function MateriaContent() {
                 setFormulario({ ...formulario, fecha: e.target.value })
               }
               required
+            />
+
+            <Input 
+              label="Fecha de vencimiento:"
+              type="date"
+              value={formulario.fechaVencimiento}
+              onChange={(e) =>
+                setFormulario({ ...formulario, fechaVencimiento: e.target.value })
+              }
             />
 
             <div className="md:col-span-2 flex gap-2">

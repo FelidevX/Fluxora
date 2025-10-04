@@ -44,6 +44,7 @@ interface MateriaPrima {
   estado: string;
   unidad: string;
   fecha: string;
+  fechaVencimiento: string;
 }
 
 export default function DashboardHome() {
@@ -311,13 +312,13 @@ export default function DashboardHome() {
                     .slice(0, 5)
                     .map((cliente) => (
                     <tr key={cliente.email || cliente.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         {cliente.nombre}
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                         {cliente.email}
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         {cliente.contacto}
                       </td>
                     </tr>
@@ -333,64 +334,92 @@ export default function DashboardHome() {
             </table>
           </div>
         </div>
-        {/* Productos más vendidos */}
+        {/* Materias Primas por vencer */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <div className="flex flex-row items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">
-              Productos más vendidos
+              Materias primas registradas
             </h2>
-            <MaterialIcon name="attach_money" className="text-green-400" />
+            <MaterialIcon name="auto_delete" className="text-amber-400" />
           </div>
 
           <p className="text-sm text-gray-500 mb-4">
-            Top 5 de productos con mayor demanda
+            Materias primas próximas a vencer
           </p>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Producto
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Cantidad
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total vendido
+                  <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fecha de vencimiento
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* //cambiar: estos datos deben venir de la API */}
-                {[
-                  { producto: "Pan francés", cantidad: 320, total: "$64.000" },
-                  {
-                    producto: "Torta chocolate",
-                    cantidad: 210,
-                    total: "$42.000",
-                  },
-                  { producto: "Baguette", cantidad: 180, total: "$36.000" },
-                  { producto: "Croissant", cantidad: 150, total: "$30.000" },
-                  { producto: "Donas", cantidad: 120, total: "$24.000" },
-                ].map((prod) => (
-                  <tr key={prod.producto} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                      {prod.producto}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
-                      {prod.cantidad}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                      {prod.total}
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                      Cargando productos...
                     </td>
                   </tr>
-                ))}
+                ): materiaPrima.length > 0 ? (
+                  materiaPrima
+                    .filter(mp => mp.fechaVencimiento)
+                    .sort((a, b) => {
+                      const dateA = new Date(a.fechaVencimiento);
+                      const dateB = new Date(b.fechaVencimiento);
+                      return dateA.getTime() - dateB.getTime();
+                    })
+                    .slice(0, 5)
+                    .map((mp) => {
+                      const fechaVencimiento = new Date(mp.fechaVencimiento);
+                      const hoy = new Date();
+                      const diasRestantes = Math.ceil((fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+
+                      return (
+                      <tr key={mp.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-900 text-center">
+                          {mp.nombre}
+                        </td>
+                        <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-600 text-center">
+                          {mp.cantidad} {mp.unidad}
+                        </td>
+                        <td className="px-4 py-1 whitespace-nowrap text-sm text-center">
+                          <div className="flex flex-col items-center">
+                            <span className={`text-sm ${diasRestantes <= 3 ? 'text-red-600 font-semibold' : diasRestantes <= 7 ? 'text-amber-600 font-medium' : 'text-gray-500'      
+                            }`}>
+                              {fechaVencimiento.toLocaleDateString('es-ES')}
+                            </span>
+                            <span className={`text-xs ${
+                              diasRestantes <= 3 ? 'text-red-500' : 
+                              diasRestantes <= 7 ? 'text-amber-500' : 
+                              'text-gray-400'
+                            }`}>
+                              {diasRestantes > 0 ? `${diasRestantes} días`: 'vencido'}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                      );
+                    })
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                      No hay productos con fecha de vencimiento registrados
+                    </td>
+                  </tr>
+                )} 
               </tbody>
             </table>
           </div>
         </div>
       </div>
-      ;
     </div>
   );
 }

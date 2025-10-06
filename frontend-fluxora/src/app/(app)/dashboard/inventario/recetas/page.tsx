@@ -14,7 +14,9 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
-import ReparadorRecetas, { ReparadorRecetasRef } from "@/components/inventario/recetas/ReparadorRecetas";
+import ReparadorRecetas, {
+  ReparadorRecetasRef,
+} from "@/components/inventario/recetas/ReparadorRecetas";
 import Modal from "@/components/ui/Modal";
 import Link from "next/link";
 
@@ -273,12 +275,16 @@ export default function RecetasManager() {
     },
   ];
 
-  // Filtrar recetas
-  const recetasFiltradas = recetas.filter(
+  // Filtrar recetas (con protección contra null)
+  const recetasFiltradas = (recetas || []).filter(
     (receta) =>
-      receta.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      receta.categoria.toLowerCase().includes(busqueda.toLowerCase()) ||
-      receta.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+      receta && // Protección adicional por si hay elementos null
+      receta.nombre && // Verificar que tiene propiedades
+      (receta.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+        (receta.categoria &&
+          receta.categoria.toLowerCase().includes(busqueda.toLowerCase())) ||
+        (receta.descripcion &&
+          receta.descripcion.toLowerCase().includes(busqueda.toLowerCase())))
   );
 
   return (
@@ -287,9 +293,9 @@ export default function RecetasManager() {
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
           href={"/dashboard/inventario"}
-          >
-            <MaterialIcon name="arrow_back" className="mr-1" />
-            <span>Volver al inicio</span>
+        >
+          <MaterialIcon name="arrow_back" className="mr-1" />
+          <span>Volver al inicio</span>
         </Link>
       </div>
       {/* Header */}
@@ -645,17 +651,17 @@ export default function RecetasManager() {
       )}
 
       {/* Lista de recetas */}
-        {/* Tabla usando DataTable */}
-        <DataTable
-          data={recetasFiltradas}
-          columns={columns}
-          actions={actions}
-          loading={loading}
-          searchValue={busqueda}
-          onSearch={setBusqueda}
-          searchPlaceholder="Buscar receta, categoría o descripción..."
-          emptyMessage="No hay recetas creadas aún"
-        />
+      {/* Tabla usando DataTable */}
+      <DataTable
+        data={recetasFiltradas}
+        columns={columns}
+        actions={actions}
+        loading={loading}
+        searchValue={busqueda}
+        onSearch={setBusqueda}
+        searchPlaceholder="Buscar receta, categoría o descripción..."
+        emptyMessage="No hay recetas creadas aún"
+      />
 
       {/* Modal de reparación de recetas */}
       <Modal

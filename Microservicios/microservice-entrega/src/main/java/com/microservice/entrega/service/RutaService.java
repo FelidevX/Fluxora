@@ -96,6 +96,9 @@ public class RutaService {
         for (ClienteDTO c : orderedClients) {
             coords.append(";").append(c.getLongitud()).append(",").append(c.getLatitud());
         }
+
+        coords.append(";").append(origen.getLongitud()).append(",").append(origen.getLatitud());
+
         String url = "http://router.project-osrm.org/route/v1/driving/" + coords +
                 "?overview=full&geometries=geojson";
 
@@ -196,5 +199,13 @@ public class RutaService {
         } catch (Exception e) {
             throw new RuntimeException("Error al asignar cliente a ruta: " + e.getMessage());
         }
+    }
+
+    public Long getRutaIdByDriverId(Long driverId) {
+        Optional<Ruta> ruta = rutaRepository.findByIdDriver(driverId);
+        if (ruta.isEmpty()) {
+            throw new RuntimeException("No se encontró una ruta para el ID de conductor proporcionado");
+        }
+        return ruta.get().getId();
     }
 }

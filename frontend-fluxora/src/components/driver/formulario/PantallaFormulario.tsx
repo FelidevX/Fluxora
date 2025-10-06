@@ -15,14 +15,63 @@ export default function PantallaFormulario({
   onCancel,
 }: PantallaFormularioProps) {
   const [formData, setFormData] = useState<FormularioEntrega>({
-    corriente: "12.5",
-    especial: "5",
-    observaciones: "",
+    corriente: "",
+    especial: "",
+    comentario: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí enviarías los datos al backend
+
+    setIsLoading(true);
+    try {
+       let token = localStorage.getItem("auth_token");
+
+       if (!token) {
+        throw new Error("No se encontró el token de autenticación.");
+       }
+
+       if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+       }
+
+       const payload = {
+        id_cliente: entrega.id_cliente,
+        corriente_entregado: parseFloat(formData.corriente) || 0,
+        especial_entregado: parseFloat(formData.especial) || 0,
+        comentario: formData.comentario || "",
+        hora_entregada: new Date().toISOString(),
+       }
+
+       console.log("Payload a enviar:", payload);
+
+       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/registrar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+       });
+
+        if (!response.ok) {
+          throw new Error("Error al crear la entrega.");
+        }
+
+        setFormData({
+          corriente: "",
+          especial: "",
+          comentario: "",
+        });
+    } catch (error) {
+      console.error("Error al enviar el formulario:", error);
+      alert("Hubo un error al procesar la entrega. Por favor, inténtelo de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
+
     console.log("Entrega completada:", { entrega, formData });
     onComplete();
   };
@@ -30,6 +79,8 @@ export default function PantallaFormulario({
   const calcularTotal = () => {
     const corriente = parseFloat(formData.corriente) * 7500;
     const especial = parseFloat(formData.especial) * 8000;
+
+    if (isNaN(corriente) && isNaN(especial)) return "0";
     return (corriente + especial).toLocaleString();
   };
 
@@ -51,7 +102,7 @@ export default function PantallaFormulario({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, corriente: e.target.value }))
               }
-              className="w-20 px-3 py-1 border rounded text-center"
+              className="w-32 px-3 py-1 border border-gray-300 rounded text-center text-gray-600"
             />
             <span className="text-gray-600 font-medium">KG</span>
             <button type="button" className="text-blue-600 hover:text-blue-800">
@@ -70,7 +121,7 @@ export default function PantallaFormulario({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, especial: e.target.value }))
               }
-              className="w-20 px-3 py-1 border rounded text-center"
+              className="w-32 px-3 py-1 border border-gray-300 rounded text-center text-gray-600"
             />
             <span className="text-gray-600 font-medium">KG</span>
             <button type="button" className="text-blue-600 hover:text-blue-800">
@@ -84,15 +135,15 @@ export default function PantallaFormulario({
             Observaciones:
           </label>
           <textarea
-            value={formData.observaciones}
+            value={formData.comentario}
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
-                observaciones: e.target.value,
+                comentario: e.target.value,
               }))
             }
             placeholder="Ingrese sus observaciones..."
-            className="w-full p-3 border border-gray-300 rounded-lg resize-none h-24"
+            className="w-full p-3 border border-gray-300 rounded-lg resize-none h-24 text-gray-600"
           />
         </div>
 

@@ -24,4 +24,5 @@ public class RegistroEntrega {
     private LocalDateTime hora_entregada;
     private Double corriente_entregado;
     private Double especial_entregado;
+    private String comentario;
 }

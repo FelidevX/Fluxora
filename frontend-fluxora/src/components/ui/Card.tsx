@@ -2,7 +2,7 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Link from "next/dist/client/link";
 
-interface InventarioCardProps {
+interface CardProps {
   title: string;
   description: string;
   icon: string;
@@ -12,7 +12,7 @@ interface InventarioCardProps {
   href: string;
 }
 
-export default function InventarioCard({
+export default function Card({
   title,
   description,
   icon,
@@ -20,7 +20,7 @@ export default function InventarioCard({
   buttonText,
   buttonVariant,
   href,
-}: InventarioCardProps) {
+}: CardProps) {
   return (
     <div className="bg-white rounded-lg shadow p-6 h-full flex flex-col">
       <div className="flex items-center mb-4">
@@ -29,7 +29,9 @@ export default function InventarioCard({
         </div>
         <h2 className="ml-3 text-lg font-semibold text-gray-900">{title}</h2>
       </div>
-      <p className="text-gray-600 mb-4 flex-1 line-clamp-2 overflow-hidden">{description}</p>
+      <p className="text-gray-600 mb-4 flex-1 line-clamp-2 overflow-hidden">
+        {description}
+      </p>
       <Link href={href}>
         <Button variant={buttonVariant} className="w-full cursor-pointer">
           {buttonText}

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import InventarioCard from "@/components/inventario/InventarioCard";
 import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEstadisticas";
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
+import Card from "@/components/ui/Card";
 
 function InventarioContent() {
   const searchParams = useSearchParams();
@@ -34,7 +34,7 @@ function InventarioContent() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <InventarioCard
+          <Card
             title="Materias Primas"
             description="Gestiona las materias primas disponibles en el inventario"
             icon="inventory"
@@ -44,7 +44,7 @@ function InventarioContent() {
             href="/dashboard/inventario/materias"
           />
 
-          <InventarioCard
+          <Card
             title="Producción"
             description="Administra la producción de productos"
             icon="inventory"
@@ -54,7 +54,7 @@ function InventarioContent() {
             href="/dashboard/inventario/productos"
           />
 
-          <InventarioCard
+          <Card
             title="Recetas"
             description="Crear y gestionar recetas base para producción"
             icon="restaurant_menu"
@@ -81,11 +81,13 @@ function InventarioContent() {
 
 export default function InventarioPage() {
   return (
-    <Suspense fallback={
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-gray-600">Cargando inventario...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-gray-600">Cargando inventario...</div>
+        </div>
+      }
+    >
       <InventarioContent />
     </Suspense>
   );

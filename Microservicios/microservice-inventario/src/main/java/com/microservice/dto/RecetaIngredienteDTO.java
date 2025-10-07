@@ -6,10 +6,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RecetaDTO {
-    private Long productoId;
+public class RecetaIngredienteDTO {
     private Long materiaPrimaId;
     private String materiaPrimaNombre;
     private Double cantidadNecesaria;
     private String unidad;
+    private Boolean esOpcional;
+    private String notas;
 }

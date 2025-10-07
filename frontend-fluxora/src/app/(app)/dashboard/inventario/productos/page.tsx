@@ -10,6 +10,7 @@ import {
 import { RecetaMaestra } from "@/types/produccion";
 import { useProductos } from "@/hooks/useProductos";
 import { useMaterias } from "@/hooks/useMaterias";
+import { useRecetas } from "@/hooks/useRecetas";
 import { formatCLP } from "@/utils/currency";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
@@ -31,6 +32,7 @@ export default function ProductosPage() {
   } = useProductos();
 
   const { materias } = useMaterias();
+  const { recetas } = useRecetas();
 
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -40,9 +42,7 @@ export default function ProductosPage() {
   const [recetaSeleccionada, setRecetaSeleccionada] =
     useState<RecetaMaestra | null>(null);
   const [multiplicadorReceta, setMultiplicadorReceta] = useState(1);
-  const [recetasDisponibles, setRecetasDisponibles] = useState<RecetaMaestra[]>(
-    []
-  );
+  // Usamos las recetas del hook en lugar de estado local
 
   const [formulario, setFormulario] = useState<ProductoDTO>({
     nombre: "",
@@ -67,26 +67,8 @@ export default function ProductosPage() {
     details: "",
   });
 
-  // Efecto para cargar recetas disponibles
-  useEffect(() => {
-    cargarRecetas();
-  }, []);
-
-  const cargarRecetas = async () => {
-    try {
-      // Cargar recetas reales del localStorage
-      const recetasGuardadas = localStorage.getItem("fluxora_recetas");
-      if (recetasGuardadas) {
-        const recetasParsed = JSON.parse(recetasGuardadas);
-        setRecetasDisponibles(recetasParsed);
-      }
-    } catch (error) {
-      console.error("Error cargando recetas:", error);
-    }
-  };
-
   const handleRecetaSeleccionada = (recetaId: number) => {
-    const receta = recetasDisponibles.find((r) => r.id === recetaId);
+    const receta = recetas.find((r) => r.id === recetaId); // Usar recetas del hook
 
     if (receta) {
       setRecetaSeleccionada(receta);
@@ -491,9 +473,9 @@ export default function ProductosPage() {
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
           href={"/dashboard/inventario"}
-          >
-            <MaterialIcon name="arrow_back" className="mr-1" />
-            <span>Volver al inicio</span>
+        >
+          <MaterialIcon name="arrow_back" className="mr-1" />
+          <span>Volver al inicio</span>
         </Link>
       </div>
       {/* Header */}
@@ -577,7 +559,7 @@ export default function ProductosPage() {
                     required
                   >
                     <option value="">Seleccionar receta...</option>
-                    {recetasDisponibles.map((receta) => (
+                    {recetas.map((receta: RecetaMaestra) => (
                       <option key={receta.id} value={receta.id}>
                         {receta.nombre} (Base: {receta.cantidadBase}{" "}
                         {receta.unidadBase})
@@ -847,17 +829,17 @@ export default function ProductosPage() {
         </div>
       )}
 
-        {/* Tabla usando DataTable */}
-        <DataTable
-          data={productosFiltrados}
-          columns={columns}
-          actions={actions}
-          loading={loading}
-          searchValue={busqueda}
-          onSearch={setBusqueda}
-          searchPlaceholder="Buscar productos..."
-          emptyMessage="No hay productos registrados"
-        />
+      {/* Tabla usando DataTable */}
+      <DataTable
+        data={productosFiltrados}
+        columns={columns}
+        actions={actions}
+        loading={loading}
+        searchValue={busqueda}
+        onSearch={setBusqueda}
+        searchPlaceholder="Buscar productos..."
+        emptyMessage="No hay productos registrados"
+      />
 
       {/* Modal de confirmación para productos duplicados */}
       <Modal

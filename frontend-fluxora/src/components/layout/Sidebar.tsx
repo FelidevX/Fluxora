@@ -139,8 +139,8 @@ export default function Sidebar() {
         ref={panelRef}
         className={[
           "z-50 md:z-0",
-          "fixed md:static inset-y-0 left-0",
-          "w-72 md:w-[260px]",
+          "fixed md:sticky inset-y-0 left-0 md:top-0",
+          "w-72 md:w-[260px] h-screen",
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           "transition-transform duration-200 ease-out",
           "bg-gradient-to-b from-blue-700 via-blue-600 to-blue-700",

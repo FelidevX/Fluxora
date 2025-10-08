@@ -12,18 +12,18 @@ export default function EntregasPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card
-          title="Entregas"
-          description="Ver y registrar entregas diarias por ruta y conductor."
+          title="Pedidos"
+          description="Ver historial de pedidos entregados"
           icon="local_shipping"
           iconColor="bg-blue-50 text-blue-600"
-          buttonText="Gestionar Entregas"
+          buttonText="Gestionar Pedidos"
           buttonVariant="primary"
           href="/dashboard/entregas/entregas"
         />
 
         <Card
           title="Rutas"
-          description="Crear, editar y asignar drivers a rutas programadas."
+          description="Visualizar, crear, editar y asignar drivers a rutas programadas."
           icon="map"
           iconColor="bg-green-50 text-green-600"
           buttonText="Gestionar Rutas"

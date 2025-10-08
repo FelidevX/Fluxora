@@ -234,60 +234,71 @@ export default function PendingClientList({
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg border-2 border-blue-500 max-w-2xl">
-      <div className="flex items-center mb-4">
-        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-          <span className="text-gray-600">⏳</span>
-        </div>
+    <div className="bg-white p-6 rounded-lg border border-gray-200 max-w-full">
+      <div className="flex justify-between items-start mb-6">
         <div>
-          <h3 className="font-semibold text-gray-800">{title}</h3>
+          <h2 className="text-lg font-medium text-gray-900">{title}</h2>
           <p className="text-sm text-gray-500">
-            {filteredClients.length} Seleccione los clientes que desea asignar
+            {filteredClients.length} clientes sin ruta — selecciona los clientes
+            que deseas asignar
           </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:block">
+            <input
+              type="text"
+              placeholder="Buscar cliente..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border px-3 py-2 rounded-md w-64 text-black"
+            />
+          </div>
+
+          {filteredClients.length > 0 && (
+            <button
+              onClick={handleSelectAll}
+              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {selectedClients.size === filteredClients.length
+                ? "Deseleccionar todo"
+                : "Seleccionar todo"}
+            </button>
+          )}
+
+          {selectedClients.size > 0 && (
+            <button
+              onClick={handleAssignClients}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              {submitButtonText} ({selectedClients.size})
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-4">
+      {/* compact search for small screens */}
+      <div className="sm:hidden mb-4">
         <input
           type="text"
           placeholder="Buscar cliente..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded-md w-64 text-black"
+          className="border px-3 py-2 rounded-md w-full text-black"
         />
-
-        {filteredClients.length > 0 && (
-          <button
-            onClick={handleSelectAll}
-            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            {selectedClients.size === filteredClients.length
-              ? "Deseleccionar todo"
-              : "Seleccionar todo"}
-          </button>
-        )}
-
-        {selectedClients.size > 0 && (
-          <button
-            onClick={handleAssignClients}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            {submitButtonText} ({selectedClients.size})
-          </button>
-        )}
       </div>
 
       {filteredClients.length > 0 ? (
         <div className="relative">
-          <div className="h-[400px] overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div className="h-[420px] overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <div className="space-y-3">
               {filteredClients.map((client) => (
                 <div
                   key={client.id}
-                  className={`w-full border rounded-lg p-4 cursor-pointer transition-colors ${
+                  className={`w-full bg-white shadow-sm rounded-lg p-4 cursor-pointer transition-shadow ${
                     selectedClients.has(client.id)
-                      ? "border-orange-500 bg-orange-50"
-                      : "border-gray-200 hover:border-blue-200 hover:bg-blue-50"
+                      ? "ring-2 ring-orange-300 bg-orange-50"
+                      : "hover:shadow-md"
                   }`}
                   onClick={() => handleClientSelect(client.id)}
                 >
@@ -327,8 +338,8 @@ export default function PendingClientList({
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl relative z-25">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl relative z-25">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Seleccionar Ruta
             </h3>
@@ -338,7 +349,7 @@ export default function PendingClientList({
 
             {loadingRutas ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                 <span className="ml-2 text-gray-600">Cargando rutas...</span>
               </div>
             ) : (

@@ -68,8 +68,12 @@ type Item = { href: string; label: string; icon: string };
 const items: Item[] = [
   { href: "/dashboard", label: "Inicio", icon: "home" },
   { href: "/dashboard/inventario", label: "Inventario", icon: "inventory_2" },
-  { href: "/dashboard/entregas", label: "Entregas", icon: "local_shipping" },
-  { href: "/dashboard/clientes", label: "Clientes y Rutas", icon: "groups" },
+  {
+    href: "/dashboard/entregas",
+    label: "Pedidos y Rutas",
+    icon: "local_shipping",
+  },
+  { href: "/dashboard/clientes", label: "Clientes", icon: "groups" },
 
   {
     href: "/dashboard/facturacion",
@@ -172,8 +176,7 @@ export default function Sidebar() {
         <nav className="flex-1 overflow-y-auto py-3 px-2">
           <ul className="space-y-1">
             {items.map((item, idx) => {
-              const active =
-                pathname === item.href;
+              const active = pathname === item.href;
               const base =
                 "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
               const classes = active
@@ -185,7 +188,7 @@ export default function Sidebar() {
                   <Link
                     ref={idx === 0 ? firstLinkRef : undefined}
                     href={item.href}
-                    className={classes}   
+                    className={classes}
                   >
                     <MaterialIcon
                       name={item.icon}

@@ -107,7 +107,7 @@ export default function GestionEntregas() {
     },
     {
       id: "historial",
-      name: "Historial de Entregas",
+      name: "Historial de Pedidos",
       icon: (
         <svg
           className="h-5 w-5"

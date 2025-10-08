@@ -121,30 +121,6 @@ const ClientesPage = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex mb-6 bg-gray-100 rounded-lg w-fit">
-        <button
-          className={`px-6 py-2 rounded-l-lg font-semibold transition-colors ${
-            activeTab === "clientes"
-              ? "bg-white text-blue-600"
-              : "text-gray-600"
-          }`}
-          onClick={() => handleTabClick("clientes")}
-        >
-          Clientes
-        </button>
-        <button
-          className={`px-6 py-2 rounded-r-lg font-semibold transition-colors ${
-            activeTab === "repartos"
-              ? "bg-white text-blue-600"
-              : "text-gray-600"
-          }`}
-          onClick={() => handleTabClick("repartos")}
-        >
-          Repartos
-        </button>
-      </div>
-
       {/* Mensajes de feedback */}
       {successMessage && (
         <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">

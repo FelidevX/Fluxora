@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import GestionRutas from "@/components/admin/entregas/gestion/GestionRutas";
 import { RutasActivas } from "@/components/admin/entregas/rutas/RutasActivas";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
+import { AsignarClientes } from "@/components/admin/entregas/asignar/AsignarClientes";
 
 export default function GestionRutasPage() {
   const [rutas, setRutas] = useState<RutaActiva[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"gestion" | "rutas-activas">(
-    "gestion"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "gestion" | "rutas-activas" | "asignar"
+  >("gestion");
   const router = useRouter();
 
   const fetchRutas = async () => {
@@ -76,17 +77,31 @@ export default function GestionRutasPage() {
           >
             Gestión de Rutas
           </button>
+
           <button
-            className={`px-4 py-2 rounded-r-md border text-sm font-medium focus:outline-none ${
+            className={`px-4 py-2 border-t border-b border-gray-200 text-sm font-medium focus:outline-none ${
               activeTab === "rutas-activas"
                 ? "bg-white border-blue-500 text-blue-600"
-                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
             }`}
             role="tab"
             aria-selected={activeTab === "rutas-activas"}
             onClick={() => setActiveTab("rutas-activas")}
           >
             Rutas Activas
+          </button>
+
+          <button
+            className={`px-4 py-2 rounded-r-md border text-sm font-medium focus:outline-none ${
+              activeTab === "asignar"
+                ? "bg-white border-blue-500 text-blue-600"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "asignar"}
+            onClick={() => setActiveTab("asignar")}
+          >
+            Asignar
           </button>
         </nav>
       </div>
@@ -112,6 +127,7 @@ export default function GestionRutasPage() {
             />
           </div>
         )}
+        {activeTab === "asignar" && <AsignarClientes />}
       </div>
     </div>
   );

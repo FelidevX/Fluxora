@@ -16,7 +16,7 @@ export default function EntregasPage() {
           description="Ver y registrar entregas diarias por ruta y conductor."
           icon="local_shipping"
           iconColor="bg-blue-50 text-blue-600"
-          buttonText="Abrir"
+          buttonText="Gestionar Entregas"
           buttonVariant="primary"
           href="/dashboard/entregas/entregas"
         />
@@ -26,7 +26,7 @@ export default function EntregasPage() {
           description="Crear, editar y asignar drivers a rutas programadas."
           icon="map"
           iconColor="bg-green-50 text-green-600"
-          buttonText="Abrir"
+          buttonText="Gestionar Rutas"
           buttonVariant="success"
           href="/dashboard/entregas/rutas"
         />

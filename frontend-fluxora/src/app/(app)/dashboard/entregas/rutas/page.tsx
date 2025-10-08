@@ -3,11 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import GestionRutas from "@/components/admin/entregas/gestion/GestionRutas";
+import { RutasActivas } from "@/components/admin/entregas/rutas/RutasActivas";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 
 export default function GestionRutasPage() {
   const [rutas, setRutas] = useState<RutaActiva[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"gestion" | "rutas-activas">(
+    "gestion"
+  );
   const router = useRouter();
 
   const fetchRutas = async () => {
@@ -53,13 +57,62 @@ export default function GestionRutasPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Gestión de Rutas</h1>
-      <GestionRutas
-        rutas={rutas}
-        loading={loading}
-        onRefresh={fetchRutas}
-        onVerDetalle={handleVerDetalle}
-      />
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-black">Rutas</h1>
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-6">
+        <nav className="inline-flex rounded-md shadow-sm" role="tablist">
+          <button
+            className={`px-4 py-2 rounded-l-md border text-sm font-medium focus:outline-none ${
+              activeTab === "gestion"
+                ? "bg-white border-blue-500 text-blue-600"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "gestion"}
+            onClick={() => setActiveTab("gestion")}
+          >
+            Gestión de Rutas
+          </button>
+          <button
+            className={`px-4 py-2 rounded-r-md border text-sm font-medium focus:outline-none ${
+              activeTab === "rutas-activas"
+                ? "bg-white border-blue-500 text-blue-600"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "rutas-activas"}
+            onClick={() => setActiveTab("rutas-activas")}
+          >
+            Rutas Activas
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab panels */}
+      <div>
+        {activeTab === "gestion" && (
+          <GestionRutas
+            rutas={rutas}
+            loading={loading}
+            onRefresh={fetchRutas}
+            onVerDetalle={handleVerDetalle}
+          />
+        )}
+
+        {activeTab === "rutas-activas" && (
+          <div>
+            <RutasActivas
+              rutas={rutas}
+              loading={loading}
+              onRefresh={fetchRutas}
+              onVerDetalle={handleVerDetalle}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

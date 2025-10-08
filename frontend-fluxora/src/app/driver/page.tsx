@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import PantallaRuta from "@/components/driver/ruta/PantallaRuta";
 import PantallaClientes from "@/components/driver/clientes/PantallaClientes";
-import PantallaFormulario from "@/components/driver/formulario/PantallaFormulario";
+import FormularioContainer from "@/components/driver/formcontainer/FormContainer";
 import { Entrega } from "@/interfaces/entregas/driver";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 
@@ -111,6 +111,7 @@ export default function DriverHomePage() {
         latitud: cliente.latitud,
         longitud: cliente.longitud,
         id_cliente: cliente.id,
+        id_ruta: rutaId,
       }));
       
       setEntregas(entregasFromRuta);
@@ -272,7 +273,7 @@ export default function DriverHomePage() {
           />
         )}
         {activeTab === "formulario" && entregaSeleccionada && (
-          <PantallaFormulario
+          <FormularioContainer
             entrega={entregaSeleccionada}
             onComplete={handleFormularioComplete}
             onCancel={handleFormularioCancel}

@@ -661,6 +661,12 @@ export default function RecetasManager() {
         onSearch={setBusqueda}
         searchPlaceholder="Buscar receta, categoría o descripción..."
         emptyMessage="No hay recetas creadas aún"
+        pagination={{
+          enabled: true,
+          serverSide: false,
+          defaultPageSize: 5,
+          pageSizeOptions: [5, 10, 25, 50],
+        }}
       />
 
       {/* Modal de reparación de recetas */}

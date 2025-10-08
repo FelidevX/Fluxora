@@ -76,11 +76,7 @@ function MateriaContent() {
     // Convertir el string a número para validación
     const cantidadNumerica = parseFloat(cantidadInput) || 0;
 
-    if (
-      !formulario.nombre ||
-      !formulario.proveedor ||
-      cantidadNumerica <= 0
-    ) {
+    if (!formulario.nombre || !formulario.proveedor || cantidadNumerica <= 0) {
       return;
     }
 
@@ -88,9 +84,9 @@ function MateriaContent() {
       // Usar la cantidad numérica para enviar
       await crearMateria({
         ...formulario,
-        cantidad: cantidadNumerica
+        cantidad: cantidadNumerica,
       });
-      
+
       // Reset del formulario
       setFormulario({
         nombre: "",
@@ -252,9 +248,9 @@ function MateriaContent() {
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
           href={"/dashboard/inventario"}
-          >
-            <MaterialIcon name="arrow_back" className="mr-1" />
-            <span>Volver al inicio</span>
+        >
+          <MaterialIcon name="arrow_back" className="mr-1" />
+          <span>Volver al inicio</span>
         </Link>
       </div>
       {/* Header */}
@@ -265,13 +261,14 @@ function MateriaContent() {
           </h1>
           <div className="flex items-center text-gray-600 mt-1">
             <MaterialIcon name="calendar_today" className="mr-1" />
-            <span>{new Date().toLocaleDateString("es-ES", {
+            <span>
+              {new Date().toLocaleDateString("es-ES", {
                 weekday: "long",
                 year: "numeric",
                 month: "long",
                 day: "numeric",
               })}
-              </span>
+            </span>
           </div>
         </div>
         <Button
@@ -389,6 +386,12 @@ function MateriaContent() {
         onSearch={setBusqueda}
         searchPlaceholder="Buscar materias primas..."
         emptyMessage="No hay materias primas registradas"
+        pagination={{
+          enabled: true,
+          serverSide: false,
+          defaultPageSize: 5,
+          pageSizeOptions: [5, 10, 25, 50],
+        }}
       />
 
       {/* Modal de Agregar Stock */}
@@ -504,13 +507,15 @@ function MateriaContent() {
 }
 
 export default function MateriasPage() {
-    return (
-        <Suspense fallback={
-                <div className="p-6 flex items-center justify-center min-h-[400px]">
-                    <div className="text-gray-600"> Cargando dashboard...</div>
-                </div>
-                }>
-                  <MateriaContent />
-        </Suspense>
-    )
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-gray-600"> Cargando dashboard...</div>
+        </div>
+      }
+    >
+      <MateriaContent />
+    </Suspense>
+  );
 }

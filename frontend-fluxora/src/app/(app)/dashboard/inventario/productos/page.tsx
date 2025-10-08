@@ -839,6 +839,12 @@ export default function ProductosPage() {
         onSearch={setBusqueda}
         searchPlaceholder="Buscar productos..."
         emptyMessage="No hay productos registrados"
+        pagination={{
+          enabled: true,
+          serverSide: false,
+          defaultPageSize: 5,
+          pageSizeOptions: [5, 10, 25, 50],
+        }}
       />
 
       {/* Modal de confirmación para productos duplicados */}

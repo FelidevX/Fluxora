@@ -6,6 +6,7 @@ import { Rol } from "@/types/rol";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Badge from "@/components/ui/Badge";
 import Button from "../../ui/Button";
+import DataTable from "@/components/ui/DataTable";
 import UsuarioModal from "./UsuarioModal";
 
 const UsuariosManager: React.FC = () => {
@@ -250,7 +251,7 @@ const UsuariosManager: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className=" mx-auto p-4">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start">
@@ -359,78 +360,64 @@ const UsuariosManager: React.FC = () => {
             </form>
           </div>
         )}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <MaterialIcon name="group" className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Usuarios</h2>
-            </div>
-          </div>
+        <div>
           {error && (
             <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
               {error}
             </div>
           )}
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nombre
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rol
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {usuarios.map((usuario) => (
-                  <tr key={usuario.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {usuario.nombre}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {usuario.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="info">{usuario.rol.rol}</Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                      <button
-                        onClick={() => handleUpdateUser(Number(usuario.id))}
-                        title="Editar"
-                        className="p-2 rounded hover:bg-gray-200"
-                      >
-                        <MaterialIcon name="edit" className="text-blue-500" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(Number(usuario.id))}
-                        title="Eliminar"
-                        className="p-2 rounded hover:bg-red-100"
-                      >
-                        <MaterialIcon name="delete" className="text-red-500" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {isLoading && (
-              <div className="text-center text-gray-500 py-6">
-                Cargando usuarios...
-              </div>
-            )}
-            {usuarios.length === 0 && !isLoading && (
-              <div className="text-center text-gray-500 py-6">
-                No se encontraron usuarios.
-              </div>
-            )}
+          <div>
+            <DataTable
+              data={usuarios.filter((u) => {
+                return true;
+              })}
+              columns={[
+                {
+                  key: "nombre",
+                  label: "Nombre",
+                  render: (u: any) => (
+                    <span className="text-sm font-medium text-gray-900">
+                      {u.nombre}
+                    </span>
+                  ),
+                },
+                {
+                  key: "email",
+                  label: "Email",
+                  render: (u: any) => (
+                    <span className="text-sm text-gray-600">{u.email}</span>
+                  ),
+                },
+                {
+                  key: "rol",
+                  label: "Rol",
+                  render: (u: any) => (
+                    <Badge variant="info">{u.rol?.rol}</Badge>
+                  ),
+                },
+              ]}
+              actions={[
+                {
+                  label: "Editar",
+                  icon: "edit",
+                  variant: "primary",
+                  onClick: (u: any) => handleUpdateUser(Number(u.id)),
+                },
+                {
+                  label: "Eliminar",
+                  icon: "delete",
+                  variant: "danger",
+                  onClick: (u: any) => handleDeleteUser(Number(u.id)),
+                },
+              ]}
+              loading={isLoading}
+              emptyMessage={
+                isLoading
+                  ? "Cargando usuarios..."
+                  : "No se encontraron usuarios."
+              }
+              pagination={{ enabled: true, defaultPageSize: 10 }}
+            />
           </div>
         </div>
         {showConfirmModal && (

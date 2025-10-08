@@ -67,9 +67,6 @@ const UsuariosManager: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Rol
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -83,20 +80,6 @@ const UsuariosManager: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Badge variant="info">{usuario.rol.rol}</Badge>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                  <button
-                    title="Editar"
-                    className="p-2 rounded hover:bg-gray-200"
-                  >
-                    <MaterialIcon name="edit" className="text-blue-500" />
-                  </button>
-                  <button
-                    title="Eliminar"
-                    className="p-2 rounded hover:bg-red-100"
-                  >
-                    <MaterialIcon name="delete" className="text-red-500" />
-                  </button>
                 </td>
               </tr>
             ))}

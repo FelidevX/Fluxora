@@ -1,6 +1,12 @@
 "use client";
 
-import { ReactNode } from "react";
+import {
+  ReactNode,
+  useState,
+  useEffect,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 
@@ -30,6 +36,16 @@ interface DataTableProps<T> {
   searchValue?: string;
   onSearch?: (value: string) => void;
   searchPlaceholder?: string;
+  pagination?: {
+    enabled?: boolean; // activar paginación
+    serverSide?: boolean; // si la paginación es manejada por servidor
+    total?: number; // total de elementos (útil para serverSide)
+    page?: number; // página actual (útil para serverSide)
+    defaultPageSize?: number;
+    pageSizeOptions?: number[];
+    onPageChange?: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
+  };
 }
 
 function DataTable<T extends Record<string, any>>({
@@ -42,6 +58,7 @@ function DataTable<T extends Record<string, any>>({
   searchValue,
   onSearch,
   searchPlaceholder = "Buscar...",
+  pagination,
 }: DataTableProps<T>) {
   if (loading) {
     return (
@@ -51,6 +68,48 @@ function DataTable<T extends Record<string, any>>({
       </div>
     );
   }
+
+  // Paginación: estado local para cliente
+  const paginationEnabled = pagination?.enabled ?? false;
+  const serverSide = pagination?.serverSide ?? false;
+  const pageSizeOptions = pagination?.pageSizeOptions ?? [5, 10, 25, 50];
+  const defaultPageSize =
+    pagination?.defaultPageSize ?? pageSizeOptions[0] ?? 5;
+
+  const [page, setPage] = useState<number>(pagination?.page ?? 1);
+  const [pageSize, setPageSize] = useState<number>(defaultPageSize);
+
+  // Si server-side, total puede venir en pagination.total, si no usar data.length
+  const totalCount = serverSide
+    ? pagination?.total ?? data.length
+    : data.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  // Si la paginación es por servidor, notificar cambios iniciales
+  useEffect(() => {
+    if (serverSide && pagination?.onPageChange) pagination.onPageChange(page);
+  }, []);
+
+  // Cuando cambie página notificar a quien lo use (server-side)
+  useEffect(() => {
+    if (serverSide && pagination?.onPageChange) pagination.onPageChange(page);
+  }, [page]);
+
+  useEffect(() => {
+    if (serverSide && pagination?.onPageSizeChange)
+      pagination.onPageSizeChange(pageSize);
+    // reset page when pageSize changes
+    setPage(1);
+  }, [pageSize]);
+
+  // Calcular datos paginados para cliente
+  const start = (page - 1) * pageSize;
+  const end = Math.min(start + pageSize, totalCount);
+  const paginatedData = paginationEnabled
+    ? serverSide
+      ? data
+      : data.slice(start, end)
+    : data;
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -97,7 +156,7 @@ function DataTable<T extends Record<string, any>>({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data.length === 0 ? (
+              {paginatedData.length === 0 ? (
                 <tr>
                   <td
                     colSpan={columns.length + (actions.length > 0 ? 1 : 0)}
@@ -113,7 +172,7 @@ function DataTable<T extends Record<string, any>>({
                   </td>
                 </tr>
               ) : (
-                data.map((item, index) => (
+                paginatedData.map((item, index) => (
                   <tr key={item.id || index} className="hover:bg-gray-50">
                     {columns.map((column) => (
                       <td
@@ -148,9 +207,7 @@ function DataTable<T extends Record<string, any>>({
                                 onClick={() => action.onClick(item)}
                                 className="flex items-center gap-1"
                               >
-                                <MaterialIcon
-                                  name={action.icon}
-                                />
+                                <MaterialIcon name={action.icon} />
                                 {action.label}
                               </Button>
                             );
@@ -166,9 +223,107 @@ function DataTable<T extends Record<string, any>>({
         </div>
       </div>
 
-      {/* Información del total */}
+      {/* Paginación */}
+      <TablePaginator
+        // Componente controlado: pasamos estado y handlers
+        data={data}
+        enabled={paginationEnabled}
+        serverSide={serverSide}
+        page={page}
+        setPage={setPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        pageSizeOptions={pageSizeOptions}
+        totalCount={totalCount}
+        totalPages={totalPages}
+        columnsCount={columns.length + (actions.length > 0 ? 1 : 0)}
+      />
+    </div>
+  );
+}
+
+// Componente interno para gestionar y mostrar paginación simple
+function TablePaginator<T extends Record<string, any>>({
+  data,
+  enabled,
+  serverSide,
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  pageSizeOptions,
+  totalCount,
+  totalPages,
+  columnsCount,
+}: {
+  data: T[];
+  enabled: boolean;
+  serverSide: boolean;
+  page: number;
+  setPage: Dispatch<SetStateAction<number>>;
+  pageSize: number;
+  setPageSize: Dispatch<SetStateAction<number>>;
+  pageSizeOptions: number[];
+  totalCount: number;
+  totalPages: number;
+  columnsCount: number;
+}) {
+  if (!enabled) {
+    return (
       <div className="flex justify-between items-center text-sm text-gray-600">
-        <span>Total: {data.length} elemento(s)</span>
+        <span>Total: {totalCount} elemento(s)</span>
+      </div>
+    );
+  }
+
+  const start = (page - 1) * pageSize;
+  const end = Math.min(start + pageSize, totalCount);
+
+  const paginatedData = serverSide ? data : data.slice(start, end);
+
+  return (
+    <div>
+      <div className="flex justify-between items-center text-sm text-gray-600">
+        <span>
+          Mostrando {start + (totalCount === 0 ? 0 : 1)} - {end} de {totalCount}
+        </span>
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Filas:</label>
+          <select
+            value={pageSize}
+            onChange={(e) => setPageSize(parseInt(e.target.value, 5))}
+            className="border border-gray-300 rounded px-2 py-1 text-sm"
+          >
+            {pageSizeOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+
+          <nav className="inline-flex items-center">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="px-3 py-1 border border-gray-300 rounded-l disabled:opacity-50"
+              aria-label="Anterior"
+            >
+              &lt;
+            </button>
+            <span className="px-3 py-1 border-t border-b border-gray-300 text-sm">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1 border border-gray-300 rounded-r disabled:opacity-50"
+              aria-label="Siguiente"
+            >
+              &gt;
+            </button>
+          </nav>
+        </div>
       </div>
     </div>
   );

@@ -79,7 +79,9 @@ export default function ProductosPage() {
         descripcion: receta.descripcion,
         categoria: receta.categoria,
         precio:
-          (receta.precioUnidad || receta.precioEstimado) * multiplicadorReceta,
+          receta.precioUnidad !== undefined && receta.precioUnidad > 0
+            ? receta.precioUnidad * multiplicadorReceta
+            : (receta.precioEstimado || 0) * multiplicadorReceta,
         cantidad: receta.cantidadBase * multiplicadorReceta,
       };
 
@@ -97,8 +99,10 @@ export default function ProductosPage() {
       setFormulario({
         ...formulario,
         precio:
-          (recetaSeleccionada.precioUnidad ||
-            recetaSeleccionada.precioEstimado) * nuevoMultiplicador,
+          recetaSeleccionada.precioUnidad !== undefined &&
+          recetaSeleccionada.precioUnidad > 0
+            ? recetaSeleccionada.precioUnidad * nuevoMultiplicador
+            : (recetaSeleccionada.precioEstimado || 0) * nuevoMultiplicador,
         cantidad: recetaSeleccionada.cantidadBase * nuevoMultiplicador,
       });
       actualizarRecetaConMultiplicador(recetaSeleccionada, nuevoMultiplicador);
@@ -458,7 +462,10 @@ export default function ProductosPage() {
 
       // item.cantidadNecesaria ya está calculada con el multiplicador correcto
       const cantidadNecesaria = item.cantidadNecesaria;
-      if (materia.cantidad < cantidadNecesaria) {
+      if (
+        typeof materia.cantidad === "number" &&
+        materia.cantidad < cantidadNecesaria
+      ) {
         faltantes.push(
           `${materia.nombre}: necesita ${cantidadNecesaria}${item.unidad}, disponible ${materia.cantidad}${item.unidad}`
         );
@@ -596,9 +603,12 @@ export default function ProductosPage() {
                       </div>
                       <div className="text-green-600">
                         {formatCLP(
-                          (recetaSeleccionada.precioUnidad ||
-                            recetaSeleccionada.precioEstimado) *
-                            multiplicadorReceta
+                          recetaSeleccionada.precioUnidad !== undefined &&
+                            recetaSeleccionada.precioUnidad > 0
+                            ? recetaSeleccionada.precioUnidad *
+                                multiplicadorReceta
+                            : (recetaSeleccionada.precioEstimado || 0) *
+                                multiplicadorReceta
                         )}
                       </div>
                     </div>

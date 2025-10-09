@@ -14,4 +14,8 @@ public class RecetaIngredienteResponseDTO {
     private String unidad;
     private Boolean esOpcional;
     private String notas;
+    // Precio Promedio Ponderado por unidad para la materia prima
+    private Double ppp;
+    // Costo parcial para este ingrediente (cantidadNecesaria * ppp)
+    private Double costoParcial;
 }

@@ -3,7 +3,6 @@ package com.microservice.service;
 import com.microservice.entity.RecetaMaestra;
 import com.microservice.entity.RecetaIngrediente;
 import com.microservice.dto.RecetaMaestraDTO;
-import com.microservice.dto.RecetaIngredienteDTO;
 import com.microservice.dto.RecetaMaestraResponseDTO;
 import com.microservice.dto.RecetaIngredienteResponseDTO;
 import com.microservice.repository.RecetaMaestraRepository;
@@ -26,6 +25,9 @@ public class RecetaMaestraService {
     @Autowired
     private RecetaIngredienteRepository recetaIngredienteRepository;
 
+    @Autowired
+    private com.microservice.repository.LoteMateriaPrimaRepository loteMateriaPrimaRepository;
+
     // Método helper para convertir entidad a DTO de respuesta
     private RecetaMaestraResponseDTO convertirAResponseDTO(RecetaMaestra receta) {
         List<RecetaIngredienteResponseDTO> ingredientesDTO = null;
@@ -36,6 +38,16 @@ public class RecetaMaestraService {
                 .collect(Collectors.toList());
         }
         
+        // Calcular precio estimado sumando los costos parciales de los ingredientes
+        Double precioEstimadoCalculado = 0.0;
+        if (ingredientesDTO != null) {
+            for (RecetaIngredienteResponseDTO ing : ingredientesDTO) {
+                if (ing.getCostoParcial() != null) {
+                    precioEstimadoCalculado += ing.getCostoParcial();
+                }
+            }
+        }
+
         return RecetaMaestraResponseDTO.builder()
                 .id(receta.getId())
                 .nombre(receta.getNombre())
@@ -43,7 +55,7 @@ public class RecetaMaestraService {
                 .categoria(receta.getCategoria())
                 .unidadBase(receta.getUnidadBase())
                 .cantidadBase(receta.getCantidadBase())
-                .precioEstimado(receta.getPrecioEstimado())
+                .precioEstimado(precioEstimadoCalculado) // se pasa el precio estimado desde el service no como input
                 .precioUnidad(receta.getPrecioUnidad())
                 .tiempoPreparacion(receta.getTiempoPreparacion())
                 .fechaCreacion(receta.getFechaCreacion())
@@ -53,15 +65,23 @@ public class RecetaMaestraService {
     }
     
     private RecetaIngredienteResponseDTO convertirIngredienteAResponseDTO(RecetaIngrediente ingrediente) {
-        return RecetaIngredienteResponseDTO.builder()
-                .id(ingrediente.getId())
-                .materiaPrimaId(ingrediente.getMateriaPrimaId())
-                .materiaPrimaNombre(ingrediente.getMateriaPrimaNombre())
-                .cantidadNecesaria(ingrediente.getCantidadNecesaria())
-                .unidad(ingrediente.getUnidad())
-                .esOpcional(ingrediente.getEsOpcional())
-                .notas(ingrediente.getNotas())
-                .build();
+    // Obtener PPP (precio promedio ponderado) desde lotes. Si no hay lotes, ppp = 0
+    Double ppp = loteMateriaPrimaRepository.findPppByMateriaPrimaId(ingrediente.getMateriaPrimaId());
+    if (ppp == null) ppp = 0.0;
+    Double cantidad = ingrediente.getCantidadNecesaria() == null ? 0.0 : ingrediente.getCantidadNecesaria();
+    Double costoParcial = cantidad * ppp;
+
+    return RecetaIngredienteResponseDTO.builder()
+        .id(ingrediente.getId())
+        .materiaPrimaId(ingrediente.getMateriaPrimaId())
+        .materiaPrimaNombre(ingrediente.getMateriaPrimaNombre())
+        .cantidadNecesaria(ingrediente.getCantidadNecesaria())
+        .unidad(ingrediente.getUnidad())
+        .esOpcional(ingrediente.getEsOpcional())
+        .notas(ingrediente.getNotas())
+        .ppp(ppp)
+        .costoParcial(costoParcial)
+        .build();
     }
 
     public List<RecetaMaestraResponseDTO> getAllRecetasMaestrasDTO() {
@@ -99,7 +119,8 @@ public class RecetaMaestraService {
                 .categoria(recetaDTO.getCategoria())
                 .unidadBase(recetaDTO.getUnidadBase())
                 .cantidadBase(recetaDTO.getCantidadBase())
-                .precioEstimado(recetaDTO.getPrecioEstimado())
+        // precioEstimado se calculará dinámicamente desde los lotes
+        .precioEstimado(null)
                 .precioUnidad(recetaDTO.getPrecioUnidad())
                 .tiempoPreparacion(recetaDTO.getTiempoPreparacion())
                 .fechaCreacion(LocalDate.now())
@@ -141,7 +162,8 @@ public class RecetaMaestraService {
             receta.setCategoria(recetaDTO.getCategoria());
             receta.setUnidadBase(recetaDTO.getUnidadBase());
             receta.setCantidadBase(recetaDTO.getCantidadBase());
-            receta.setPrecioEstimado(recetaDTO.getPrecioEstimado());
+            // No aceptar precioEstimado manual — se calcula al consultar
+            receta.setPrecioEstimado(null);
             receta.setPrecioUnidad(recetaDTO.getPrecioUnidad());
             receta.setTiempoPreparacion(recetaDTO.getTiempoPreparacion());
             

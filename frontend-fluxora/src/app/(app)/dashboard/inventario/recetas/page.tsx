@@ -44,7 +44,6 @@ export default function RecetasManager() {
     categoria: "Panadería",
     unidadBase: "kg",
     cantidadBase: 1,
-    precioEstimado: 0,
     precioUnidad: 0,
     tiempoPreparacion: 0,
     ingredientes: [],
@@ -103,12 +102,12 @@ export default function RecetasManager() {
         ...nuevosIngredientes[index],
         materiaPrimaId: parseInt(valor),
         unidad: materia?.unidad || "kg",
-      };
+      } as RecetaIngredienteDTO;
     } else {
       nuevosIngredientes[index] = {
         ...nuevosIngredientes[index],
         [campo]: valor,
-      };
+      } as RecetaIngredienteDTO;
     }
     setIngredientes(nuevosIngredientes);
   };
@@ -154,7 +153,6 @@ export default function RecetasManager() {
         categoria: "Panadería",
         unidadBase: "kg",
         cantidadBase: 1,
-        precioEstimado: 0,
         precioUnidad: 0,
         tiempoPreparacion: 0,
         ingredientes: [],
@@ -242,6 +240,15 @@ export default function RecetasManager() {
       render: (receta: RecetaMaestra) => (
         <span className="text-sm text-gray-900">
           {formatCLP(receta.precioEstimado || 0)}
+        </span>
+      ),
+    },
+    {
+      key: "precioUnidad",
+      label: "Precio / unidad",
+      render: (receta: RecetaMaestra) => (
+        <span className="text-sm text-gray-900">
+          {formatCLP(receta.precioUnidad || 0)}
         </span>
       ),
     },
@@ -461,42 +468,9 @@ export default function RecetasManager() {
                 }
                 required
               />
-
-              <Input
-                label="Costo estimado total (CLP):"
-                type="number"
-                step="1"
-                placeholder="Ej: 3000"
-                value={formulario.precioEstimado || ""}
-                onChange={(e) =>
-                  setFormulario({
-                    ...formulario,
-                    precioEstimado: parseFloat(e.target.value) || 0,
-                  })
-                }
-                required
-              />
             </div>
 
-            {formulario.precioUnidad > 0 && formulario.precioEstimado > 0 && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <div className="text-sm text-green-700">
-                  <strong>Ganancia estimada:</strong>{" "}
-                  {(
-                    formulario.precioUnidad * formulario.cantidadBase -
-                    formulario.precioEstimado
-                  ).toLocaleString("es-CL")}{" "}
-                  CLP (
-                  {(
-                    ((formulario.precioUnidad * formulario.cantidadBase -
-                      formulario.precioEstimado) /
-                      formulario.precioEstimado) *
-                    100
-                  ).toFixed(1)}
-                  % margen)
-                </div>
-              </div>
-            )}
+            {/* precioEstimado se calcula en el backend usando PPP; no se ingresa manualmente */}
 
             <div>
               <Input

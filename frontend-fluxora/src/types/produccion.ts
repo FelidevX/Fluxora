@@ -8,7 +8,7 @@ export interface RecetaMaestra {
   categoria: string;
   unidadBase: string;
   cantidadBase: number;
-  precioEstimado: number;
+  precioEstimado?: number;
   precioUnidad: number; // Precio por kilo o por unidad según unidadBase
   tiempoPreparacion: number; // en minutos
   fechaCreacion: string;
@@ -22,7 +22,6 @@ export interface RecetaMaestraDTO {
   categoria: string;
   unidadBase: string;
   cantidadBase: number;
-  precioEstimado: number;
   precioUnidad: number; // Precio por kilo o por unidad según unidadBase
   tiempoPreparacion: number;
   ingredientes: RecetaIngredienteDTO[];

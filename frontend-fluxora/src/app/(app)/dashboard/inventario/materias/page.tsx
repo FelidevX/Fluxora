@@ -37,15 +37,26 @@ function MateriaContent() {
   const [materiaAActualizar, setMateriaAActualizar] =
     useState<MateriaPrima | null>(null);
   const [cantidadAAgregar, setCantidadAAgregar] = useState(0);
-  const [cantidadInput, setCantidadInput] = useState("");
+  const [costoUnitario, setCostoUnitario] = useState(0);
+  const [fechaCompraInput, setFechaCompraInput] = useState(
+    currentDate || new Date().toISOString().split("T")[0]
+  );
+  const [fechaVencimientoInput, setFechaVencimientoInput] = useState<
+    string | null
+  >(null);
+  const [lotes, setLotes] = useState<
+    Array<{
+      id?: number;
+      materiaPrimaId: number;
+      cantidad: number;
+      costoUnitario: number;
+      fechaCompra: string;
+      fechaVencimiento?: string | null;
+    }>
+  >([]);
   const [formulario, setFormulario] = useState<MateriaPrimaDTO>({
     nombre: "",
-    cantidad: 0,
-    proveedor: "",
-    estado: "Disponible",
     unidad: "kg",
-    fecha: currentDate || new Date().toISOString().split("T")[0],
-    fechaVencimiento: undefined,
   });
 
   // Cargar materias al montar el componente
@@ -73,36 +84,19 @@ function MateriaContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Convertir el string a número para validación
-    const cantidadNumerica = parseFloat(cantidadInput) || 0;
-
-    if (
-      !formulario.nombre ||
-      !formulario.proveedor ||
-      cantidadNumerica <= 0
-    ) {
+    if (!formulario.nombre) {
       return;
     }
 
     try {
-      // Usar la cantidad numérica para enviar
+      // Create catalog materia (stock will be added by creating lotes)
       await crearMateria({
-        ...formulario,
-        cantidad: cantidadNumerica
+        nombre: formulario.nombre,
+        unidad: formulario.unidad,
       });
-      
-      // Reset del formulario
-      setFormulario({
-        nombre: "",
-        cantidad: 0,
-        proveedor: "",
-        estado: "Disponible",
-        unidad: "kg",
-        fecha: currentDate || new Date().toISOString().split("T")[0],
-        fechaVencimiento: undefined,
-      });
-      setCantidadInput(""); // Reset del input
+
+      // Reset del formulario (solo catálogo)
+      setFormulario({ nombre: "", unidad: "kg" });
       setShowForm(false);
     } catch (err) {
       console.error(err);
@@ -124,7 +118,25 @@ function MateriaContent() {
   const handleAgregarStock = (materia: MateriaPrima) => {
     setMateriaAActualizar(materia);
     setCantidadAAgregar(0);
+    setCostoUnitario(0);
+    setFechaVencimientoInput(null);
+    // Antes de abrir, cargar lotes existentes
+    fetchLotes(materia.id);
     setShowStockModal(true);
+  };
+
+  const fetchLotes = async (materiaId: number) => {
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/inventario/materias-primas/${materiaId}/lotes`
+      );
+      if (!res.ok) throw new Error("Error al obtener lotes");
+      const data = await res.json();
+      setLotes(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching lotes:", err);
+      setLotes([]);
+    }
   };
 
   const handleStockSubmit = async (e: React.FormEvent) => {
@@ -137,15 +149,37 @@ function MateriaContent() {
     if (!materiaAActualizar) return;
 
     try {
-      // Actualizar solo la cantidad usando el endpoint dedicado
-      const nuevaCantidad = materiaAActualizar.cantidad + cantidadAAgregar;
+      // Crear un lote con la cantidad y el costo proporcionado por el usuario
+      const lote = {
+        cantidad: cantidadAAgregar,
+        costoUnitario: costoUnitario,
+        fechaCompra: fechaCompraInput,
+        fechaVencimiento: fechaVencimientoInput || null,
+      };
 
-      await actualizarStock(materiaAActualizar.id, nuevaCantidad);
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/materias-primas/${materiaAActualizar.id}/lotes`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(lote),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error creando lote: ${response.status}`);
+      }
+
+      // Refresh materia list and lotes
+      await cargarMaterias();
+      await fetchLotes(materiaAActualizar.id);
 
       setShowConfirmModal(false);
       setShowStockModal(false);
       setMateriaAActualizar(null);
       setCantidadAAgregar(0);
+      setCostoUnitario(0);
+      setFechaVencimientoInput(null);
     } catch (err) {
       console.error(err);
     }
@@ -158,11 +192,11 @@ function MateriaContent() {
     setCantidadAAgregar(0);
   };
 
-  // Filtrar materias primas por búsqueda
+  // Filtrar materias primas por búsqueda (nombre o unidad)
   const materiasFiltradas = materias.filter(
     (materia) =>
       (materia.nombre?.toLowerCase() || "").includes(busqueda.toLowerCase()) ||
-      (materia.proveedor?.toLowerCase() || "").includes(busqueda.toLowerCase())
+      (materia.unidad?.toLowerCase() || "").includes(busqueda.toLowerCase())
   );
 
   const obtenerEstadoBadge = (estado: string, cantidad: number) => {
@@ -189,66 +223,27 @@ function MateriaContent() {
       ),
     },
     {
-      key: "cantidad",
-      label: "Cantidad",
+      key: "unidad",
+      label: "Unidad",
+      render: (materia: MateriaPrima) => (
+        <span className="text-sm text-gray-900">{materia.unidad || ""}</span>
+      ),
+    },
+    {
+      key: "stock",
+      label: "Stock",
       render: (materia: MateriaPrima) => (
         <span className="text-sm text-gray-900">
-          {materia.cantidad || 0} {materia.unidad || ""}
+          {materia.cantidad ?? 0} {materia.unidad || ""}
         </span>
       ),
     },
-    {
-      key: "proveedor",
-      label: "Proveedor",
-      render: (materia: MateriaPrima) => (
-        <span className="text-sm text-gray-900">
-          {materia.proveedor || "Sin proveedor"}
-        </span>
-      ),
-    },
-    {
-      key: "fecha",
-      label: "Fecha",
-      render: (materia: MateriaPrima) => (
-        <FormattedDate date={materia.fecha} className="text-sm text-gray-900" />
-      ),
-    },
-    {
-      key: "estado",
-      label: "Estado",
-      render: (materia: MateriaPrima) => (
-        <Badge
-          variant={obtenerEstadoBadge(
-            materia.estado || "Disponible",
-            materia.cantidad || 0
-          )}
-        >
-          {obtenerTextoEstado(
-            materia.estado || "Disponible",
-            materia.cantidad || 0
-          )}
-        </Badge>
-      ),
-    },
-    {
-      key: "fechaVencimiento",
-      label: "Vencimiento",
-      render: (materia: MateriaPrima) => (
-        <span>
-          {materia.fechaVencimiento ? (
-            <FormattedDate date={materia.fechaVencimiento} className="text-sm text-gray-900" />
-          ) : (
-            <span className="text-sm text-gray-900">Sin vencimiento</span>
-          )}
-        </span>
-      )
-    }
   ];
 
   // Definir acciones de la tabla
   const actions = [
     {
-      label: "Agregar Stock",
+      label: "Registrar Compra",
       icon: "add",
       variant: "success" as const,
       onClick: (materia: MateriaPrima) => handleAgregarStock(materia),
@@ -267,9 +262,9 @@ function MateriaContent() {
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
           href={"/dashboard/inventario"}
-          >
-            <MaterialIcon name="arrow_back" className="mr-1" />
-            <span>Volver al inicio</span>
+        >
+          <MaterialIcon name="arrow_back" className="mr-1" />
+          <span>Volver al inicio</span>
         </Link>
       </div>
       {/* Header */}
@@ -280,13 +275,14 @@ function MateriaContent() {
           </h1>
           <div className="flex items-center text-gray-600 mt-1">
             <MaterialIcon name="calendar_today" className="mr-1" />
-            <span>{new Date().toLocaleDateString("es-ES", {
+            <span>
+              {new Date().toLocaleDateString("es-ES", {
                 weekday: "long",
                 year: "numeric",
                 month: "long",
                 day: "numeric",
               })}
-              </span>
+            </span>
           </div>
         </div>
         <Button
@@ -320,31 +316,11 @@ function MateriaContent() {
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             <Input
-              label="Nombre del producto:"
+              label="Nombre de la materia prima:"
               type="text"
               value={formulario.nombre}
               onChange={(e) =>
                 setFormulario({ ...formulario, nombre: e.target.value })
-              }
-              required
-            />
-
-            <Input
-              label="Cantidad:"
-              type="number"
-              value={cantidadInput}
-              onChange={(e) => setCantidadInput(e.target.value)}
-              min="0"
-              step="0.1"
-              required
-            />
-
-            <Input
-              label="Proveedor:"
-              type="text"
-              value={formulario.proveedor}
-              onChange={(e) =>
-                setFormulario({ ...formulario, proveedor: e.target.value })
               }
               required
             />
@@ -366,25 +342,6 @@ function MateriaContent() {
                 <option value="U">Unidades (U)</option>
               </select>
             </div>
-
-            <Input
-              label="Fecha de recepción:"
-              type="date"
-              value={formulario.fecha}
-              onChange={(e) =>
-                setFormulario({ ...formulario, fecha: e.target.value })
-              }
-              required
-            />
-
-            <Input 
-              label="Fecha de vencimiento:"
-              type="date"
-              value={formulario.fechaVencimiento}
-              onChange={(e) =>
-                setFormulario({ ...formulario, fechaVencimiento: e.target.value })
-              }
-            />
 
             <div className="md:col-span-2 flex gap-2">
               <Button type="submit" variant="success">
@@ -412,6 +369,12 @@ function MateriaContent() {
         onSearch={setBusqueda}
         searchPlaceholder="Buscar materias primas..."
         emptyMessage="No hay materias primas registradas"
+        pagination={{
+          enabled: true,
+          serverSide: false,
+          defaultPageSize: 5,
+          pageSizeOptions: [5, 10, 25, 50],
+        }}
       />
 
       {/* Modal de Agregar Stock */}
@@ -420,13 +383,75 @@ function MateriaContent() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 relative">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
-                Agregar Stock
+                Registrar Compra
               </h3>
               <p className="text-gray-600">{materiaAActualizar?.nombre}</p>
               <p className="text-sm text-gray-500">
                 Stock actual: {materiaAActualizar?.cantidad}{" "}
                 {materiaAActualizar?.unidad}
               </p>
+            </div>
+
+            {/* Lista de lotes existentes para esta materia */}
+            <div className="p-4">
+              <h4 className="text-sm font-medium text-gray-800 mb-2">
+                Lotes existentes
+              </h4>
+              {lotes && lotes.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-gray-700">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="py-2 px-2">Fecha compra</th>
+                        <th className="py-2 px-2">Cantidad</th>
+                        <th className="py-2 px-2">Costo unitario</th>
+                        <th className="py-2 px-2">Vencimiento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lotes.map((lote) => (
+                        <tr
+                          key={
+                            lote.id ??
+                            `${lote.materiaPrimaId}-${lote.fechaCompra}-${lote.cantidad}`
+                          }
+                          className="odd:bg-gray-50"
+                        >
+                          <td className="py-2 px-2">
+                            {lote.fechaCompra
+                              ? new Date(lote.fechaCompra).toLocaleDateString(
+                                  "es-CL"
+                                )
+                              : "-"}
+                          </td>
+                          <td className="py-2 px-2">
+                            {lote.cantidad} {materiaAActualizar?.unidad}
+                          </td>
+                          <td className="py-2 px-2">
+                            {typeof lote.costoUnitario === "number"
+                              ? lote.costoUnitario.toLocaleString("es-CL", {
+                                  style: "currency",
+                                  currency: "CLP",
+                                })
+                              : "-"}
+                          </td>
+                          <td className="py-2 px-2">
+                            {lote.fechaVencimiento
+                              ? new Date(
+                                  lote.fechaVencimiento
+                                ).toLocaleDateString("es-CL")
+                              : "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No hay lotes registrados para esta materia.
+                </p>
+              )}
             </div>
 
             <form onSubmit={handleStockSubmit} className="p-6">
@@ -451,6 +476,45 @@ function MateriaContent() {
                     {materiaAActualizar?.unidad}
                   </span>
                 </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Input
+                    label="Costo unitario (CLP):"
+                    type="number"
+                    value={costoUnitario}
+                    onChange={(e) =>
+                      setCostoUnitario(parseFloat(e.target.value) || 0)
+                    }
+                    min="0"
+                    step="0.01"
+                    placeholder="Ej: 1200"
+                    className="w-full"
+                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fecha de compra:
+                    </label>
+                    <input
+                      type="date"
+                      value={fechaCompraInput}
+                      onChange={(e) => setFechaCompraInput(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fecha de vencimiento (opcional):
+                    </label>
+                    <input
+                      type="date"
+                      value={fechaVencimientoInput ?? ""}
+                      onChange={(e) =>
+                        setFechaVencimientoInput(e.target.value || null)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
                 {cantidadAAgregar > 0 && (
                   <p className="text-sm text-green-600 mt-2">
                     Stock total después:{" "}
@@ -473,7 +537,7 @@ function MateriaContent() {
                   variant="success"
                   disabled={cantidadAAgregar <= 0}
                 >
-                  Agregar Stock
+                  Registrar Compra
                 </Button>
               </div>
             </form>
@@ -490,7 +554,7 @@ function MateriaContent() {
                 <MaterialIcon name="add" className="h-5 w-5 text-green-600" />
               </div>
               <h3 className="text-base font-medium text-gray-900 mb-2">
-                Confirmar Agregar Stock
+                Confirmar registro de compra
               </h3>
               <p className="text-gray-600 mb-2 text-sm">
                 ¿Está seguro de que desea agregar{" "}
@@ -527,13 +591,15 @@ function MateriaContent() {
 }
 
 export default function MateriasPage() {
-    return (
-        <Suspense fallback={
-                <div className="p-6 flex items-center justify-center min-h-[400px]">
-                    <div className="text-gray-600"> Cargando dashboard...</div>
-                </div>
-                }>
-                  <MateriaContent />
-        </Suspense>
-    )
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-gray-600"> Cargando dashboard...</div>
+        </div>
+      }
+    >
+      <MateriaContent />
+    </Suspense>
+  );
 }

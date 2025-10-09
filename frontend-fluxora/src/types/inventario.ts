@@ -1,23 +1,26 @@
 export interface MateriaPrima {
   id: number;
   nombre: string;
-  cantidad: number;
-  proveedor: string;
-  estado: string;
   unidad: string;
-  fecha: string;
-  fechaVencimiento?: string;
+  // cantidad se calcula en backend como la suma de lotes; puede venir undefined si no hay lotes
+  cantidad?: number;
+  fecha?: string;
+  estado?: string;
 }
 
 export interface MateriaPrimaDTO {
-  id?: number;
+  // DTO para crear una materia prima (catálogo)
   nombre: string;
-  cantidad: number;
-  proveedor: string;
-  estado: string;
   unidad: string;
-  fecha: string;
-  fechaVencimiento?: string;
+}
+
+export interface LoteMateriaPrima {
+  id?: number;
+  materiaPrimaId: number;
+  cantidad: number;
+  costoUnitario: number;
+  fechaCompra: string;
+  fechaVencimiento?: string | null;
 }
 
 export interface Producto {

@@ -21,11 +21,13 @@ public class ProductoService {
     private final ProductoRepository productoRepo;
     private final RecetaRepository recetaRepo;
     private final MateriaPrimaRepository materiaPrimaRepo;
+    private final com.microservice.repository.LoteMateriaPrimaRepository loteRepository;
 
-    public ProductoService(ProductoRepository productoRepo, RecetaRepository recetaRepo, MateriaPrimaRepository materiaPrimaRepo) {
+    public ProductoService(ProductoRepository productoRepo, RecetaRepository recetaRepo, MateriaPrimaRepository materiaPrimaRepo, com.microservice.repository.LoteMateriaPrimaRepository loteRepository) {
         this.productoRepo = productoRepo;
         this.recetaRepo = recetaRepo;
         this.materiaPrimaRepo = materiaPrimaRepo;
+        this.loteRepository = loteRepository;
     }
 
     private ProductoDTO toDTO(Producto entity) {
@@ -99,9 +101,12 @@ public class ProductoService {
             
             // cantidadNecesaria ya viene calculada desde el frontend con el multiplicador aplicado
             Double cantidadNecesaria = recetaItem.getCantidadNecesaria();
-            if (materia.getCantidad() < cantidadNecesaria) {
+            // Obtener disponibilidad desde lotes
+            Double disponible = loteRepository.sumCantidadByMateriaPrimaId(recetaItem.getMateriaPrimaId());
+            if (disponible == null) disponible = 0.0;
+            if (disponible < cantidadNecesaria) {
                 throw new RuntimeException("Cantidad insuficiente de " + materia.getNombre() + 
-                    ". Necesita: " + cantidadNecesaria + ", Disponible: " + materia.getCantidad());
+                    ". Necesita: " + cantidadNecesaria + ", Disponible: " + disponible);
             }
         }
 
@@ -131,11 +136,39 @@ public class ProductoService {
 
         // 4. Descontar materias primas
         for (RecetaDTO recetaItem : dto.getReceta()) {
-            MateriaPrima materia = materiaPrimaRepo.findById(recetaItem.getMateriaPrimaId()).get();
-            // cantidadADescontar ya viene calculada desde el frontend con el multiplicador aplicado
+            // Para descontar stock debemos consumir lotes (FIFO). Por ahora lanzamos excepción si no hay lógica de consumo.
             Double cantidadADescontar = recetaItem.getCantidadNecesaria();
-            materia.setCantidad(materia.getCantidad() - cantidadADescontar);
-            materiaPrimaRepo.save(materia);
+            Double disponible = loteRepository.sumCantidadByMateriaPrimaId(recetaItem.getMateriaPrimaId());
+            if (disponible == null) disponible = 0.0;
+            if (disponible < cantidadADescontar) {
+                throw new RuntimeException("Error de stock al descontar materia prima: cantidad insuficiente");
+            }
+            // Implementar consumo de lotes (restar cantidades a lotes existentes, FIFO)
+            Double restante = cantidadADescontar;
+            java.util.List<com.microservice.entity.LoteMateriaPrima> lotes = loteRepository.findLotesByMateriaPrimaIdOrderByFechaCompraAsc(recetaItem.getMateriaPrimaId());
+            for (com.microservice.entity.LoteMateriaPrima lote : lotes) {
+                if (restante <= 0) break;
+                Double disponibleEnLote = lote.getCantidad() != null ? lote.getCantidad() : 0.0;
+                if (disponibleEnLote <= 0) continue;
+
+                if (disponibleEnLote >= restante) {
+                    // consumir lo necesario y actualizar lote
+                    lote.setCantidad(disponibleEnLote - restante);
+                    loteRepository.save(lote);
+                    restante = 0.0;
+                    break;
+                } else {
+                    // consumir todo el lote y seguir
+                    restante = restante - disponibleEnLote;
+                    lote.setCantidad(0.0);
+                    loteRepository.save(lote);
+                }
+            }
+
+            if (restante > 0) {
+                // Esto no debería pasar porque validamos disponibilidad antes, pero por seguridad lanzamos excepción
+                throw new RuntimeException("Error de stock al descontar materia prima: cantidad insuficiente tras consumir lotes");
+            }
         }
 
         return toDTO(producto);

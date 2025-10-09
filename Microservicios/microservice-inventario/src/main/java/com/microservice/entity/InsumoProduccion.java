@@ -21,7 +21,6 @@ public class InsumoProduccion {
 
     private LocalDate fecha;
 
-    // Simplificado: solo el ID de la materia prima
     @Column(name = "materia_prima_id")
     private Long materiaPrimaId;
 }

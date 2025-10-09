@@ -14,7 +14,9 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
-import ReparadorRecetas, { ReparadorRecetasRef } from "@/components/inventario/recetas/ReparadorRecetas";
+import ReparadorRecetas, {
+  ReparadorRecetasRef,
+} from "@/components/inventario/recetas/ReparadorRecetas";
 import Modal from "@/components/ui/Modal";
 import Link from "next/link";
 
@@ -42,7 +44,6 @@ export default function RecetasManager() {
     categoria: "Panadería",
     unidadBase: "kg",
     cantidadBase: 1,
-    precioEstimado: 0,
     precioUnidad: 0,
     tiempoPreparacion: 0,
     ingredientes: [],
@@ -101,12 +102,12 @@ export default function RecetasManager() {
         ...nuevosIngredientes[index],
         materiaPrimaId: parseInt(valor),
         unidad: materia?.unidad || "kg",
-      };
+      } as RecetaIngredienteDTO;
     } else {
       nuevosIngredientes[index] = {
         ...nuevosIngredientes[index],
         [campo]: valor,
-      };
+      } as RecetaIngredienteDTO;
     }
     setIngredientes(nuevosIngredientes);
   };
@@ -152,7 +153,6 @@ export default function RecetasManager() {
         categoria: "Panadería",
         unidadBase: "kg",
         cantidadBase: 1,
-        precioEstimado: 0,
         precioUnidad: 0,
         tiempoPreparacion: 0,
         ingredientes: [],
@@ -244,6 +244,15 @@ export default function RecetasManager() {
       ),
     },
     {
+      key: "precioUnidad",
+      label: "Precio / unidad",
+      render: (receta: RecetaMaestra) => (
+        <span className="text-sm text-gray-900">
+          {formatCLP(receta.precioUnidad || 0)}
+        </span>
+      ),
+    },
+    {
       key: "tiempo",
       label: "Tiempo",
       render: (receta: RecetaMaestra) => (
@@ -273,12 +282,16 @@ export default function RecetasManager() {
     },
   ];
 
-  // Filtrar recetas
-  const recetasFiltradas = recetas.filter(
+  // Filtrar recetas (con protección contra null)
+  const recetasFiltradas = (recetas || []).filter(
     (receta) =>
-      receta.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      receta.categoria.toLowerCase().includes(busqueda.toLowerCase()) ||
-      receta.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+      receta && // Protección adicional por si hay elementos null
+      receta.nombre && // Verificar que tiene propiedades
+      (receta.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+        (receta.categoria &&
+          receta.categoria.toLowerCase().includes(busqueda.toLowerCase())) ||
+        (receta.descripcion &&
+          receta.descripcion.toLowerCase().includes(busqueda.toLowerCase())))
   );
 
   return (
@@ -287,9 +300,9 @@ export default function RecetasManager() {
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
           href={"/dashboard/inventario"}
-          >
-            <MaterialIcon name="arrow_back" className="mr-1" />
-            <span>Volver al inicio</span>
+        >
+          <MaterialIcon name="arrow_back" className="mr-1" />
+          <span>Volver al inicio</span>
         </Link>
       </div>
       {/* Header */}
@@ -455,42 +468,9 @@ export default function RecetasManager() {
                 }
                 required
               />
-
-              <Input
-                label="Costo estimado total (CLP):"
-                type="number"
-                step="1"
-                placeholder="Ej: 3000"
-                value={formulario.precioEstimado || ""}
-                onChange={(e) =>
-                  setFormulario({
-                    ...formulario,
-                    precioEstimado: parseFloat(e.target.value) || 0,
-                  })
-                }
-                required
-              />
             </div>
 
-            {formulario.precioUnidad > 0 && formulario.precioEstimado > 0 && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <div className="text-sm text-green-700">
-                  <strong>Ganancia estimada:</strong>{" "}
-                  {(
-                    formulario.precioUnidad * formulario.cantidadBase -
-                    formulario.precioEstimado
-                  ).toLocaleString("es-CL")}{" "}
-                  CLP (
-                  {(
-                    ((formulario.precioUnidad * formulario.cantidadBase -
-                      formulario.precioEstimado) /
-                      formulario.precioEstimado) *
-                    100
-                  ).toFixed(1)}
-                  % margen)
-                </div>
-              </div>
-            )}
+            {/* precioEstimado se calcula en el backend usando PPP; no se ingresa manualmente */}
 
             <div>
               <Input
@@ -645,17 +625,23 @@ export default function RecetasManager() {
       )}
 
       {/* Lista de recetas */}
-        {/* Tabla usando DataTable */}
-        <DataTable
-          data={recetasFiltradas}
-          columns={columns}
-          actions={actions}
-          loading={loading}
-          searchValue={busqueda}
-          onSearch={setBusqueda}
-          searchPlaceholder="Buscar receta, categoría o descripción..."
-          emptyMessage="No hay recetas creadas aún"
-        />
+      {/* Tabla usando DataTable */}
+      <DataTable
+        data={recetasFiltradas}
+        columns={columns}
+        actions={actions}
+        loading={loading}
+        searchValue={busqueda}
+        onSearch={setBusqueda}
+        searchPlaceholder="Buscar receta, categoría o descripción..."
+        emptyMessage="No hay recetas creadas aún"
+        pagination={{
+          enabled: true,
+          serverSide: false,
+          defaultPageSize: 5,
+          pageSizeOptions: [5, 10, 25, 50],
+        }}
+      />
 
       {/* Modal de reparación de recetas */}
       <Modal

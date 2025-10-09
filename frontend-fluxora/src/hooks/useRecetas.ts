@@ -3,64 +3,72 @@
 import { useState, useEffect } from "react";
 import { RecetaMaestra, RecetaMaestraDTO } from "@/types/produccion";
 
-const STORAGE_KEY = "fluxora_recetas";
-
 export function useRecetas() {
   const [recetas, setRecetas] = useState<RecetaMaestra[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar recetas del localStorage al inicializar
+  // Cargar recetas de la API al inicializar
   useEffect(() => {
-    try {
-      const recetasGuardadas = localStorage.getItem(STORAGE_KEY);
-      if (recetasGuardadas) {
-        setRecetas(JSON.parse(recetasGuardadas));
-      }
-    } catch (err) {
-      console.error("Error cargando recetas:", err);
-      setError("Error cargando recetas guardadas");
-    }
+    fetchRecetas();
   }, []);
 
-  // Guardar recetas en localStorage cuando cambien
-  useEffect(() => {
-    if (recetas.length > 0) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(recetas));
-      } catch (err) {
-        console.error("Error guardando recetas:", err);
-        setError("Error guardando recetas");
+  const fetchRecetas = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        "http://localhost:8080/api/inventario/recetas-maestras"
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
+
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      const recetasData = JSON.parse(responseText);
+      setRecetas(recetasData);
+    } catch (err) {
+      console.error("Error cargando recetas:", err);
+      setError("Error cargando recetas de la base de datos");
+    } finally {
+      setLoading(false);
     }
-  }, [recetas]);
+  };
 
   const crearReceta = async (nuevaReceta: RecetaMaestraDTO) => {
     try {
       setLoading(true);
       setError(null);
 
-      const recetaCreada: RecetaMaestra = {
-        id: Date.now(),
-        ...nuevaReceta,
-        fechaCreacion: new Date().toISOString().split("T")[0],
-        activa: true,
-        ingredientes: nuevaReceta.ingredientes.map((ing, index) => ({
-          id: Date.now() + index,
-          recetaId: Date.now(),
-          materiaPrimaId: ing.materiaPrimaId,
-          materiaPrimaNombre: ing.materiaPrimaNombre || "", // Usar el nombre que viene del formulario
-          cantidadNecesaria: ing.cantidadNecesaria,
-          unidad: ing.unidad,
-          esOpcional: ing.esOpcional,
-          notas: ing.notas,
-        })),
-      };
+      const response = await fetch(
+        "http://localhost:8080/api/inventario/recetas-maestras",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(nuevaReceta),
+        }
+      );
 
-      setRecetas((prev) => [...prev, recetaCreada]);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const recetaCreada = await response.json();
+      console.log("Receta creada:", recetaCreada);
+
+      // Recargar toda la lista para asegurar consistencia
+      await fetchRecetas();
+
       return recetaCreada;
     } catch (err) {
-      setError("Error al crear receta");
+      console.error("Error creando receta:", err);
+      setError("Error guardando la receta en la base de datos");
       throw err;
     } finally {
       setLoading(false);
@@ -72,14 +80,95 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
-      setRecetas((prev) => prev.filter((r) => r.id !== id));
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-      // Si era la última receta, limpiar localStorage
-      if (recetas.length === 1) {
-        localStorage.removeItem(STORAGE_KEY);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
+
+      // Actualizar la lista local
+      setRecetas((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
-      setError("Error al eliminar receta");
+      console.error("Error eliminando receta:", err);
+      setError("Error eliminando receta de la base de datos");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const actualizarReceta = async (
+    id: number,
+    recetaActualizada: RecetaMaestraDTO
+  ) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(recetaActualizada),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const recetaActualizadaResponse = await response.json();
+
+      // Actualizar la lista local
+      setRecetas((prev) =>
+        prev.map((receta) =>
+          receta.id === id ? recetaActualizadaResponse : receta
+        )
+      );
+
+      return recetaActualizadaResponse;
+    } catch (err) {
+      console.error("Error actualizando receta:", err);
+      setError("Error actualizando receta en la base de datos");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleRecetaActiva = async (id: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/recetas-maestras/${id}/toggle-activa`,
+        {
+          method: "PATCH",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      // Actualizar la lista local
+      setRecetas((prev) =>
+        prev.map((receta) =>
+          receta.id === id ? { ...receta, activa: !receta.activa } : receta
+        )
+      );
+    } catch (err) {
+      console.error("Error cambiando estado de receta:", err);
+      setError("Error cambiando estado de receta");
       throw err;
     } finally {
       setLoading(false);
@@ -89,15 +178,7 @@ export function useRecetas() {
   const clearError = () => setError(null);
 
   const cargarRecetas = () => {
-    try {
-      const recetasGuardadas = localStorage.getItem(STORAGE_KEY);
-      if (recetasGuardadas) {
-        setRecetas(JSON.parse(recetasGuardadas));
-      }
-    } catch (err) {
-      console.error("Error cargando recetas:", err);
-      setError("Error cargando recetas guardadas");
-    }
+    fetchRecetas();
   };
 
   return {
@@ -106,6 +187,8 @@ export function useRecetas() {
     error,
     crearReceta,
     eliminarReceta,
+    actualizarReceta,
+    toggleRecetaActiva,
     clearError,
     cargarRecetas,
   };

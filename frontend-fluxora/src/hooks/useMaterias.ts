@@ -1,23 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
-
-export interface MateriaPrima {
-  id: number;
-  nombre: string;
-  cantidad: number;
-  proveedor: string;
-  estado: string;
-  unidad: string;
-  fecha: string;
-}
-
-export interface MateriaPrimaDTO {
-  nombre: string;
-  cantidad: number;
-  proveedor: string;
-  estado: string;
-  unidad: string;
-  fecha: string;
-}
+import {
+  MateriaPrima,
+  MateriaPrimaDTO,
+  LoteMateriaPrima,
+} from "@/types/inventario";
 
 interface UseMateriasResult {
   materias: MateriaPrima[];
@@ -69,7 +55,6 @@ export function useMaterias(): UseMateriasResult {
     }
   }, []);
 
-  // Cargar materias automáticamente al montar el componente
   useEffect(() => {
     cargarMaterias();
   }, [cargarMaterias]);
@@ -79,14 +64,17 @@ export function useMaterias(): UseMateriasResult {
       setLoading(true);
       setError(null);
 
+      const payload = {
+        nombre: materia.nombre,
+        unidad: materia.unidad,
+      };
+
       const response = await fetch(
         "http://localhost:8080/api/inventario/materias-primas",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(materia),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         }
       );
 
@@ -97,12 +85,9 @@ export function useMaterias(): UseMateriasResult {
         );
       }
 
-      await cargarMaterias(); // Recargar la lista después de crear
+      await cargarMaterias();
 
-      // Disparar callback si está configurado (para verificación de recetas)
-      if (onMateriaCreated) {
-        await onMateriaCreated();
-      }
+      if (onMateriaCreated) await onMateriaCreated();
     } catch (err) {
       console.error("Error al crear materia prima:", err);
       setError(
@@ -120,16 +105,13 @@ export function useMaterias(): UseMateriasResult {
 
       const response = await fetch(
         `http://localhost:8080/api/inventario/materias-primas/${id}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
 
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`Error al eliminar materia prima: ${response.status}`);
-      }
 
-      await cargarMaterias(); // Recargar la lista después de eliminar
+      await cargarMaterias();
     } catch (err) {
       console.error("Error al eliminar materia prima:", err);
       setError("Error al eliminar la materia prima");
@@ -150,20 +132,17 @@ export function useMaterias(): UseMateriasResult {
         `http://localhost:8080/api/inventario/materias-primas/${id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(materia),
         }
       );
 
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(
           `Error al actualizar materia prima: ${response.status}`
         );
-      }
 
-      await cargarMaterias(); // Recargar la lista después de actualizar
+      await cargarMaterias();
     } catch (err) {
       console.error("Error al actualizar materia prima:", err);
       setError("Error al actualizar la materia prima");
@@ -173,36 +152,39 @@ export function useMaterias(): UseMateriasResult {
   };
 
   const actualizarStock = async (id: number, nuevaCantidad: number) => {
+    // wrapper que crea un lote mínimo para ajustar stock
     try {
       setLoading(true);
       setError(null);
 
+      const lote: Partial<LoteMateriaPrima> = {
+        cantidad: nuevaCantidad,
+        costoUnitario: 0,
+        fechaCompra: new Date().toISOString().split("T")[0],
+      };
+
       const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${id}/stock?cantidad=${nuevaCantidad}`,
+        `http://localhost:8080/api/inventario/materias-primas/${id}/lotes`,
         {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(lote),
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`Error al actualizar stock: ${response.status}`);
-      }
+      if (!response.ok)
+        throw new Error(`Error al crear lote: ${response.status}`);
 
-      await cargarMaterias(); // Recargar la lista después de actualizar
+      await cargarMaterias();
     } catch (err) {
-      console.error("Error al actualizar stock:", err);
-      setError("Error al actualizar el stock");
+      console.error("Error al crear lote:", err);
+      setError("Error al crear lote para actualizar stock");
     } finally {
       setLoading(false);
     }
   };
 
-  const clearError = () => {
-    setError(null);
-  };
+  const clearError = () => setError(null);
 
   return {
     materias,

@@ -314,7 +314,6 @@ export async function repararTodasLasRecetasAutomaticamente(
               categoria: resultado.recetaActualizada.categoria,
               unidadBase: resultado.recetaActualizada.unidadBase,
               cantidadBase: resultado.recetaActualizada.cantidadBase,
-              precioEstimado: resultado.recetaActualizada.precioEstimado,
               precioUnidad: resultado.recetaActualizada.precioUnidad,
               tiempoPreparacion: resultado.recetaActualizada.tiempoPreparacion,
               ingredientes: resultado.recetaActualizada.ingredientes.map(

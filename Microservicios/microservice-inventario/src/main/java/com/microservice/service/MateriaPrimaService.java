@@ -3,6 +3,7 @@ package com.microservice.service;
 import com.microservice.dto.MateriaPrimaDTO;
 import com.microservice.entity.MateriaPrima;
 import com.microservice.repository.MateriaPrimaRepository;
+import com.microservice.repository.LoteMateriaPrimaRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,19 +13,19 @@ public class MateriaPrimaService {
 
     private final MateriaPrimaRepository repository;
 
-    public MateriaPrimaService(MateriaPrimaRepository repository) {
+    private final LoteMateriaPrimaRepository loteRepository;
+
+    public MateriaPrimaService(MateriaPrimaRepository repository, LoteMateriaPrimaRepository loteRepository) {
         this.repository = repository;
+        this.loteRepository = loteRepository;
     }
 
     private MateriaPrimaDTO toDTO(MateriaPrima entity) {
         return MateriaPrimaDTO.builder()
                 .id(entity.getId())
                 .nombre(entity.getNombre())
-                .cantidad(entity.getCantidad())
-                .proveedor(entity.getProveedor())
-                .estado(entity.getEstado())
+                // cantidad/stock ahora se calcula como la suma de lotes
                 .unidad(entity.getUnidad())
-                .fecha(entity.getFecha())
                 .build();
     }
 
@@ -32,17 +33,19 @@ public class MateriaPrimaService {
         return MateriaPrima.builder()
                 .id(dto.getId())
                 .nombre(dto.getNombre())
-                .cantidad(dto.getCantidad())
-                .proveedor(dto.getProveedor())
-                .estado(dto.getEstado())
                 .unidad(dto.getUnidad())
-                .fecha(dto.getFecha())
                 .build();
     }
 
     public List<MateriaPrimaDTO> findAll() {
         return repository.findAll().stream()
-                .map(this::toDTO)
+                .map(entity -> {
+                    MateriaPrimaDTO dto = toDTO(entity);
+                    // calcular stock actual como suma de lotes
+                    Double totalCantidad = loteRepository.sumCantidadByMateriaPrimaId(entity.getId());
+                    dto.setCantidad(totalCantidad == null ? 0.0 : totalCantidad);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -52,12 +55,13 @@ public class MateriaPrimaService {
     }
 
     public MateriaPrimaDTO actualizarStock(Long id, Double nuevaCantidad) {
+        Double totalCantidad = loteRepository.sumCantidadByMateriaPrimaId(id);
         MateriaPrima entity = repository.findById(id)
             .orElseThrow(() -> new RuntimeException("Materia prima no encontrada con ID: " + id));
-        
-        entity.setCantidad(nuevaCantidad);
-        MateriaPrima updated = repository.save(entity);
-        return toDTO(updated);
+
+        MateriaPrimaDTO dto = toDTO(entity);
+        dto.setCantidad(totalCantidad == null ? 0.0 : totalCantidad);
+        return dto;
     }
 
     public void delete(Long id) {

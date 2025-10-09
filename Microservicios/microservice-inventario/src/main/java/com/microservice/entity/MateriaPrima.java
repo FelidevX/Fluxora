@@ -17,11 +17,9 @@ public class MateriaPrima {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nombre;
-    private Double cantidad;
-    private String proveedor;
-    private String estado;
     private String unidad;
-    private LocalDate fecha;
+    // ahora MateriaPrima actua como catálogo; los lotes con cantidad y costo
+    // se almacenan en LoteMateriaPrima
 
     // Nota: Relaciones removidas temporalmente para simplificar el modelo
     // Se pueden restaurar después si son necesarias para la lógica de negocio

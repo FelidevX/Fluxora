@@ -13,4 +13,7 @@ public interface RegistroEntregaRepository extends JpaRepository<RegistroEntrega
     @Query("SELECT re FROM RegistroEntrega re WHERE re.id_cliente = :idCliente")
     List<RegistroEntrega> findByIdCliente(@Param("idCliente") Long idCliente);
 
+    @Query("SELECT re FROM RegistroEntrega re WHERE re.id_pedido = :idPedido")
+    List<RegistroEntrega> findByIdPedido(@Param("idPedido") Long idPedido);
+
 }

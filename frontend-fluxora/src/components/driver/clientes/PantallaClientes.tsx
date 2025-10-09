@@ -1,6 +1,7 @@
 "use client";
 
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import { useState } from "react";
 
 interface Cliente {
   id: number;
@@ -13,16 +14,75 @@ interface Cliente {
 interface PantallaClientesProps {
   orderedClients: Cliente[];
   onEntregarClick?: (cliente: Cliente) => void;
+  pedidoId: number | null;
+  onFinalizarRuta?: () => void;
 }
 
 export default function PantallaClientes({
   orderedClients,
   onEntregarClick,
+  pedidoId,
+  onFinalizarRuta,
 }: PantallaClientesProps) {
+  const [isFinalizando, setIsFinalizando] = useState(false);
   const clientesPendientes = orderedClients.length;
 
+  const handleFinalizarRuta = async () => {
+    if (!pedidoId) {
+      alert("No se encontró el ID del pedido");
+      return;
+    }
+
+    const confirmacion = window.confirm(
+      "¿Estás seguro de que deseas finalizar la ruta? Esta acción calculará los productos devueltos y cerrará el pedido."
+    );
+
+    if (!confirmacion) return;
+
+    setIsFinalizando(true);
+    try {
+      let token = localStorage.getItem("auth_token");
+
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación.");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/finalizar/${pedidoId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al finalizar la ruta");
+      }
+
+      const data = await response.json();
+      alert(data.message || "Ruta finalizada correctamente");
+
+      // Callback para manejar la finalización en el componente padre
+      if (onFinalizarRuta) {
+        onFinalizarRuta();
+      }
+    } catch (error) {
+      console.error("Error al finalizar ruta:", error);
+      alert("Hubo un error al finalizar la ruta. Por favor, inténtelo de nuevo.");
+    } finally {
+      setIsFinalizando(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <div className="p-3 sm:p-4 max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
@@ -116,7 +176,7 @@ export default function PantallaClientes({
                       >
                         <div className="flex items-center justify-center gap-1">
                           <MaterialIcon name="package_2" />
-                          <span>Entregar</span>                        
+                          <span>Entregar</span>
                         </div>
                       </button>
                     </div>
@@ -136,6 +196,20 @@ export default function PantallaClientes({
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Botón flotante de finalizar ruta */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={handleFinalizarRuta}
+            disabled={isFinalizando}
+            className="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-gray-400 text-white py-4 rounded-lg font-semibold text-base transition-colors shadow-md flex items-center justify-center gap-2"
+          >
+            <MaterialIcon name="check_circle" />
+            {isFinalizando ? "Finalizando ruta..." : "Finalizar Ruta"}
+          </button>
         </div>
       </div>
     </div>

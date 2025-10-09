@@ -13,6 +13,7 @@ interface AgendarVisitaData {
 interface PantallaAgendarVisitaProps {
   formularioData: FormularioEntrega;
   clienteId: number;
+  pedidoId: number;
   clienteNombre: string;
   rutaId: number;
   onComplete: (agendarData: AgendarVisitaData) => void;
@@ -24,6 +25,7 @@ export default function PantallaAgendarVisita({
   clienteId,
   clienteNombre,
   rutaId,
+  pedidoId,
   onComplete,
   onBack,
 }: PantallaAgendarVisitaProps) {
@@ -68,9 +70,11 @@ export default function PantallaAgendarVisita({
       // Agregar console.log para debug
       console.log("rutaId recibido en PantallaAgendarVisita:", rutaId);
       console.log("Tipo de rutaId:", typeof rutaId);
+      console.log("PedidoId recibido en PantallaAgendarVisita:", pedidoId);
 
       // 1. POST para registrar la entrega actual
       const entregaPayload = {
+        id_pedido: pedidoId,
         id_cliente: clienteId,
         corriente_entregado: parseFloat(formularioData.corriente) || 0,
         especial_entregado: parseFloat(formularioData.especial) || 0,

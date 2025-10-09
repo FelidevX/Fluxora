@@ -7,6 +7,7 @@ export interface Driver {
 
 export interface Entrega {
   id: number;
+  id_pedido: number;
   id_ruta: number;
   id_cliente: number;
   direccion: string;

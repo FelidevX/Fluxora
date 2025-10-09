@@ -49,6 +49,10 @@ export default function DriverHomePage() {
   const [rutaData, setRutaData] = useState<RutaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rutaIniciada, setRutaIniciada] = useState(false); // Nuevo estado
+  const [iniciandoRuta, setIniciandoRuta] = useState(false); // Para loading del botón
+  const [rutaId, setRutaId] = useState<number | null>(null);
+  const [pedidoId, setPedidoId] = useState<number | null>(null);
 
   useEffect(() => {
     const userData = getUserFromToken();
@@ -88,6 +92,7 @@ export default function DriverHomePage() {
 
       const rutaData = await rutaResponse.json();
       const rutaId = rutaData.rutaId;
+      setRutaId(rutaId);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}`, {
         headers: {
@@ -112,6 +117,7 @@ export default function DriverHomePage() {
         longitud: cliente.longitud,
         id_cliente: cliente.id,
         id_ruta: rutaId,
+        id_pedido: pedidoId
       }));
       
       setEntregas(entregasFromRuta);
@@ -120,6 +126,65 @@ export default function DriverHomePage() {
       setError('Error al cargar la ruta optimizada');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleIniciarRuta = async () => {
+    setIniciandoRuta(true);
+    try {
+      let token = localStorage.getItem('auth_token');
+
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación.");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/iniciar/${rutaId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            id_ruta: rutaId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al iniciar la ruta.");
+      }
+
+      const data = await response.json();
+      console.log("Ruta iniciada correctamente", data);
+      
+      const pedidoIdObtenido = data.id_pedido;
+      setPedidoId(pedidoIdObtenido);
+      
+      setEntregas((prevEntregas) => {
+      console.log("Actualizando entregas con id_pedido:", pedidoIdObtenido);
+      console.log("Entregas antes:", prevEntregas);
+      
+      const entregasActualizadas = prevEntregas.map((entrega) => ({
+        ...entrega,
+        id_pedido: pedidoIdObtenido,
+      }));
+      
+      console.log("Entregas después:", entregasActualizadas);
+      return entregasActualizadas;
+    });
+      
+      setRutaIniciada(true);
+    } catch (error) {
+      console.error("Error al iniciar ruta:", error);
+      alert("Hubo un error al iniciar la ruta. Por favor, inténtelo de nuevo.");
+    } finally {
+      setIniciandoRuta(false);
     }
   };
 
@@ -134,11 +199,33 @@ export default function DriverHomePage() {
   };
 
   const handleClienteEntregarClick = (cliente: Cliente) => {
-    const entrega = entregas.find(e => e.id === cliente.id);
-    if (entrega) {
-      handleEntregarClick(entrega);
+  console.log("=== CLIENTE SELECCIONADO PARA ENTREGA ===");
+  console.log("Cliente:", cliente);
+  console.log("pedidoId en estado:", pedidoId);
+  
+  // Buscar la entrega correspondiente al cliente
+  const entregaCorrespondiente = entregas.find(
+    (e) => e.id_cliente === cliente.id
+  );
+  
+  console.log("Entrega encontrada:", entregaCorrespondiente);
+  
+  if (entregaCorrespondiente) {
+    // Si no tiene id_pedido, agregarlo del estado actual
+    if (!entregaCorrespondiente.id_pedido && pedidoId) {
+      console.log("⚠️ Entrega sin id_pedido, agregando desde estado:", pedidoId);
+      entregaCorrespondiente.id_pedido = pedidoId;
     }
-  };
+    
+    console.log("Entrega final con id_pedido:", entregaCorrespondiente.id_pedido);
+    setEntregaSeleccionada(entregaCorrespondiente);
+    setActiveTab("formulario");
+  } else {
+    console.error("❌ No se encontró la entrega para el cliente:", cliente.id);
+    alert("No se encontró información de entrega para este cliente.");
+  }
+};
+
 
   const handleFormularioComplete = () => {
     setEntregas((prev) =>
@@ -163,6 +250,12 @@ export default function DriverHomePage() {
   const handleFormularioCancel = () => {
     setEntregaSeleccionada(null);
     setActiveTab("clientes");
+  };
+
+  const handleFinalizarRuta = () => {
+    // Redirigir al home o mostrar resumen
+    alert("Ruta finalizada exitosamente");
+    window.location.href = "/driver"; // O la ruta que prefieras
   };
 
   // Estados de carga
@@ -200,6 +293,53 @@ export default function DriverHomePage() {
     );
   }
 
+  // Pantalla de inicio de ruta
+  if (!rutaIniciada) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-500 to-blue-700 flex flex-col items-center justify-center p-4">
+        <div className="text-center text-white mb-8">
+          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-6xl">
+              local_shipping
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold mb-2">¡Bienvenido!</h1>
+          <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+            <p className="text-sm mb-1">Ruta de hoy</p>
+            <p className="text-2xl font-bold">{entregas.length} entregas</p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleIniciarRuta}
+          disabled={iniciandoRuta}
+          className="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold text-lg shadow-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {iniciandoRuta ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              <span>Iniciando...</span>
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined">play_arrow</span>
+              <span>INICIAR RUTA</span>
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="mt-6 text-white/80 hover:text-white flex items-center gap-1"
+        >
+          <span className="material-symbols-outlined text-sm">logout</span>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    );
+  }
+
+  // Contenido principal (solo se muestra después de iniciar la ruta)
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header fijo */}
@@ -266,10 +406,12 @@ export default function DriverHomePage() {
         {activeTab === "ruta" && (
           <PantallaRuta rutaData={rutaData} />
         )}
-        {activeTab === "clientes" && (
+        {activeTab === "clientes" && rutaData && (
           <PantallaClientes
             orderedClients={rutaData.orderedClients}
             onEntregarClick={handleClienteEntregarClick}
+            pedidoId={pedidoId}
+            onFinalizarRuta={handleFinalizarRuta}
           />
         )}
         {activeTab === "formulario" && entregaSeleccionada && (

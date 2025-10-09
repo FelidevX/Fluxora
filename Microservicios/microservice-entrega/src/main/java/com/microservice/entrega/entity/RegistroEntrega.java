@@ -20,6 +20,7 @@ public class RegistroEntrega {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long id_pedido;
     private Long id_cliente;
     private LocalDateTime hora_entregada;
     private Double corriente_entregado;

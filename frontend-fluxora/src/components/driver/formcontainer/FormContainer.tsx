@@ -51,6 +51,7 @@ export default function FormularioContainer({
         clienteId={entrega.id_cliente}
         clienteNombre={entrega.cliente}
         rutaId={entrega.id_ruta}
+        pedidoId={entrega.id_pedido}
         onComplete={handleAgendarComplete}
         onBack={handleBack}
       />

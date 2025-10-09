@@ -136,4 +136,34 @@ public class RutaController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    @PostMapping("/iniciar/{id_ruta}")
+    public ResponseEntity<Map<String, Object>> iniciarRuta(@PathVariable Long id_ruta) {
+        try {
+            Long idPedido = rutaService.iniciarRuta(id_ruta);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Ruta iniciada correctamente");
+            response.put("id_pedido", idPedido);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al iniciar la ruta: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/finalizar/{id_ruta}")
+    public ResponseEntity<Map<String, Object>> finalizarRuta(@PathVariable Long id_ruta) {
+        try {
+            rutaService.finalizarRuta(id_ruta);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Ruta finalizada correctamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al finalizar la ruta: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }

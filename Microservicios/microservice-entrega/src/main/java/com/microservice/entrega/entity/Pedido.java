@@ -1,5 +1,6 @@
 package com.microservice.entrega.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
@@ -14,17 +15,19 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SesionEntrega {
+public class Pedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long id_producto;
-    private LocalDateTime fecha;
+    private Long id_driver;
+
+    private LocalDate fecha;
+
     private Double kg_corriente;
     private Double kg_especial;
-    private Double corrienteDevuelto;
-    private Double especialDevuelto;
+    private Double corriente_devuelto;
+    private Double especial_devuelto;
     private LocalDateTime hora_retorno;
 }

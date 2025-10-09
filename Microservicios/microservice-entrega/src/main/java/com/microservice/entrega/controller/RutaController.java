@@ -45,6 +45,12 @@ public class RutaController {
         Map<String, Object> result = new HashMap<>();
         result.put("orderedClients", orderedClients);
         result.put("osrmRoute", osrmRoute);
+
+        Map<String, Object> origenInfo = new HashMap<>();
+        origenInfo.put("latitud", origen.getLatitud());
+        origenInfo.put("longitud", origen.getLongitud());
+        result.put("origen", origenInfo);
+
         return result;
     }
 
@@ -114,6 +120,50 @@ public class RutaController {
             return ResponseEntity.ok(("Cliente asignado correctamente a la ruta"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al asignar el cliente" + e.getMessage());
+        }
+    }
+
+    @GetMapping("/driver/{driverId}")
+    public ResponseEntity<Map<String, Object>> getRutaIdByDriver(@PathVariable Long driverId) {
+        try {
+            Long rutaId = rutaService.getRutaIdByDriverId(driverId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("rutaId", rutaId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "No se encontró una ruta para el driver con ID: " + driverId);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/iniciar/{id_ruta}")
+    public ResponseEntity<Map<String, Object>> iniciarRuta(@PathVariable Long id_ruta) {
+        try {
+            Long idPedido = rutaService.iniciarRuta(id_ruta);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Ruta iniciada correctamente");
+            response.put("id_pedido", idPedido);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al iniciar la ruta: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/finalizar/{id_ruta}")
+    public ResponseEntity<Map<String, Object>> finalizarRuta(@PathVariable Long id_ruta) {
+        try {
+            rutaService.finalizarRuta(id_ruta);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Ruta finalizada correctamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al finalizar la ruta: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 }

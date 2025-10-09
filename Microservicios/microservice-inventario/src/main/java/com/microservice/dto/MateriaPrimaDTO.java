@@ -3,7 +3,6 @@ package com.microservice.dto;
 import lombok.*;
 import java.time.LocalDate;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,4 +16,5 @@ public class MateriaPrimaDTO {
     private String estado;
     private String unidad;
     private LocalDate fecha;
+    private LocalDate fechaVencimiento;
 }

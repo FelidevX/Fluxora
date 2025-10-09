@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -23,10 +25,14 @@ import com.google.ortools.constraintsolver.RoutingSearchParameters;
 import com.google.ortools.constraintsolver.main;
 import com.microservice.entrega.client.ClienteServiceClient;
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.entity.Pedido;
+import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.RutaCliente;
 import com.microservice.entrega.repository.RutaClienteRepository;
 import com.microservice.entrega.repository.RutaRepository;
+import com.microservice.entrega.repository.PedidoRepository;
+import com.microservice.entrega.repository.RegistroEntregaRepository;
 
 @Service
 public class RutaService {
@@ -42,6 +48,12 @@ public class RutaService {
 
     @Autowired
     private ClienteServiceClient clienteServiceClient;
+
+    @Autowired
+    private PedidoRepository pedidoRepository;
+
+    @Autowired
+    private RegistroEntregaRepository registroEntregaRepository;
 
     public List<ClienteDTO> getOptimizedRouteORTools(List<ClienteDTO> clientes) {
 
@@ -96,6 +108,9 @@ public class RutaService {
         for (ClienteDTO c : orderedClients) {
             coords.append(";").append(c.getLongitud()).append(",").append(c.getLatitud());
         }
+
+        coords.append(";").append(origen.getLongitud()).append(",").append(origen.getLatitud());
+
         String url = "http://router.project-osrm.org/route/v1/driving/" + coords +
                 "?overview=full&geometries=geojson";
 
@@ -195,6 +210,119 @@ public class RutaService {
             rutaClienteRepository.save(rutaCliente);
         } catch (Exception e) {
             throw new RuntimeException("Error al asignar cliente a ruta: " + e.getMessage());
+        }
+    }
+
+    public Long getRutaIdByDriverId(Long driverId) {
+        Optional<Ruta> ruta = rutaRepository.findByIdDriver(driverId);
+        if (ruta.isEmpty()) {
+            throw new RuntimeException("No se encontró una ruta para el ID de conductor proporcionado");
+        }
+        return ruta.get().getId();
+    }
+
+    public Long iniciarRuta(Long idRuta) {
+        try {
+            Ruta ruta = rutaRepository.findById(idRuta)
+                    .orElseThrow(() -> new RuntimeException("Ruta no encontrada con ID: " + idRuta));
+
+            LocalDate fechaActual = LocalDate.now();
+
+            try {
+                Optional<Pedido> pedidoExistente = pedidoRepository.findByIdDriverAndFecha(
+                        ruta.getId_driver(),
+                        fechaActual);
+
+                if (pedidoExistente.isPresent()) {
+                    return pedidoExistente.get().getId();
+                }
+            } catch (Exception e) {
+                System.err.println("Error al buscar pedido existente: " + e.getMessage());
+                System.err.println("Continuando con la creación de nuevo pedido...");
+            }
+            // Obtener clientes de la ruta
+            List<RutaCliente> clientesRuta = rutaClienteRepository.findById_ruta(idRuta);
+
+            if (clientesRuta.isEmpty()) {
+                throw new RuntimeException("No hay clientes asignados a la ruta con ID: " + idRuta);
+            }
+
+            // Filtrar solo los clientes con fecha programada para hoy
+            List<RutaCliente> clientesHoy = clientesRuta.stream()
+                    .filter(rc -> rc.getFecha_programada() != null &&
+                            rc.getFecha_programada().equals(fechaActual))
+                    .collect(Collectors.toList());
+
+            if (clientesHoy.isEmpty()) {
+                throw new RuntimeException("No hay clientes programados para hoy en la ruta con ID: " + idRuta);
+            }
+
+            Double totalKgCorriente = clientesHoy.stream()
+                    .map(rc -> rc.getKg_corriente_programado() != null ? rc.getKg_corriente_programado() : 0.0)
+                    .reduce(0.0, Double::sum);
+
+            Double totalKgEspecial = clientesHoy.stream()
+                    .map(rc -> rc.getKg_especial_programado() != null ? rc.getKg_especial_programado() : 0.0)
+                    .reduce(0.0, Double::sum);
+
+            Pedido pedido = new Pedido();
+            pedido.setId_driver(ruta.getId_driver());
+            pedido.setFecha(fechaActual); // Establecer fecha manualmente
+            pedido.setKg_corriente(totalKgCorriente);
+            pedido.setKg_especial(totalKgEspecial);
+            pedido.setCorriente_devuelto(0.0);
+            pedido.setEspecial_devuelto(0.0);
+
+            Pedido pedidoGuardado = pedidoRepository.save(pedido);
+
+            return pedidoGuardado.getId();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al iniciar la ruta: " + e.getMessage());
+        }
+    }
+
+    public void finalizarRuta(Long idPedido) {
+        try {
+
+            Pedido pedido = pedidoRepository.findById(idPedido)
+                    .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + idPedido));
+
+            List<RegistroEntrega> entregas = registroEntregaRepository.findByIdPedido(idPedido);
+
+            if (entregas.isEmpty()) {
+                System.err.println("NO SE ENCONTRARON ENTREGAS PARA ESTE PEDIDO");
+                throw new RuntimeException("No hay entregas registradas para este pedido");
+            }
+
+            Double totalCorrienteEntregado = entregas.stream()
+                    .map(entrega -> entrega.getCorriente_entregado() != null ? entrega.getCorriente_entregado() : 0.0)
+                    .reduce(0.0, Double::sum);
+
+            Double totalEspecialEntregado = entregas.stream()
+                    .map(entrega -> entrega.getEspecial_entregado() != null ? entrega.getEspecial_entregado() : 0.0)
+                    .reduce(0.0, Double::sum);
+
+            Double corrienteDevuelto = pedido.getKg_corriente() - totalCorrienteEntregado;
+            Double especialDevuelto = pedido.getKg_especial() - totalEspecialEntregado;
+
+            if (corrienteDevuelto < 0) {
+                System.err.println("Corriente devuelto negativo: " + corrienteDevuelto);
+                corrienteDevuelto = 0.0;
+            }
+            if (especialDevuelto < 0) {
+                System.err.println("Especial devuelto negativo: " + especialDevuelto);
+                especialDevuelto = 0.0;
+            }
+
+            pedido.setCorriente_devuelto(corrienteDevuelto);
+            pedido.setEspecial_devuelto(especialDevuelto);
+            pedido.setHora_retorno(LocalDateTime.now());
+
+            Pedido pedidoActualizado = pedidoRepository.save(pedido);
+        } catch (Exception e) {
+            System.err.println("Error al finalizar ruta: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error al finalizar la ruta: " + e.getMessage());
         }
     }
 }

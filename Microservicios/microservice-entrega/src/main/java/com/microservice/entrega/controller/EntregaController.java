@@ -1,5 +1,6 @@
 package com.microservice.entrega.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,12 +33,27 @@ public class EntregaController {
 
     // Registrar entrega a un cliente
     @PostMapping("/registrar")
-    public ResponseEntity<String> registrarEntrega(@RequestBody RegistroEntrega registroEntrega) {
+    public ResponseEntity<Map<String, Object>> registrarEntrega(@RequestBody RegistroEntrega registroEntrega) {
         try {
+
+            if (registroEntrega.getId_pedido() == null) {
+                System.err.println("ERROR: id_pedido es NULL");
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "El id_pedido es obligatorio");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
             entregaService.registrarEntrega(registroEntrega);
-            return ResponseEntity.ok("Entrega registrada exitosamente");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Entrega registrada exitosamente");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al registrar entrega: " + e.getMessage());
+            System.err.println("Error al registrar entrega: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al registrar entrega: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
@@ -53,7 +69,7 @@ public class EntregaController {
         try {
             Long idRuta = Long.valueOf(datos.get("id_ruta").toString());
             Long idDriver = Long.valueOf(datos.get("id_driver").toString());
-            
+
             entregaService.asignarDriverARuta(idRuta, idDriver);
             return ResponseEntity.ok("Driver asignado exitosamente");
         } catch (Exception e) {
@@ -76,8 +92,9 @@ public class EntregaController {
             String fecha = datos.get("fecha").toString();
             Double kgCorriente = Double.valueOf(datos.get("kgCorriente").toString());
             Double kgEspecial = Double.valueOf(datos.get("kgEspecial").toString());
-            
-            String mensaje = entregaService.actualizarProgramacionCliente(idRuta, idCliente, fecha, kgCorriente, kgEspecial);
+
+            String mensaje = entregaService.actualizarProgramacionCliente(idRuta, idCliente, fecha, kgCorriente,
+                    kgEspecial);
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al actualizar programación: " + e.getMessage());

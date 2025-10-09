@@ -7,6 +7,9 @@ export interface Driver {
 
 export interface Entrega {
   id: number;
+  id_pedido: number;
+  id_ruta: number;
+  id_cliente: number;
   direccion: string;
   cliente: string;
   estado: "pendiente" | "entregado";
@@ -15,5 +18,5 @@ export interface Entrega {
 export interface FormularioEntrega {
   corriente: string;
   especial: string;
-  observaciones: string;
+  comentario: string;
 }

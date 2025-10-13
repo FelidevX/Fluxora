@@ -175,7 +175,7 @@ function ClienteProgramacionCard({
               value={kgCorriente}
               onChange={(e) => {
                 const value = e.target.value;
-                setKgCorriente(value === '' ? '' : parseFloat(e.target.value) || 0);
+                setKgCorriente(value === '' ? '' : parseFloat(value) || 0);
               }}
               className="w-full pl-2 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
             />
@@ -196,8 +196,11 @@ function ClienteProgramacionCard({
               step="0.5"
               min="0"
               value={kgEspecial}
-              onChange={(e) => setKgEspecial(parseFloat(e.target.value) || 0)}
-              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
+              onChange={(e) => {
+                const value = e.target.value;
+                setKgEspecial(value === '' ? '' : parseFloat(value) || 0)
+              }}
+              className="w-full border-gray-300 pl-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
             />
           ) : (
             <div className="text-sm font-medium text-gray-900">

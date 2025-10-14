@@ -66,6 +66,8 @@ public class ProductoService {
                 .descripcion(descripcionFinal)
                 .fecha(entity.getFecha() != null ? entity.getFecha() : LocalDate.now())
                 .receta(recetas)
+                .costoProduccion(entity.getCostoProduccion())
+                .ganancia(entity.getGanancia())
                 .build();
     }
 
@@ -74,6 +76,11 @@ public class ProductoService {
     }
 
     public ProductoDTO save(ProductoDTO dto) {
+        // Si vienen datos financieros del frontend, usarlos; si no, calcular
+        Double costoProduccion = dto.getCostoProduccion() != null ? dto.getCostoProduccion() : 0.0;
+        Double ganancia = dto.getGanancia() != null ? dto.getGanancia() : 
+                          (dto.getPrecio() != null ? dto.getPrecio() - costoProduccion : 0.0);
+        
         Producto producto = Producto.builder()
                 .id(dto.getId())
                 .nombre(dto.getNombre())
@@ -83,6 +90,8 @@ public class ProductoService {
                 .categoria(dto.getCategoria())
                 .descripcion(dto.getDescripcion())
                 .fecha(dto.getFecha())
+                .costoProduccion(costoProduccion)
+                .ganancia(ganancia)
                 .build();
 
         return toDTO(productoRepo.save(producto));
@@ -94,7 +103,9 @@ public class ProductoService {
 
     @Transactional
     public ProductoDTO saveConReceta(ProductoConRecetaDTO dto) {
-        // 1. Verificar disponibilidad de materias primas
+        // 1. Verificar disponibilidad de materias primas y calcular costo de producción
+        Double costoProduccion = 0.0;
+        
         for (RecetaDTO recetaItem : dto.getReceta()) {
             MateriaPrima materia = materiaPrimaRepo.findById(recetaItem.getMateriaPrimaId())
                 .orElseThrow(() -> new RuntimeException("Materia prima no encontrada: " + recetaItem.getMateriaPrimaId()));
@@ -108,17 +119,28 @@ public class ProductoService {
                 throw new RuntimeException("Cantidad insuficiente de " + materia.getNombre() + 
                     ". Necesita: " + cantidadNecesaria + ", Disponible: " + disponible);
             }
+            
+            // Calcular costo usando PPP (Precio Promedio Ponderado)
+            Double ppp = loteRepository.findPppByMateriaPrimaId(recetaItem.getMateriaPrimaId());
+            if (ppp == null) ppp = 0.0;
+            costoProduccion += cantidadNecesaria * ppp;
         }
 
-        // 2. Crear el producto
+        // 2. Calcular ganancia
+        Double precio = dto.getPrecio() != null ? dto.getPrecio() : 0.0;
+        Double ganancia = precio - costoProduccion;
+
+        // 3. Crear el producto con datos financieros
         Producto producto = Producto.builder()
                 .nombre(dto.getNombre())
                 .cantidad(dto.getCantidad())
-                .precio(dto.getPrecio())
+                .precio(precio)
                 .estado(dto.getEstado())
                 .categoria(dto.getCategoria())
                 .descripcion(dto.getDescripcion())
                 .fecha(dto.getFecha())
+                .costoProduccion(costoProduccion)
+                .ganancia(ganancia)
                 .build();
 
         producto = productoRepo.save(producto);

@@ -44,6 +44,8 @@ export function useProductos(): UseProductosResult {
             descripcion: producto.descripcion || "Sin descripción",
             fecha: producto.fecha || new Date().toISOString().split("T")[0],
             receta: producto.receta || [], // ¡Preservar la receta!
+            costoProduccion: producto.costoProduccion || 0, // Costo de producción
+            ganancia: producto.ganancia || 0, // Ganancia
           }))
         : [];
 

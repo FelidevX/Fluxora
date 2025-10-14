@@ -18,4 +18,6 @@ public class ProductoDTO {
     private String descripcion;
     private LocalDate fecha;
     private List<RecetaDTO> receta;
+    private Double costoProduccion; // Costo total basado en PPP de ingredientes
+    private Double ganancia; // Ganancia = precio - costoProduccion
 }

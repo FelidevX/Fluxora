@@ -25,6 +25,12 @@ public class Producto {
     private String categoria;
     private String descripcion;
 
+    // Columnas financieras (costos y ganancias)
+    @Column(name = "costo_produccion")
+    private Double costoProduccion; // Costo total basado en PPP de ingredientes
+    
+    private Double ganancia; // Ganancia = precio - costoProduccion
+
     // Columnas existentes (mantener para compatibilidad)
     private String tipo;
     @Column(name = "stock_actual")
@@ -33,4 +39,5 @@ public class Producto {
     private String estado;
     private LocalDate fecha;
     private LocalDate fechaVencimiento;
+    
 }

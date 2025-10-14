@@ -33,6 +33,9 @@ export interface Producto {
   descripcion: string;
   fecha: string;
   receta?: RecetaItem[];
+  costoProduccion?: number; // Costo total basado en PPP
+  ganancia?: number; // Ganancia = precio - costoProduccion
+  // porcentajeGanancia se calcula: (ganancia / precio) * 100
 }
 
 export interface ProductoDTO {
@@ -44,6 +47,9 @@ export interface ProductoDTO {
   descripcion: string;
   fecha: string;
   receta?: RecetaItem[];
+  costoProduccion?: number; // Costo total basado en PPP
+  ganancia?: number; // Ganancia = precio - costoProduccion
+  // porcentajeGanancia se calcula: (ganancia / precio) * 100
 }
 
 export interface RecetaItem {

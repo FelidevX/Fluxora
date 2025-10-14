@@ -37,6 +37,8 @@ export interface RecetaIngrediente {
   unidad: string;
   esOpcional: boolean;
   notas?: string;
+  ppp?: number; // Precio Promedio Ponderado por unidad
+  costoParcial?: number; // Costo parcial (cantidadNecesaria * ppp)
 }
 
 export interface RecetaIngredienteDTO {

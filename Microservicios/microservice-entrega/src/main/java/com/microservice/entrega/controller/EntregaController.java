@@ -111,4 +111,16 @@ public class EntregaController {
             return ResponseEntity.badRequest().body("Error al crear ruta: " + e.getMessage());
         }
     }
+
+    @GetMapping("/pedido/{idPedido}")
+    public ResponseEntity<List<RegistroEntrega>> getEntregasByIdPedido(@PathVariable Long idPedido) {
+        try {
+            List<RegistroEntrega> entregas = entregaService.getEntregasByIdPedido(idPedido);
+            return ResponseEntity.ok(entregas);
+        } catch (Exception e) {
+            System.err.println("Error al obtener entregas por idPedido: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
 }

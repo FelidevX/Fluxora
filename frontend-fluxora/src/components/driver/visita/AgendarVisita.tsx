@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { FormularioEntrega } from "@/interfaces/entregas/driver";
 
@@ -16,7 +16,7 @@ interface PantallaAgendarVisitaProps {
   pedidoId: number;
   clienteNombre: string;
   rutaId: number;
-  onComplete: (agendarData: AgendarVisitaData) => void;
+  onComplete: (agendarData: AgendarVisitaData, clienteId: number) => void; // Añadido clienteId
   onBack: () => void;
 }
 
@@ -41,6 +41,14 @@ export default function PantallaAgendarVisita({
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
+
+  useEffect(() => {
+    setAgendarData({
+      fecha: tomorrow.toISOString().split('T')[0],
+      corriente_programado: formularioData.corriente || "",
+      especial_programado: formularioData.especial || "",
+    })
+  }, [formularioData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,10 +75,9 @@ export default function PantallaAgendarVisita({
         token = token.substring(7);
       }
 
-      // Agregar console.log para debug
-      console.log("rutaId recibido en PantallaAgendarVisita:", rutaId);
-      console.log("Tipo de rutaId:", typeof rutaId);
-      console.log("PedidoId recibido en PantallaAgendarVisita:", pedidoId);
+      console.log("rutaId recibido:", rutaId);
+      console.log("pedidoId recibido:", pedidoId);
+      console.log("clienteId:", clienteId);
 
       // 1. POST para registrar la entrega actual
       const entregaPayload = {
@@ -100,11 +107,11 @@ export default function PantallaAgendarVisita({
         throw new Error("Error al registrar la entrega.");
       }
 
-      // POST para agendar la próxima visita con cantidades programadas
+      // 2. POST para agendar la próxima visita
       const visitaPayload = {
         idRuta: rutaId,  
         idCliente: clienteId,
-        fecha: agendarData.fecha,  // <-- Usa la fecha seleccionada
+        fecha: agendarData.fecha,
         kgCorriente: parseFloat(agendarData.corriente_programado) || 0,
         kgEspecial: parseFloat(agendarData.especial_programado) || 0,
       };
@@ -128,7 +135,7 @@ export default function PantallaAgendarVisita({
       }
 
       alert("Entrega registrada y próxima visita agendada correctamente.");
-      onComplete(agendarData);
+      onComplete(agendarData, clienteId); // Pasar clienteId
     } catch (error) {
       console.error("Error al procesar:", error);
       alert("Hubo un error al procesar la información. Por favor, inténtelo de nuevo.");
@@ -188,7 +195,7 @@ export default function PantallaAgendarVisita({
             />
           </div>
 
-          {/* Cantidades programadas para la próxima visita */}
+          {/* Cantidades programadas */}
           <div className="bg-green-50 rounded-lg p-4">
             <h4 className="font-medium text-green-800 mb-3">Cantidades Programadas para la Próxima Visita</h4>
             

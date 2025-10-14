@@ -7,7 +7,7 @@ import { Entrega, FormularioEntrega } from "@/interfaces/entregas/driver";
 
 interface FormularioContainerProps {
   entrega: Entrega;
-  onComplete: () => void;
+  onComplete: (clienteId: number) => void;
   onCancel: () => void;
 }
 
@@ -21,7 +21,6 @@ export default function FormularioContainer({
 
   const handleContinue = (formData: FormularioEntrega) => {
     setFormularioData(formData);
-    console.log("Datos entrega", entrega);
     setCurrentStep('agendar');
   };
 
@@ -29,9 +28,9 @@ export default function FormularioContainer({
     setCurrentStep('formulario');
   };
 
-  const handleAgendarComplete = () => {
-    console.log("Proceso completado");
-    onComplete();
+  const handleAgendarComplete = (agendarData: any, clienteId: number) => {
+    console.log("Proceso completado para cliente:", clienteId);
+    onComplete(clienteId); // Pasar clienteId al padre
   };
 
   if (currentStep === 'formulario') {

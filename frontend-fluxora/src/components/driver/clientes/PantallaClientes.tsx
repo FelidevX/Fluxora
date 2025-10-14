@@ -1,7 +1,7 @@
 "use client";
 
 import MaterialIcon from "@/components/ui/MaterialIcon";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Cliente {
   id: number;
@@ -25,12 +25,81 @@ export default function PantallaClientes({
   onFinalizarRuta,
 }: PantallaClientesProps) {
   const [isFinalizando, setIsFinalizando] = useState(false);
-  const clientesPendientes = orderedClients.length;
+  const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  // Cargar entregas realizadas al montar el componente
+  useEffect(() => {
+    if (pedidoId) {
+      setClientesEntregados(new Set()); // Limpiar estado anterior
+      cargarEntregasRealizadas();
+    }
+  }, [pedidoId]);
+
+  const cargarEntregasRealizadas = async () => {
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedidoId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const entregas = await response.json();
+        // Solo entregas del pedido actual
+        const entregadosSet = new Set<number>(
+          entregas
+            .filter((e: any) => e.id_pedido === pedidoId)
+            .map((e: any) => e.id_cliente)
+        );
+        setClientesEntregados(entregadosSet);
+        console.log("Clientes entregados HOY:", Array.from(entregadosSet));
+      }
+    } catch (error) {
+      console.error("Error al cargar entregas realizadas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Marcar cliente como entregado localmente
+  const marcarComoEntregado = (clienteId: number) => {
+    setClientesEntregados(prev => new Set([...prev, clienteId]));
+  };
+
+  // Exponer función para que el padre pueda actualizar el estado
+  useEffect(() => {
+    (window as any).marcarClienteEntregado = marcarComoEntregado;
+  }, []);
+
+  const clientesPendientes = orderedClients.filter(
+    c => !clientesEntregados.has(c.id)
+  ).length;
 
   const handleFinalizarRuta = async () => {
     if (!pedidoId) {
       alert("No se encontró el ID del pedido");
       return;
+    }
+
+    if (clientesPendientes > 0) {
+      const confirmacion = window.confirm(
+        `Aún quedan ${clientesPendientes} entregas pendientes. ¿Está seguro de finalizar la ruta?`
+      );
+      if (!confirmacion) return;
     }
 
     const confirmacion = window.confirm(
@@ -69,7 +138,6 @@ export default function PantallaClientes({
       const data = await response.json();
       alert(data.message || "Ruta finalizada correctamente");
 
-      // Callback para manejar la finalización en el componente padre
       if (onFinalizarRuta) {
         onFinalizarRuta();
       }
@@ -81,26 +149,36 @@ export default function PantallaClientes({
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600">Cargando entregas...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="p-3 sm:p-4 max-w-4xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header */}
+        {/* Header con contador actualizado */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Entregas del Día
           </h1>
           <div className="flex items-center justify-between">
             <p className="text-sm sm:text-base text-gray-600">
-              {clientesPendientes}{" "}
-              {clientesPendientes === 1 ? "entrega" : "entregas"} programadas
+              {clientesPendientes} de {orderedClients.length}{" "}
+              {orderedClients.length === 1 ? "entrega pendiente" : "entregas pendientes"}
             </p>
-            <div className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
-              En orden
+            <div className="flex items-center gap-2">
+              <div className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
+                {orderedClients.length - clientesPendientes} Entregadas
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Lista de clientes ordenada */}
+        {/* Lista de clientes */}
         <div className="bg-white rounded-lg shadow-sm p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 text-base sm:text-lg">
@@ -118,82 +196,110 @@ export default function PantallaClientes({
             </div>
           ) : (
             <div className="space-y-2 sm:space-y-3">
-              {orderedClients.map((cliente, index) => (
-                <div
-                  key={cliente.id}
-                  className="bg-gray-50 hover:bg-gray-100 active:bg-gray-200 p-3 sm:p-4 rounded-lg border transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    {/* Información del cliente */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {/* Número de orden */}
-                      <div
-                        className={`
-                        flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-sm sm:text-base font-bold
-                        ${
-                          index === 0
-                            ? "bg-green-500"
-                            : index === orderedClients.length - 1
-                            ? "bg-red-500"
-                            : "bg-blue-500"
-                        }
-                      `}
-                      >
-                        {index + 1}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
-                          {cliente.nombre}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-2">
-                          {cliente.direccion}
-                        </p>
-
-                        {/* Badges de posición */}
-                        <div className="flex gap-2 mt-2">
-                          {index === 0 && (
-                            <span className="inline-flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-                              <MaterialIcon name="rocket_launch" />
-                              Primera parada
-                            </span>
-                          )}
-                          {index === orderedClients.length - 1 && (
-                            <span className="inline-flex items-center text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
-                              <MaterialIcon name="sports_score" />
-                              Última parada
-                            </span>
+              {orderedClients.map((cliente, index) => {
+                const estaEntregado = clientesEntregados.has(cliente.id);
+                
+                return (
+                  <div
+                    key={cliente.id}
+                    className={`rounded-lg border transition-all duration-300 ${
+                      estaEntregado 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-gray-50 hover:bg-gray-100 active:bg-gray-200'
+                    } p-3 sm:p-4`}
+                  >
+                    <div className="flex items-center justify-between">
+                      {/* Información del cliente */}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Número de orden / Check */}
+                        <div
+                          className={`
+                            flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-sm sm:text-base font-bold transition-all duration-300
+                            ${estaEntregado 
+                              ? 'bg-green-500' 
+                              : index === 0
+                              ? "bg-blue-500"
+                              : index === orderedClients.length - 1
+                              ? "bg-red-500"
+                              : "bg-gray-400"
+                            }
+                          `}
+                        >
+                          {estaEntregado ? (
+                            <MaterialIcon name="check" />
+                          ) : (
+                            index + 1
                           )}
                         </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm sm:text-base truncate ${
+                            estaEntregado ? 'text-green-900' : 'text-gray-900'
+                          }`}>
+                            {cliente.nombre}
+                          </p>
+                          <p className={`text-xs sm:text-sm mt-1 line-clamp-2 ${
+                            estaEntregado ? 'text-green-600' : 'text-gray-500'
+                          }`}>
+                            {cliente.direccion}
+                          </p>
+
+                          {/* Badges de estado */}
+                          <div className="flex gap-2 mt-2">
+                            {estaEntregado && (
+                              <span className="inline-flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                                <MaterialIcon name="check_circle" className="mr-1" />
+                                Entregado
+                              </span>
+                            )}
+                            {!estaEntregado && index === 0 && (
+                              <span className="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                                <MaterialIcon name="rocket_launch" className="mr-1" />
+                                Primera parada
+                              </span>
+                            )}
+                            {!estaEntregado && index === orderedClients.length - 1 && (
+                              <span className="inline-flex items-center text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
+                                <MaterialIcon name="sports_score" className="mr-1" />
+                                Última parada
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Botón de entrega */}
+                      <div className="flex flex-col gap-2 ml-3">
+                        <button
+                          onClick={() => !estaEntregado && onEntregarClick?.(cliente)}
+                          disabled={estaEntregado}
+                          className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm ${
+                            estaEntregado
+                              ? 'bg-green-100 text-green-800 cursor-not-allowed opacity-75'
+                              : 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white cursor-pointer'
+                          }`}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            <MaterialIcon name={estaEntregado ? "check_circle" : "package_2"} />
+                            <span>{estaEntregado ? "Entregado" : "Entregar"}</span>
+                          </div>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Botones de acción */}
-                    <div className="flex flex-col gap-2 ml-3">
-                      <button
-                        onClick={() => onEntregarClick?.(cliente)}
-                        className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer"
-                      >
-                        <div className="flex items-center justify-center gap-1">
-                          <MaterialIcon name="package_2" />
-                          <span>Entregar</span>
-                        </div>
-                      </button>
+                    {/* Información adicional */}
+                    <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
+                      <span>
+                        Posición: {index + 1} de {orderedClients.length}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MaterialIcon name="route" />
+                        {estaEntregado ? "Completado" : "Ruta optimizada"}
+                      </span>
                     </div>
                   </div>
-
-                  {/* Información adicional para móvil */}
-                  <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
-                    <span>
-                      Posición: {index + 1} de {orderedClients.length}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MaterialIcon name="route" />
-                      Ruta optimizada
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -210,6 +316,11 @@ export default function PantallaClientes({
             <MaterialIcon name="check_circle" />
             {isFinalizando ? "Finalizando ruta..." : "Finalizar Ruta"}
           </button>
+          {clientesPendientes > 0 && (
+            <p className="text-center text-xs text-gray-500 mt-2">
+              {clientesPendientes} {clientesPendientes === 1 ? 'entrega pendiente' : 'entregas pendientes'}
+            </p>
+          )}
         </div>
       </div>
     </div>

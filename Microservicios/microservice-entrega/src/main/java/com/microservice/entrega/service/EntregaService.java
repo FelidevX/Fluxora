@@ -435,4 +435,12 @@ public class EntregaService {
             throw new RuntimeException("Error al crear la ruta: " + e.getMessage(), e);
         }
     }
+
+    public List<RegistroEntrega> getEntregasByIdPedido(Long idPedido) {
+        try {
+            return registroEntregaRepository.findByIdPedido(idPedido);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener entregas por idPedido: " + e.getMessage(), e);
+        }
+    }
 }

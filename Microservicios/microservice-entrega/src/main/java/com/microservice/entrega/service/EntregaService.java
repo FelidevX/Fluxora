@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.microservice.entrega.client.ClienteServiceClient;
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.entity.Pedido;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.RutaCliente;
+import com.microservice.entrega.repository.PedidoRepository;
 import com.microservice.entrega.repository.ProgramacionEntregaRepository;
 import com.microservice.entrega.repository.RegistroEntregaRepository;
 import com.microservice.entrega.repository.RutaClienteRepository;
@@ -40,6 +42,9 @@ public class EntregaService {
 
     @Autowired
     private ClienteServiceClient clienteServiceClient;
+
+    @Autowired
+    private PedidoRepository pedidoRepository;
 
     // Obtener rutas programadas por fecha
     public List<Map<String, Object>> getRutasProgramadasPorFecha(String fecha) {
@@ -442,5 +447,9 @@ public class EntregaService {
         } catch (Exception e) {
             throw new RuntimeException("Error al obtener entregas por idPedido: " + e.getMessage(), e);
         }
+    }
+
+    public List<Pedido> getPedidos() {
+        return pedidoRepository.findAll();
     }
 }

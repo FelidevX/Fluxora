@@ -205,7 +205,7 @@ function DataTable<T extends Record<string, any>>({
                                 variant={action.variant}
                                 size="sm"
                                 onClick={() => action.onClick(item)}
-                                className="flex items-center gap-1"
+                                className="flex items-center gap-1 cursor-pointer"
                               >
                                 <MaterialIcon name={action.icon} />
                                 {action.label}

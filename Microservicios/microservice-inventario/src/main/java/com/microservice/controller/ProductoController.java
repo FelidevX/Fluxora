@@ -1,9 +1,8 @@
 package com.microservice.controller;
 
 import com.microservice.dto.ProductoDTO;
-import com.microservice.dto.ProductoConRecetaDTO;
-import com.microservice.dto.StockUpdateRequest;
 import com.microservice.service.ProductoService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -18,27 +17,28 @@ public class ProductoController {
     }
 
     @GetMapping
-    public List<ProductoDTO> listar() {
-        return service.findAll();
+    public ResponseEntity<List<ProductoDTO>> listar() {
+        return ResponseEntity.ok(service.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductoDTO> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
-    public ProductoDTO crear(@RequestBody ProductoDTO dto) {
-        return service.save(dto);
+    public ResponseEntity<ProductoDTO> crear(@RequestBody ProductoDTO dto) {
+        return ResponseEntity.ok(service.save(dto));
     }
 
-    @PostMapping("/con-receta")
-    public ProductoDTO crearConReceta(@RequestBody ProductoConRecetaDTO dto) {
-        return service.saveConReceta(dto);
-    }
-
-    @PatchMapping("/{id}/stock")
-    public ProductoDTO actualizarStock(@PathVariable Long id, @RequestBody StockUpdateRequest request) {
-        return service.updateStock(id, request.getCantidad());
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductoDTO> actualizar(@PathVariable Long id, @RequestBody ProductoDTO dto) {
+        return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

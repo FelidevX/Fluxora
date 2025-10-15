@@ -1,8 +1,6 @@
 package com.microservice.dto;
 
 import lombok.*;
-import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -11,13 +9,12 @@ import java.util.List;
 public class ProductoDTO {
     private Long id;
     private String nombre;
-    private Double cantidad;
-    private Double precio;
-    private String estado;
-    private String categoria;
-    private String descripcion;
-    private LocalDate fecha;
-    private List<RecetaDTO> receta;
-    private Double costoProduccion; // Costo total basado en PPP de ingredientes
-    private Double ganancia; // Ganancia = precio - costoProduccion
+    private String estado; // activo, descontinuado
+    private Double precioVenta;
+    private String tipoProducto; // CORRIENTE, ESPECIAL, NO_APLICA
+    private String categoria; // panaderia, pasteleria, etc.
+    private Long recetaMaestraId; // ID de la receta asociada (opcional)
+    
+    // Campos calculados desde los lotes (no se guardan en BD)
+    private Integer stockTotal; // Suma de stock_actual de todos los lotes
 }

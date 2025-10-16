@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Producto, ProductoDTO } from "@/types/inventario";
+import { useState, useCallback, useEffect } from "react";
+import { Producto, ProductoDTO, LoteProducto } from "@/types/inventario";
 
 interface UseProductosResult {
   productos: Producto[];
@@ -7,47 +7,49 @@ interface UseProductosResult {
   error: string | null;
   cargarProductos: () => Promise<void>;
   crearProducto: (producto: ProductoDTO) => Promise<void>;
-  actualizarStockProducto: (id: number, nuevaCantidad: number) => Promise<void>;
+  actualizarProducto: (
+    id: number,
+    producto: Partial<ProductoDTO>
+  ) => Promise<void>;
   eliminarProducto: (id: number) => Promise<void>;
+
+  // Funciones para lotes
+  cargarLotes: (productoId: number) => Promise<LoteProducto[]>;
+  crearLote: (
+    productoId: number,
+    lote: Omit<LoteProducto, "id">
+  ) => Promise<void>;
+  actualizarLote: (
+    productoId: number,
+    loteId: number,
+    lote: Partial<LoteProducto>
+  ) => Promise<void>;
+  eliminarLote: (productoId: number, loteId: number) => Promise<void>;
+  obtenerStockTotal: (productoId: number) => Promise<number>;
+
   clearError: () => void;
 }
+
+const API_BASE = "http://localhost:8080/api/inventario/productos";
 
 export function useProductos(): UseProductosResult {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const cargarProductos = async () => {
+  const cargarProductos = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        "http://localhost:8080/api/inventario/productos"
-      );
+      const response = await fetch(API_BASE);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-
-      // Asegurarse de que cada producto tenga los campos necesarios
-      const productosLimpios = Array.isArray(data)
-        ? data.map((producto) => ({
-            id: producto.id || 0,
-            nombre: producto.nombre || "Sin nombre",
-            cantidad: producto.cantidad || 0,
-            precio: producto.precio || 0,
-            estado: producto.estado || "Disponible",
-            categoria: producto.categoria || "Sin categoría",
-            descripcion: producto.descripcion || "Sin descripción",
-            fecha: producto.fecha || new Date().toISOString().split("T")[0],
-            receta: producto.receta || [], // ¡Preservar la receta!
-          }))
-        : [];
-
-      setProductos(productosLimpios);
+      setProductos(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error al cargar productos:", err);
       setError("No se pudo conectar con el servidor.");
@@ -55,73 +57,64 @@ export function useProductos(): UseProductosResult {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    cargarProductos();
+  }, [cargarProductos]);
 
   const crearProducto = async (producto: ProductoDTO) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Si el producto tiene receta, enviar al endpoint especial que maneja descuentos
-      const endpoint =
-        (producto as any).receta && (producto as any).receta.length > 0
-          ? "http://localhost:8080/api/inventario/productos/con-receta"
-          : "http://localhost:8080/api/inventario/productos";
-
-      const response = await fetch(endpoint, {
+      const response = await fetch(API_BASE, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(producto),
       });
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error("Error del servidor:", errorData);
         throw new Error(
           `Error al crear producto: ${response.status} - ${errorData}`
         );
       }
 
-      const result = await response.json();
-
-      await cargarProductos(); // Recargar la lista después de crear
+      await cargarProductos();
     } catch (err) {
       console.error("Error al crear producto:", err);
       setError(
         err instanceof Error ? err.message : "Error al crear el producto"
       );
-      throw err; // Re-lanzar el error para que el componente lo pueda manejar
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const actualizarStockProducto = async (id: number, nuevaCantidad: number) => {
+  const actualizarProducto = async (
+    id: number,
+    producto: Partial<ProductoDTO>
+  ) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `http://localhost:8080/api/inventario/productos/${id}/stock`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ cantidad: nuevaCantidad }),
-        }
-      );
+      const response = await fetch(`${API_BASE}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(producto),
+      });
 
       if (!response.ok) {
-        throw new Error(`Error al actualizar stock: ${response.status}`);
+        throw new Error(`Error al actualizar producto: ${response.status}`);
       }
 
-      await cargarProductos(); // Recargar la lista después de actualizar
+      await cargarProductos();
     } catch (err) {
-      console.error("Error al actualizar stock del producto:", err);
-      setError("Error al actualizar el stock del producto");
+      console.error("Error al actualizar producto:", err);
+      setError("Error al actualizar el producto");
       throw err;
     } finally {
       setLoading(false);
@@ -133,18 +126,13 @@ export function useProductos(): UseProductosResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `http://localhost:8080/api/inventario/productos/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
 
       if (!response.ok) {
         throw new Error(`Error al eliminar producto: ${response.status}`);
       }
 
-      await cargarProductos(); // Recargar la lista después de eliminar
+      await cargarProductos();
     } catch (err) {
       console.error("Error al eliminar producto:", err);
       setError("Error al eliminar el producto");
@@ -154,14 +142,131 @@ export function useProductos(): UseProductosResult {
     }
   };
 
-  const clearError = () => {
-    setError(null);
+  // ============== FUNCIONES PARA LOTES ==============
+
+  const cargarLotes = async (productoId: number): Promise<LoteProducto[]> => {
+    try {
+      const response = await fetch(`${API_BASE}/${productoId}/lotes`);
+
+      if (!response.ok) {
+        throw new Error(`Error al cargar lotes: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.error("Error al cargar lotes:", err);
+      setError("Error al cargar los lotes del producto");
+      return [];
+    }
   };
 
-  // Cargar datos al montar el hook
-  useEffect(() => {
-    cargarProductos();
-  }, []);
+  const crearLote = async (
+    productoId: number,
+    lote: Omit<LoteProducto, "id">
+  ) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(`${API_BASE}/${productoId}/lotes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(lote),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(
+          `Error al crear lote: ${response.status} - ${errorData}`
+        );
+      }
+
+      await cargarProductos(); // Recargar para actualizar stock total
+    } catch (err) {
+      console.error("Error al crear lote:", err);
+      setError(err instanceof Error ? err.message : "Error al crear el lote");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const actualizarLote = async (
+    productoId: number,
+    loteId: number,
+    lote: Partial<LoteProducto>
+  ) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `${API_BASE}/${productoId}/lotes/${loteId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(lote),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error al actualizar lote: ${response.status}`);
+      }
+
+      await cargarProductos();
+    } catch (err) {
+      console.error("Error al actualizar lote:", err);
+      setError("Error al actualizar el lote");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const eliminarLote = async (productoId: number, loteId: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `${API_BASE}/${productoId}/lotes/${loteId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error al eliminar lote: ${response.status}`);
+      }
+
+      await cargarProductos();
+    } catch (err) {
+      console.error("Error al eliminar lote:", err);
+      setError("Error al eliminar el lote");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const obtenerStockTotal = async (productoId: number): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE}/${productoId}/stock-total`);
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener stock total: ${response.status}`);
+      }
+
+      const stockTotal = await response.json();
+      return stockTotal || 0;
+    } catch (err) {
+      console.error("Error al obtener stock total:", err);
+      return 0;
+    }
+  };
+
+  const clearError = () => setError(null);
 
   return {
     productos,
@@ -169,8 +274,13 @@ export function useProductos(): UseProductosResult {
     error,
     cargarProductos,
     crearProducto,
-    actualizarStockProducto,
+    actualizarProducto,
     eliminarProducto,
+    cargarLotes,
+    crearLote,
+    actualizarLote,
+    eliminarLote,
+    obtenerStockTotal,
     clearError,
   };
 }

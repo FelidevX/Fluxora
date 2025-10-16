@@ -3,8 +3,6 @@ package com.microservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @Entity
 @Table(name = "productos")
 @Data
@@ -17,20 +15,28 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String nombre;
 
-    // Nuevas columnas
-    private Double cantidad;
-    private Double precio;
-    private String categoria;
-    private String descripcion;
+    @Column(name = "precio_venta")
+    private Double precioVenta;
 
-    // Columnas existentes (mantener para compatibilidad)
-    private String tipo;
-    @Column(name = "stock_actual")
-    private Double stockActual;
+    @Column(name = "tipo_producto")
+    @Enumerated(EnumType.STRING)
+    private TipoProducto tipoProducto; // CORRIENTE, ESPECIAL (solo para panadería)
 
-    private String estado;
-    private LocalDate fecha;
-    private LocalDate fechaVencimiento;
+    private String categoria; // panaderia, pasteleria, etc.
+
+    private String estado; // activo, descontinuado, etc.
+    
+    // Relación OPCIONAL con RecetaMaestra
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receta_maestra_id")
+    private RecetaMaestra recetaMaestra;
+
+    public enum TipoProducto {
+        CORRIENTE,
+        ESPECIAL,
+        NO_APLICA // Para productos que no son panadería
+    }
 }

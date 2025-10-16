@@ -49,10 +49,13 @@ export default function DriverHomePage() {
   const [rutaData, setRutaData] = useState<RutaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rutaIniciada, setRutaIniciada] = useState(false); // Nuevo estado
-  const [iniciandoRuta, setIniciandoRuta] = useState(false); // Para loading del botón
+  const [rutaIniciada, setRutaIniciada] = useState(false);
+  const [iniciandoRuta, setIniciandoRuta] = useState(false);
   const [rutaId, setRutaId] = useState<number | null>(null);
   const [pedidoId, setPedidoId] = useState<number | null>(null);
+  
+  // Estado para rastrear clientes entregados
+  const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const userData = getUserFromToken();
@@ -60,6 +63,54 @@ export default function DriverHomePage() {
     
     fetchRutaOptimizada();
   }, []);
+
+  // Cargar entregas realizadas cuando hay pedidoId
+  useEffect(() => {
+    if (pedidoId) {
+      cargarEntregasRealizadas();
+    }
+  }, [pedidoId]);
+
+  // Función para cargar entregas del pedido actual
+  const cargarEntregasRealizadas = async () => {
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) return;
+      
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedidoId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const entregasRealizadas = await response.json();
+        const entregadosSet = new Set<number>(
+          entregasRealizadas
+            .filter((e: any) => e.id_pedido === pedidoId)
+            .map((e: any) => e.id_cliente)
+        );
+        setClientesEntregados(entregadosSet);
+        
+        // Actualizar estado de entregas
+        setEntregas((prev) =>
+          prev.map((e) => ({
+            ...e,
+            estado: entregadosSet.has(e.id_cliente) ? "entregado" : "pendiente",
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Error al cargar entregas realizadas:", error);
+    }
+  };
 
   const fetchRutaOptimizada = async () => {
     try {
@@ -167,17 +218,15 @@ export default function DriverHomePage() {
       setPedidoId(pedidoIdObtenido);
       
       setEntregas((prevEntregas) => {
-      console.log("Actualizando entregas con id_pedido:", pedidoIdObtenido);
-      console.log("Entregas antes:", prevEntregas);
-      
-      const entregasActualizadas = prevEntregas.map((entrega) => ({
-        ...entrega,
-        id_pedido: pedidoIdObtenido,
-      }));
-      
-      console.log("Entregas después:", entregasActualizadas);
-      return entregasActualizadas;
-    });
+        console.log("Actualizando entregas con id_pedido:", pedidoIdObtenido);
+        const entregasActualizadas = prevEntregas.map((entrega) => ({
+          ...entrega,
+          id_pedido: pedidoIdObtenido,
+        }));
+        
+        console.log("Entregas después:", entregasActualizadas);
+        return entregasActualizadas;
+      });
       
       setRutaIniciada(true);
     } catch (error) {
@@ -199,50 +248,48 @@ export default function DriverHomePage() {
   };
 
   const handleClienteEntregarClick = (cliente: Cliente) => {
-  console.log("=== CLIENTE SELECCIONADO PARA ENTREGA ===");
-  console.log("Cliente:", cliente);
-  console.log("pedidoId en estado:", pedidoId);
-  
-  // Buscar la entrega correspondiente al cliente
-  const entregaCorrespondiente = entregas.find(
-    (e) => e.id_cliente === cliente.id
-  );
-  
-  console.log("Entrega encontrada:", entregaCorrespondiente);
-  
-  if (entregaCorrespondiente) {
-    // Si no tiene id_pedido, agregarlo del estado actual
-    if (!entregaCorrespondiente.id_pedido && pedidoId) {
-      console.log("⚠️ Entrega sin id_pedido, agregando desde estado:", pedidoId);
-      entregaCorrespondiente.id_pedido = pedidoId;
-    }
+    console.log("=== CLIENTE SELECCIONADO PARA ENTREGA ===");
+    console.log("Cliente:", cliente);
+    console.log("pedidoId en estado:", pedidoId);
     
-    console.log("Entrega final con id_pedido:", entregaCorrespondiente.id_pedido);
-    setEntregaSeleccionada(entregaCorrespondiente);
-    setActiveTab("formulario");
-  } else {
-    console.error("❌ No se encontró la entrega para el cliente:", cliente.id);
-    alert("No se encontró información de entrega para este cliente.");
-  }
-};
+    const entregaCorrespondiente = entregas.find(
+      (e) => e.id_cliente === cliente.id
+    );
+    
+    console.log("Entrega encontrada:", entregaCorrespondiente);
+    
+    if (entregaCorrespondiente) {
+      if (!entregaCorrespondiente.id_pedido && pedidoId) {
+        console.log("⚠️ Entrega sin id_pedido, agregando desde estado:", pedidoId);
+        entregaCorrespondiente.id_pedido = pedidoId;
+      }
+      
+      console.log("Entrega final con id_pedido:", entregaCorrespondiente.id_pedido);
+      setEntregaSeleccionada(entregaCorrespondiente);
+      setActiveTab("formulario");
+    } else {
+      console.error("❌ No se encontró la entrega para el cliente:", cliente.id);
+      alert("No se encontró información de entrega para este cliente.");
+    }
+  };
 
-
-  const handleFormularioComplete = () => {
+  // Manejar la finalización de entrega
+  const handleFormularioComplete = (clienteId: number) => {
+    console.log("Entrega completada para cliente:", clienteId);
+    
+    // Actualizar estado de entregas
     setEntregas((prev) =>
       prev.map((e) =>
-        e.id === entregaSeleccionada?.id 
-          ? { ...e, estado: "entregado" }
+        e.id_cliente === clienteId
+          ? { ...e, estado: "entregado" as const }
           : e
       )
     );
     
-    if (entregaSeleccionada) {
-      setEntregaSeleccionada({
-        ...entregaSeleccionada,
-        estado: "entregado"
-      });
-    }
+    // Actualizar conjunto de clientes entregados
+    setClientesEntregados((prev) => new Set([...prev, clienteId]));
     
+    // Limpiar selección y volver a lista
     setEntregaSeleccionada(null);
     setActiveTab("clientes");
   };
@@ -257,6 +304,9 @@ export default function DriverHomePage() {
     alert("Ruta finalizada exitosamente");
     window.location.href = "/driver"; // O la ruta que prefieras
   };
+
+  // Calcular entregas pendientes en tiempo real
+  const entregasPendientes = entregas.filter(e => e.estado === 'pendiente').length;
 
   // Estados de carga
   if (loading) {
@@ -339,9 +389,9 @@ export default function DriverHomePage() {
     );
   }
 
-  // Contenido principal (solo se muestra después de iniciar la ruta)
+  // Contenido principal
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Header fijo */}
       <div className="bg-blue-600 text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -357,10 +407,10 @@ export default function DriverHomePage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {/* Indicador de entregas pendientes */}
+          {/* Contador dinámico */}
           {rutaData && (
             <div className="bg-white/20 px-2 py-1 rounded text-xs">
-              {entregas.filter(e => e.estado === 'pendiente').length} pendientes
+              {entregasPendientes} pendientes
             </div>
           )}
           <button onClick={handleLogout} className="p-2 bg-white/20 rounded-lg">
@@ -395,7 +445,8 @@ export default function DriverHomePage() {
           >
             <div className="flex items-center justify-center gap-1">
               <MaterialIcon name="box_add" className="mr-1" />
-              <span>Entregas ({entregas.filter(e => e.estado === 'pendiente').length})</span>
+              {/*Contador dinámico */}
+              <span>Entregas ({entregasPendientes})</span>
             </div>
           </button>
         </div>

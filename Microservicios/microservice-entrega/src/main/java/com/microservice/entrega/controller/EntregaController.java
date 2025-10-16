@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.entity.Pedido;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.service.EntregaService;
@@ -109,6 +110,30 @@ public class EntregaController {
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al crear ruta: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/pedido/{idPedido}")
+    public ResponseEntity<List<RegistroEntrega>> getEntregasByIdPedido(@PathVariable Long idPedido) {
+        try {
+            List<RegistroEntrega> entregas = entregaService.getEntregasByIdPedido(idPedido);
+            return ResponseEntity.ok(entregas);
+        } catch (Exception e) {
+            System.err.println("Error al obtener entregas por idPedido: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/pedidos")
+    public ResponseEntity<List<Pedido>> obtenerPedidos() {
+        try {
+            List<Pedido> pedido = entregaService.getPedidos();
+            return ResponseEntity.ok(pedido);
+        } catch (Exception e) {
+            System.err.println("Error al obtener pedidos: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
 }

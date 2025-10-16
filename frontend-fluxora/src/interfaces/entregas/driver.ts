@@ -20,3 +20,12 @@ export interface FormularioEntrega {
   especial: string;
   comentario: string;
 }
+
+export interface Cliente {
+  id: number;
+  nombre: string;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+  entregado?: boolean;
+}

@@ -45,6 +45,16 @@ function InventarioContent() {
           />
 
           <Card
+            title="Compras"
+            description="Registra y consulta compras de materias primas con múltiples lotes"
+            icon="shopping_cart"
+            iconColor="bg-green-100 text-green-600"
+            buttonText="Ver Compras"
+            buttonVariant="primary"
+            href="/dashboard/inventario/compras"
+          />
+
+          <Card
             title="Producción"
             description="Administra la producción de productos"
             icon="inventory"

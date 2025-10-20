@@ -28,14 +28,14 @@ export default function DashboardEstadisticas() {
     const totalProductos = productos.length;
     const totalMaterias = materias.length;
     const valorTotalInventario = productos.reduce(
-      (total, p) => total + p.precio * p.cantidad,
+      (total, p) => total + (p.precioVenta || 0) * (p.stockTotal || 0),
       0
     );
     const stockBajo =
-      materias.filter((m) => m.cantidad < 5).length +
-      productos.filter((p) => p.cantidad < 5).length;
+      materias.filter((m) => (m.cantidad || 0) < 5).length +
+      productos.filter((p) => (p.stockTotal || 0) < 5).length;
     const productosDisponibles = productos.filter(
-      (p) => p.estado === "Disponible"
+      (p) => p.estado === "Disponible" || p.estado === "activo"
     ).length;
 
     setEstadisticas({
@@ -163,11 +163,11 @@ export default function DashboardEstadisticas() {
                     (p) => p.categoria === categoria
                   );
                   const stockTotal = productosCategoria.reduce(
-                    (sum, p) => sum + p.cantidad,
+                    (sum, p) => sum + (p.stockTotal || 0),
                     0
                   );
                   const valorTotal = productosCategoria.reduce(
-                    (sum, p) => sum + p.precio * p.cantidad,
+                    (sum, p) => sum + (p.precioVenta || 0) * (p.stockTotal || 0),
                     0
                   );
 

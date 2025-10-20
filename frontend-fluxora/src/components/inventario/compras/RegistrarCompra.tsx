@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   CompraMateriaPrimaDTO,
   LoteCompraDTO,
@@ -13,10 +12,8 @@ import { useCurrentDate } from "@/hooks/useDate";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Link from "next/link";
 
-export default function RegistrarCompraPage() {
-  const router = useRouter();
+export default function RegistrarCompra() {
   const { crearCompra, loading, error, clearError } = useCompras();
   const { materias, cargarMaterias } = useMaterias();
   const { currentDate } = useCurrentDate();
@@ -39,6 +36,7 @@ export default function RegistrarCompraPage() {
   });
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
     cargarMaterias();
@@ -109,35 +107,68 @@ export default function RegistrarCompraPage() {
     try {
       await crearCompra(formulario);
       setShowConfirmModal(false);
-      alert("Compra registrada exitosamente");
-      router.push("/dashboard/inventario/compras");
+      setShowSuccessMessage(true);
+
+      // Resetear formulario
+      setFormulario({
+        numDoc: "",
+        tipoDoc: "FACTURA",
+        proveedor: "",
+        fechaCompra: currentDate || new Date().toISOString().split("T")[0],
+        fechaPago: null,
+        lotes: [],
+      });
+
+      // Ocultar mensaje de éxito después de 3 segundos
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 3000);
     } catch (err) {
       console.error(err);
       setShowConfirmModal(false);
     }
   };
 
-  return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="mb-4">
-        <Link
-          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
-          href="/dashboard/inventario"
-        >
-          <MaterialIcon name="arrow_back" className="mr-1" />
-          <span>Volver al inicio</span>
-        </Link>
-      </div>
+  const handleLimpiarFormulario = () => {
+    setFormulario({
+      numDoc: "",
+      tipoDoc: "FACTURA",
+      proveedor: "",
+      fechaCompra: currentDate || new Date().toISOString().split("T")[0],
+      fechaPago: null,
+      lotes: [],
+    });
+    setLoteActual({
+      materiaPrimaId: 0,
+      cantidad: 0,
+      costoUnitario: 0,
+      numeroLote: "",
+      fechaVencimiento: null,
+    });
+  };
 
+  return (
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-xl font-semibold text-gray-900">
           Registrar Nueva Compra
-        </h1>
-        <p className="text-gray-600 mt-1">
+        </h2>
+        <p className="text-sm text-gray-600 mt-1">
           Complete los datos de la compra y agregue los lotes de materias primas
         </p>
       </div>
+
+      {/* Mensaje de éxito */}
+      {showSuccessMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-fade-in">
+          <div className="flex items-center">
+            <MaterialIcon name="check_circle" className="mr-2" />
+            <span className="block sm:inline">
+              ¡Compra registrada exitosamente!
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Mostrar errores */}
       {error && (
@@ -154,10 +185,10 @@ export default function RegistrarCompraPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Datos de la Compra */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Datos de la Compra
-          </h2>
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Número de Documento:"
@@ -236,10 +267,10 @@ export default function RegistrarCompraPage() {
         </div>
 
         {/* Agregar Lotes */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Agregar Lotes de Materias Primas
-          </h2>
+          </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="md:col-span-1">
@@ -338,9 +369,9 @@ export default function RegistrarCompraPage() {
           {/* Tabla de Lotes Agregados */}
           {formulario.lotes.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-md font-semibold mb-3 text-gray-900">
+              <h4 className="text-md font-semibold mb-3 text-gray-900">
                 Lotes en esta Compra ({formulario.lotes.length})
-              </h3>
+              </h4>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-50">
@@ -428,9 +459,9 @@ export default function RegistrarCompraPage() {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => router.push("/dashboard/inventario")}
+            onClick={handleLimpiarFormulario}
           >
-            Cancelar
+            Limpiar
           </Button>
           <Button
             type="submit"
@@ -438,7 +469,7 @@ export default function RegistrarCompraPage() {
             icon="save"
             disabled={loading || formulario.lotes.length === 0}
           >
-            Registrar Compra
+            {loading ? "Guardando..." : "Registrar Compra"}
           </Button>
         </div>
       </form>

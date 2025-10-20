@@ -6,9 +6,8 @@ import { CompraMateriaPrimaResponse } from "@/types/inventario";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import DataTable from "@/components/ui/DataTable";
-import Link from "next/link";
 
-export default function ComprasPage() {
+export default function VisualizarCompras() {
   const {
     compras,
     loading,
@@ -149,32 +148,49 @@ export default function ComprasPage() {
   ];
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="mb-4">
-        <Link
-          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
-          href="/dashboard/inventario"
-        >
-          <MaterialIcon name="arrow_back" className="mr-1" />
-          <span>Volver al inicio</span>
-        </Link>
-      </div>
-
+    <div className="space-y-6">
+      {/* Header con filtros */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-900">
             Historial de Compras
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Consulte todas las compras registradas de materias primas
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Consulta todas las compras de materias primas registradas
           </p>
         </div>
-        <Link href="/dashboard/inventario/compras/registrar">
-          <Button variant="primary" icon="add">
-            Nueva Compra
+
+        {/* Filtros rápidos */}
+        <div className="flex gap-2">
+          <Button
+            variant={filtroReciente === null ? "primary" : "secondary"}
+            onClick={() => handleFiltrarRecientes(null)}
+            className="text-sm"
+          >
+            Todas
           </Button>
-        </Link>
+          <Button
+            variant={filtroReciente === 7 ? "primary" : "secondary"}
+            onClick={() => handleFiltrarRecientes(7)}
+            className="text-sm"
+          >
+            7 días
+          </Button>
+          <Button
+            variant={filtroReciente === 30 ? "primary" : "secondary"}
+            onClick={() => handleFiltrarRecientes(30)}
+            className="text-sm"
+          >
+            30 días
+          </Button>
+          <Button
+            variant={filtroReciente === 90 ? "primary" : "secondary"}
+            onClick={() => handleFiltrarRecientes(90)}
+            className="text-sm"
+          >
+            90 días
+          </Button>
+        </div>
       </div>
 
       {/* Mostrar errores */}
@@ -190,44 +206,7 @@ export default function ComprasPage() {
         </div>
       )}
 
-      {/* Filtros rápidos */}
-      <div className="bg-white p-4 rounded-lg shadow-md">
-        <div className="flex gap-2 flex-wrap">
-          <span className="text-sm font-medium text-gray-700 self-center">
-            Filtrar por:
-          </span>
-          <Button
-            variant={filtroReciente === null ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => handleFiltrarRecientes(null)}
-          >
-            Todas
-          </Button>
-          <Button
-            variant={filtroReciente === 7 ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => handleFiltrarRecientes(7)}
-          >
-            Últimos 7 días
-          </Button>
-          <Button
-            variant={filtroReciente === 30 ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => handleFiltrarRecientes(30)}
-          >
-            Últimos 30 días
-          </Button>
-          <Button
-            variant={filtroReciente === 90 ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => handleFiltrarRecientes(90)}
-          >
-            Últimos 3 meses
-          </Button>
-        </div>
-      </div>
-
-      {/* Tabla de Compras */}
+      {/* Tabla de compras */}
       <DataTable
         data={comprasFiltradas}
         columns={columns}
@@ -235,51 +214,55 @@ export default function ComprasPage() {
         loading={loading}
         searchValue={busqueda}
         onSearch={setBusqueda}
-        searchPlaceholder="Buscar por proveedor o número de documento..."
+        searchPlaceholder="Buscar por proveedor o N° documento..."
         emptyMessage="No hay compras registradas"
         pagination={{
           enabled: true,
           serverSide: false,
           defaultPageSize: 10,
-          pageSizeOptions: [10, 25, 50, 100],
+          pageSizeOptions: [5, 10, 25, 50],
         }}
       />
 
       {/* Modal de Detalle */}
       {showDetalleModal && compraSeleccionada && (
         <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
                     Detalle de Compra
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {compraSeleccionada.numDoc} - {compraSeleccionada.tipoDoc}
+                    {compraSeleccionada.tipoDoc} {compraSeleccionada.numDoc}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowDetalleModal(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  <MaterialIcon name="close" />
+                  <MaterialIcon name="close" className="w-6 h-6" />
                 </button>
               </div>
             </div>
 
-            <div className="p-6">
-              {/* Información de la Compra */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="p-6 space-y-6">
+              {/* Información General */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Proveedor</p>
-                  <p className="text-base font-medium text-gray-900">
+                  <label className="text-sm font-medium text-gray-500">
+                    Proveedor
+                  </label>
+                  <p className="text-base text-gray-900 font-medium">
                     {compraSeleccionada.proveedor}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Fecha de Compra</p>
-                  <p className="text-base font-medium text-gray-900">
+                  <label className="text-sm font-medium text-gray-500">
+                    Fecha de Compra
+                  </label>
+                  <p className="text-base text-gray-900">
                     {new Date(
                       compraSeleccionada.fechaCompra
                     ).toLocaleDateString("es-CL", {
@@ -291,33 +274,28 @@ export default function ComprasPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Fecha de Pago</p>
-                  <p className="text-base font-medium text-gray-900">
+                  <label className="text-sm font-medium text-gray-500">
+                    Fecha de Pago
+                  </label>
+                  <p className="text-base text-gray-900">
                     {compraSeleccionada.fechaPago ? (
-                      new Date(compraSeleccionada.fechaPago).toLocaleDateString(
-                        "es-CL",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )
+                      <span className="text-green-600 font-medium">
+                        {new Date(
+                          compraSeleccionada.fechaPago
+                        ).toLocaleDateString("es-CL")}
+                      </span>
                     ) : (
-                      <span className="text-orange-500 font-normal">
+                      <span className="text-orange-500 font-medium">
                         Pendiente
                       </span>
                     )}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total de Lotes</p>
-                  <p className="text-base font-medium text-gray-900">
-                    {compraSeleccionada.totalLotes}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Monto Total</p>
-                  <p className="text-lg font-bold text-green-600">
+                  <label className="text-sm font-medium text-gray-500">
+                    Monto Total
+                  </label>
+                  <p className="text-lg text-gray-900 font-bold">
                     {compraSeleccionada.montoTotal.toLocaleString("es-CL", {
                       style: "currency",
                       currency: "CLP",
@@ -326,55 +304,66 @@ export default function ComprasPage() {
                 </div>
               </div>
 
-              {/* Tabla de Lotes */}
+              {/* Lotes */}
               <div>
-                <h4 className="text-md font-semibold text-gray-900 mb-3">
-                  Lotes de esta Compra
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                  Lotes ({compraSeleccionada.lotes.length})
                 </h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-2 text-gray-700">ID Materia</th>
-                        <th className="px-4 py-2 text-gray-700">Cantidad</th>
-                        <th className="px-4 py-2 text-gray-700">
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Materia Prima
+                        </th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Cantidad
+                        </th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
                           Stock Actual
                         </th>
-                        <th className="px-4 py-2 text-gray-700">
-                          Costo Unitario
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Costo Unit.
                         </th>
-                        <th className="px-4 py-2 text-gray-700">Subtotal</th>
-                        <th className="px-4 py-2 text-gray-700">N° Lote</th>
-                        <th className="px-4 py-2 text-gray-700">Vencimiento</th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Subtotal
+                        </th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          N° Lote
+                        </th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Vencimiento
+                        </th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {compraSeleccionada.lotes.map((lote) => (
-                        <tr key={lote.id} className="border-b">
-                          <td className="px-4 py-2 text-gray-900">
-                            #{lote.materiaPrimaId}
+                    <tbody className="divide-y divide-gray-200">
+                      {compraSeleccionada.lotes.map((lote, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-gray-900">
+                            {lote.materiaPrimaNombre}
                           </td>
-                          <td className="px-4 py-2 text-gray-900">
+                          <td className="px-4 py-3 text-gray-900">
                             {lote.cantidad}
                           </td>
-                          <td className="px-4 py-2 text-gray-900">
+                          <td className="px-4 py-3">
                             <span
-                              className={
-                                lote.stockActual !== lote.cantidad
-                                  ? "text-orange-600 font-medium"
-                                  : ""
-                              }
+                              className={`font-medium ${
+                                (lote.stockActual ?? lote.cantidad) <
+                                lote.cantidad
+                                  ? "text-orange-600"
+                                  : "text-green-600"
+                              }`}
                             >
-                              {lote.stockActual}
+                              {lote.stockActual ?? lote.cantidad}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-gray-900">
+                          <td className="px-4 py-3 text-gray-900">
                             {lote.costoUnitario.toLocaleString("es-CL", {
                               style: "currency",
                               currency: "CLP",
                             })}
                           </td>
-                          <td className="px-4 py-2 text-gray-900 font-semibold">
+                          <td className="px-4 py-3 text-gray-900 font-semibold">
                             {(
                               lote.cantidad * lote.costoUnitario
                             ).toLocaleString("es-CL", {
@@ -382,10 +371,10 @@ export default function ComprasPage() {
                               currency: "CLP",
                             })}
                           </td>
-                          <td className="px-4 py-2 text-gray-900">
+                          <td className="px-4 py-3 text-gray-900">
                             {lote.numeroLote || "-"}
                           </td>
-                          <td className="px-4 py-2 text-gray-900">
+                          <td className="px-4 py-3 text-gray-900">
                             {lote.fechaVencimiento
                               ? new Date(
                                   lote.fechaVencimiento
@@ -401,13 +390,14 @@ export default function ComprasPage() {
             </div>
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <Button
-                variant="secondary"
-                onClick={() => setShowDetalleModal(false)}
-                className="w-full"
-              >
-                Cerrar
-              </Button>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowDetalleModal(false)}
+                >
+                  Cerrar
+                </Button>
+              </div>
             </div>
           </div>
         </div>

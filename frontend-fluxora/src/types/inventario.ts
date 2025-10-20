@@ -24,6 +24,7 @@ export interface LoteMateriaPrima {
   numeroLote?: string | null; // Número de lote del proveedor (nuevo)
   fechaCompra: string;
   fechaVencimiento?: string | null;
+  materiaPrimaNombre?: string; // Nombre de la materia prima (para responses con JOIN)
 }
 
 // Enum de tipo de documento

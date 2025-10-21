@@ -115,11 +115,14 @@ export default function GestionMateriasPrimas() {
       );
       if (!res.ok) throw new Error("Error al obtener lotes");
       const data = await res.json();
-      // Filtrar solo lotes con stock > 0
+      // Filtrar solo lotes con stock_actual > 0
       const lotesConStock = Array.isArray(data)
-        ? data.filter(
-            (lote: any) => (lote.stockActual || lote.cantidad || 0) > 0
-          )
+        ? data.filter((lote: any) => {
+            // Usar stockActual si existe, sino usar cantidad como fallback
+            const stock =
+              lote.stockActual !== undefined ? lote.stockActual : lote.cantidad;
+            return stock > 0;
+          })
         : [];
       setLotes(lotesConStock);
     } catch (err) {

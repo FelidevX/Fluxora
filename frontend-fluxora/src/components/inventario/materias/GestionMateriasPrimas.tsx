@@ -9,6 +9,7 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import DataTable from "@/components/ui/DataTable";
+import ConfirmDeleteModalText from "@/components/ui/ConfirmDeleteModalText";
 
 export default function GestionMateriasPrimas() {
   const searchParams = useSearchParams();
@@ -27,8 +28,12 @@ export default function GestionMateriasPrimas() {
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [materiaAActualizar, setMateriaAActualizar] =
     useState<MateriaPrima | null>(null);
+  const [materiaAEliminar, setMateriaAEliminar] = useState<MateriaPrima | null>(
+    null
+  );
   const [lotes, setLotes] = useState<
     Array<{
       id?: number;
@@ -89,16 +94,26 @@ export default function GestionMateriasPrimas() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("¿Está seguro de que desea eliminar esta materia prima?")) {
-      return;
-    }
+  const handleDelete = (materia: MateriaPrima) => {
+    setMateriaAEliminar(materia);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!materiaAEliminar) return;
 
     try {
-      await eliminarMateria(id);
+      await eliminarMateria(materiaAEliminar.id);
+      setShowDeleteModal(false);
+      setMateriaAEliminar(null);
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setMateriaAEliminar(null);
   };
 
   const handleAgregarStock = (materia: MateriaPrima) => {
@@ -184,7 +199,7 @@ export default function GestionMateriasPrimas() {
       label: "Eliminar",
       icon: "delete",
       variant: "danger" as const,
-      onClick: (materia: MateriaPrima) => handleDelete(materia.id),
+      onClick: (materia: MateriaPrima) => handleDelete(materia),
     },
   ];
 
@@ -447,6 +462,17 @@ export default function GestionMateriasPrimas() {
           </div>
         </div>
       )}
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmDeleteModalText
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Materia Prima"
+        message="¿Está seguro de que desea eliminar esta materia prima? Esta acción no se puede deshacer y se eliminarán también todos los lotes asociados."
+        itemName={materiaAEliminar?.nombre}
+        requireConfirmation={true}
+      />
     </div>
   );
 }

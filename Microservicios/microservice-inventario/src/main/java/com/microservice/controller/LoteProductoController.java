@@ -1,12 +1,14 @@
 package com.microservice.controller;
 
 import com.microservice.dto.LoteProductoDTO;
+import com.microservice.entity.LoteProducto;
 import com.microservice.dto.StockDisponibleDTO;
 import com.microservice.service.LoteProductoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/productos")
@@ -60,6 +62,17 @@ public class LoteProductoController {
         return ResponseEntity.ok(stockTotal);
     }
 
+    @PutMapping("/{productoId}/descontar-stock")
+    public ResponseEntity<Void> descontarStock(@PathVariable Long productoId, @RequestBody Map<String, Object> datos) {
+        loteProductoService.descontarStock(productoId, datos);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/lotes/{loteId}")
+    public ResponseEntity<LoteProducto> getLoteById(@PathVariable Long loteId) {
+        LoteProducto lote = loteProductoService.getLoteById(loteId);
+        return ResponseEntity.ok(lote);
+      
     @GetMapping("/{productoId}/verificar-stock")
     public ResponseEntity<List<StockDisponibleDTO>> verificarStockDisponible(
             @PathVariable Long productoId,

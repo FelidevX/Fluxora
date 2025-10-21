@@ -1,5 +1,6 @@
 package com.microservice.entrega.controller;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.entrega.dto.ClienteDTO;
-import com.microservice.entrega.entity.Pedido;
+import com.microservice.entrega.dto.RegistroEntregaDTO;
+import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.service.EntregaService;
@@ -34,17 +36,23 @@ public class EntregaController {
 
     // Registrar entrega a un cliente
     @PostMapping("/registrar")
-    public ResponseEntity<Map<String, Object>> registrarEntrega(@RequestBody RegistroEntrega registroEntrega) {
+    public ResponseEntity<Map<String, Object>> registrarEntrega(@RequestBody RegistroEntregaDTO registroEntregaDTO) {
         try {
-
-            if (registroEntrega.getId_pedido() == null) {
+            if (registroEntregaDTO.getId_pedido() == null) {
                 System.err.println("ERROR: id_pedido es NULL");
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "El id_pedido es obligatorio");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
-            entregaService.registrarEntrega(registroEntrega);
+            if (registroEntregaDTO.getProductos() == null || registroEntregaDTO.getProductos().isEmpty()) {
+                System.err.println("ERROR: No se enviaron productos");
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Debe incluir al menos un producto");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            entregaService.registrarEntrega(registroEntregaDTO);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Entrega registrada exitosamente");
@@ -126,14 +134,29 @@ public class EntregaController {
     }
 
     @GetMapping("/pedidos")
-    public ResponseEntity<List<Pedido>> obtenerPedidos() {
+    public ResponseEntity<List<SesionReparto>> obtenerPedidos() {
         try {
-            List<Pedido> pedido = entregaService.getPedidos();
+            List<SesionReparto> pedido = entregaService.getPedidos();
             return ResponseEntity.ok(pedido);
         } catch (Exception e) {
             System.err.println("Error al obtener pedidos: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    @PostMapping("/programar-entrega")
+    public ResponseEntity<String> programarEntrega(@RequestBody Map<String, Object> datosProgramacion) {
+        try {
+            System.out.println("Datos de programación recibidos: " + datosProgramacion);
+            Long idRuta = Long.valueOf(datosProgramacion.get("idRuta").toString());
+            Long idCliente = Long.valueOf(datosProgramacion.get("idCliente").toString());
+            LocalDate fechaProgramacion = LocalDate.parse(datosProgramacion.get("fechaProgramacion").toString());
+            List<Map<String, Object>> productos = (List<Map<String, Object>>) datosProgramacion.get("productos");
+            entregaService.programarEntrega(idRuta, idCliente, fechaProgramacion, productos);
+            return ResponseEntity.ok("Entrega programada exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al programar entrega: " + e.getMessage());
         }
     }
 }

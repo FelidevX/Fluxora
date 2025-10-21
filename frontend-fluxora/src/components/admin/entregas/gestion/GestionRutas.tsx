@@ -8,6 +8,37 @@ import { CrearRutaModal } from "@/components/admin/entregas/gestion/components/C
 import { AsignarDriverModal } from "@/components/admin/entregas/gestion/components/AsignarDriverModal";
 import { ProgramacionEntregasModal } from "@/components/admin/entregas/gestion/components/ProgramacionEntregasModal";
 
+// Interfaces para productos y lotes
+interface Lote {
+  id: number;
+  productoId: number;
+  cantidadProducida: number;
+  stockActual: number;
+  costoProduccionTotal: number;
+  costoUnitario: number;
+  fechaProduccion: string;
+  fechaVencimiento: string;
+  estado: string;
+}
+
+interface ProductoConLotes {
+  id: number;
+  nombre: string;
+  categoria: string;
+  tipoProducto: string;
+  precio: number;
+  lotes: Lote[];
+  stockTotal: number;
+}
+
+interface ProductoProgramado {
+  id_producto: number;
+  id_lote: number;
+  nombreProducto: string;
+  categoria: string;
+  cantidad_kg: number;
+}
+
 interface GestionRutasProps {
   rutas: RutaActiva[];
   loading: boolean;
@@ -49,6 +80,10 @@ export function GestionRutas({
     null
   );
 
+  // Estados para productos con lotes
+  const [productosConLotes, setProductosConLotes] = useState<ProductoConLotes[]>([]);
+  const [loadingProductos, setLoadingProductos] = useState(false);
+
   // Función para obtener todos los drivers
   const fetchDrivers = async () => {
     setLoadingDrivers(true);
@@ -86,7 +121,103 @@ export function GestionRutas({
     }
   };
 
-  // Cargar drivers al montar el componente
+  // Función para obtener productos con sus lotes
+  const fetchProductosConLotes = async () => {
+    setLoadingProductos(true);
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      // Primero obtenemos todos los productos
+      const productosResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!productosResponse.ok) {
+        throw new Error(`Error al obtener productos: ${productosResponse.status}`);
+      }
+
+      const productos = await productosResponse.json();
+      console.log("productos:", productos);
+
+      // Ahora obtenemos los lotes de cada producto
+      const productosConLotesData: ProductoConLotes[] = await Promise.all(
+        productos.map(async (producto: any) => {
+          try {
+            const lotesResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos/${producto.id}/lotes`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            let lotes: Lote[] = [];
+            if (lotesResponse.ok) {
+              const lotesData = await lotesResponse.json();
+              // Filtrar solo lotes disponibles con stock
+              lotes = lotesData.filter(
+                (lote: Lote) => lote.estado === "disponible" && lote.stockActual > 0
+              );
+            }
+
+            console.log(`Lotes del producto ${producto.id}:`, lotes);
+
+            const stockTotal = lotes.reduce((sum, lote) => sum + lote.stockActual, 0);
+
+            return {
+              id: producto.id,
+              nombre: producto.nombre,
+              categoria: producto.categoria,
+              tipoProducto: producto.tipoProducto,
+              precio: producto.precio,
+              lotes: lotes,
+              stockTotal: stockTotal,
+            };
+          } catch (error) {
+            console.error(`Error al obtener lotes del producto ${producto.id}:`, error);
+            return {
+              id: producto.id,
+              nombre: producto.nombre,
+              categoria: producto.categoria,
+              tipoProducto: producto.tipoProducto,
+              precio: producto.precio,
+              lotes: [],
+              stockTotal: 0,
+            };
+          }
+        })
+      );
+
+      // Filtrar productos que tengan stock disponible
+      const productosDisponibles = productosConLotesData.filter(
+        (p) => p.stockTotal > 0
+      );
+
+      setProductosConLotes(productosDisponibles);
+    } catch (error) {
+      console.error("Error al obtener productos con lotes:", error);
+      setProductosConLotes([]);
+    } finally {
+      setLoadingProductos(false);
+    }
+  };
+
+  // Cargar drivers y productos al montar el componente
   useEffect(() => {
     fetchDrivers();
   }, []);
@@ -225,6 +356,7 @@ export function GestionRutas({
     setRutaParaProgramar(null); // Sin ruta específica
     const today = new Date().toISOString().split("T")[0];
     setFechaProgramacion(today);
+    fetchProductosConLotes(); // Cargar productos cuando se abre el modal
     setShowProgramacionModal(true);
   };
 
@@ -270,12 +402,11 @@ export function GestionRutas({
     }
   };
 
-  // Función para actualizar kg de un cliente específico
-  const handleActualizarKg = async (
+  // Función para actualizar productos de un cliente específico
+  const handleActualizarProductos = async (
     idRuta: number,
     idCliente: number,
-    kgCorriente: number,
-    kgEspecial: number
+    productos: ProductoProgramado[]
   ) => {
     try {
       let token = localStorage.getItem("auth_token");
@@ -287,8 +418,16 @@ export function GestionRutas({
         token = token.substring(7);
       }
 
+
+      console.log("Actualizando productos para cliente:", {
+        idRuta,
+        idCliente,
+        productos,
+        fechaProgramacion
+      });
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/actualizar-programacion-cliente`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programar-entrega`,
         {
           method: "POST",
           headers: {
@@ -298,9 +437,8 @@ export function GestionRutas({
           body: JSON.stringify({
             idRuta,
             idCliente,
-            fecha: fechaProgramacion,
-            kgCorriente,
-            kgEspecial,
+            fechaProgramacion: fechaProgramacion,
+            productos,
           }),
         }
       );
@@ -308,14 +446,15 @@ export function GestionRutas({
       if (response.ok) {
         // Refrescar los datos
         await fetchRutasProgramadas(fechaProgramacion);
-        alert("Programación actualizada exitosamente");
+        await fetchProductosConLotes(); // Actualizar stock disponible
+        alert("Productos actualizados exitosamente");
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error al actualizar programación:", error);
+      console.error("Error al actualizar productos:", error);
       alert(
-        "Error al actualizar programación: " +
+        "Error al actualizar productos: " +
           (error instanceof Error ? error.message : "Error desconocido")
       );
     }
@@ -471,7 +610,9 @@ export function GestionRutas({
         setFechaProgramacion={setFechaProgramacion}
         rutasProgramadas={rutasProgramadas}
         loadingProgramacion={loadingProgramacion}
-        onActualizarKg={handleActualizarKg}
+        productosConLotes={productosConLotes}
+        loadingProductos={loadingProductos}
+        onActualizarProductos={handleActualizarProductos}
       />
     </div>
   );

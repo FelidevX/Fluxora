@@ -19,6 +19,16 @@ export interface FormularioEntrega {
   corriente: string;
   especial: string;
   comentario: string;
+  [key: string]: any;
+  productos?: ProductoEntregado[];
+}
+
+export interface ProductoEntregado {
+  id_lote: number;
+  id_producto: number;
+  nombreProducto: string;
+  tipoProducto: string;
+  cantidad_kg: number;
 }
 
 export interface Cliente {

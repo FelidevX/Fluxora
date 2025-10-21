@@ -25,13 +25,15 @@ import com.google.ortools.constraintsolver.RoutingSearchParameters;
 import com.google.ortools.constraintsolver.main;
 import com.microservice.entrega.client.ClienteServiceClient;
 import com.microservice.entrega.dto.ClienteDTO;
-import com.microservice.entrega.entity.Pedido;
+import com.microservice.entrega.entity.SesionReparto;
+import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.RutaCliente;
 import com.microservice.entrega.repository.RutaClienteRepository;
 import com.microservice.entrega.repository.RutaRepository;
-import com.microservice.entrega.repository.PedidoRepository;
+import com.microservice.entrega.repository.SesionRepartoRepository;
+import com.microservice.entrega.repository.ProgramacionEntregaRepository;
 import com.microservice.entrega.repository.RegistroEntregaRepository;
 
 @Service
@@ -50,10 +52,13 @@ public class RutaService {
     private ClienteServiceClient clienteServiceClient;
 
     @Autowired
-    private PedidoRepository pedidoRepository;
+    private SesionRepartoRepository sesionRepartoRepository;
 
     @Autowired
     private RegistroEntregaRepository registroEntregaRepository;
+
+    @Autowired
+    private ProgramacionEntregaRepository programacionEntregaRepository;
 
     public List<ClienteDTO> getOptimizedRouteORTools(List<ClienteDTO> clientes) {
 
@@ -225,11 +230,10 @@ public class RutaService {
         try {
             Ruta ruta = rutaRepository.findById(idRuta)
                     .orElseThrow(() -> new RuntimeException("Ruta no encontrada con ID: " + idRuta));
-
             LocalDate fechaActual = LocalDate.now();
 
             try {
-                Optional<Pedido> pedidoExistente = pedidoRepository.findByIdDriverAndFecha(
+                Optional<SesionReparto> pedidoExistente = sesionRepartoRepository.findByIdDriverAndFecha(
                         ruta.getId_driver(),
                         fechaActual);
 
@@ -248,24 +252,32 @@ public class RutaService {
             }
 
             // Filtrar solo los clientes con fecha programada para hoy
-            List<RutaCliente> clientesHoy = clientesRuta.stream()
-                    .filter(rc -> rc.getFecha_programada() != null &&
-                            rc.getFecha_programada().equals(fechaActual))
+            List<ProgramacionEntrega> programacionesHoy = programacionEntregaRepository.findByIdRutaAndFechaProgramada(idRuta, fechaActual);
+
+            List<Long> clientesHoy = programacionesHoy.stream()
+                    .map(ProgramacionEntrega::getId_cliente)
+                    .distinct()
                     .collect(Collectors.toList());
 
             if (clientesHoy.isEmpty()) {
                 throw new RuntimeException("No hay clientes programados para hoy en la ruta con ID: " + idRuta);
             }
 
-            Double totalKgCorriente = clientesHoy.stream()
-                    .map(rc -> rc.getKg_corriente_programado() != null ? rc.getKg_corriente_programado() : 0.0)
+            // Obtener programaciones de entrega para la ruta y fecha actual
+            if (programacionesHoy.isEmpty()) {
+                throw new RuntimeException("No hay entregas programadas para hoy en la ruta con ID: " + idRuta);
+            }
+
+            // Sumar los kilos programados por categoría (simulación)
+            Double totalKgCorriente = programacionesHoy.stream()
+                    .map(pe -> 10.0) // valor estático de mientras para pruebas, esperar al topa
                     .reduce(0.0, Double::sum);
 
-            Double totalKgEspecial = clientesHoy.stream()
-                    .map(rc -> rc.getKg_especial_programado() != null ? rc.getKg_especial_programado() : 0.0)
+            Double totalKgEspecial = programacionesHoy.stream()
+                    .map(pe -> 12.0) // valor estático de mientras para pruebas, esperar al topa
                     .reduce(0.0, Double::sum);
 
-            Pedido pedido = new Pedido();
+            SesionReparto pedido = new SesionReparto();
             pedido.setId_driver(ruta.getId_driver());
             pedido.setFecha(fechaActual); // Establecer fecha manualmente
             pedido.setKg_corriente(totalKgCorriente);
@@ -273,10 +285,11 @@ public class RutaService {
             pedido.setCorriente_devuelto(0.0);
             pedido.setEspecial_devuelto(0.0);
 
-            Pedido pedidoGuardado = pedidoRepository.save(pedido);
+            SesionReparto pedidoGuardado = sesionRepartoRepository.save(pedido);
 
             return pedidoGuardado.getId();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Error al iniciar la ruta: " + e.getMessage());
         }
     }
@@ -284,7 +297,7 @@ public class RutaService {
     public void finalizarRuta(Long idPedido) {
         try {
 
-            Pedido pedido = pedidoRepository.findById(idPedido)
+            SesionReparto pedido = sesionRepartoRepository.findById(idPedido)
                     .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + idPedido));
 
             List<RegistroEntrega> entregas = registroEntregaRepository.findByIdPedido(idPedido);
@@ -318,7 +331,7 @@ public class RutaService {
             pedido.setEspecial_devuelto(especialDevuelto);
             pedido.setHora_retorno(LocalDateTime.now());
 
-            Pedido pedidoActualizado = pedidoRepository.save(pedido);
+            SesionReparto pedidoActualizado = sesionRepartoRepository.save(pedido);
         } catch (Exception e) {
             System.err.println("Error al finalizar ruta: " + e.getMessage());
             e.printStackTrace();

@@ -14,12 +14,15 @@ public interface ProgramacionEntregaRepository extends JpaRepository<Programacio
     @Query("SELECT pe FROM ProgramacionEntrega pe WHERE pe.fecha_programada = :fecha")
     List<ProgramacionEntrega> findByFechaProgramada(@Param("fecha") LocalDate fecha);
 
-    @Query("SELECT pe FROM ProgramacionEntrega pe WHERE pe.id_ruta = :idRuta AND pe.fecha_programada = :fecha ORDER BY pe.orden")
+    @Query("SELECT pe FROM ProgramacionEntrega pe WHERE pe.id_ruta = :idRuta AND pe.fecha_programada = :fecha")
     List<ProgramacionEntrega> findByIdRutaAndFechaProgramada(@Param("idRuta") Long idRuta, @Param("fecha") LocalDate fecha);
 
     @Query("SELECT pe FROM ProgramacionEntrega pe WHERE pe.id_ruta = :idRuta AND pe.id_cliente = :idCliente AND pe.fecha_programada = :fecha")
-    ProgramacionEntrega findByIdRutaAndIdClienteAndFechaProgramada(@Param("idRuta") Long idRuta, @Param("idCliente") Long idCliente, @Param("fecha") LocalDate fecha);
+    List<ProgramacionEntrega> findByIdRutaAndIdClienteAndFechaProgramada(@Param("idRuta") Long idRuta, @Param("idCliente") Long idCliente, @Param("fecha") LocalDate fecha);
 
     @Query("SELECT pe FROM ProgramacionEntrega pe WHERE pe.id_ruta = :idRuta AND pe.id_cliente = :idCliente AND pe.fecha_programada < :fecha ORDER BY pe.fecha_programada DESC")
     List<ProgramacionEntrega> findProgramacionAnterior(@Param("idRuta") Long idRuta, @Param("idCliente") Long idCliente, @Param("fecha") LocalDate fecha);
+
+    @Query("SELECT pe FROM ProgramacionEntrega pe WHERE pe.id_ruta = :idRuta")
+    List<ProgramacionEntrega> findByIdRuta(@Param("idRuta") Long idRuta);
 }

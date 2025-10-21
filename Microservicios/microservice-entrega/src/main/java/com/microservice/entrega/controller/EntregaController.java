@@ -1,5 +1,6 @@
 package com.microservice.entrega.controller;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.entrega.dto.ClienteDTO;
-import com.microservice.entrega.entity.Pedido;
+import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.service.EntregaService;
@@ -126,14 +127,29 @@ public class EntregaController {
     }
 
     @GetMapping("/pedidos")
-    public ResponseEntity<List<Pedido>> obtenerPedidos() {
+    public ResponseEntity<List<SesionReparto>> obtenerPedidos() {
         try {
-            List<Pedido> pedido = entregaService.getPedidos();
+            List<SesionReparto> pedido = entregaService.getPedidos();
             return ResponseEntity.ok(pedido);
         } catch (Exception e) {
             System.err.println("Error al obtener pedidos: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    @PostMapping("/programar-entrega")
+    public ResponseEntity<String> programarEntrega(@RequestBody Map<String, Object> datosProgramacion) {
+        try {
+            System.out.println("Datos de programación recibidos: " + datosProgramacion);
+            Long idRuta = Long.valueOf(datosProgramacion.get("idRuta").toString());
+            Long idCliente = Long.valueOf(datosProgramacion.get("idCliente").toString());
+            LocalDate fechaProgramacion = LocalDate.parse(datosProgramacion.get("fechaProgramacion").toString());
+            List<Map<String, Object>> productos = (List<Map<String, Object>>) datosProgramacion.get("productos");
+            entregaService.programarEntrega(idRuta, idCliente, fechaProgramacion, productos);
+            return ResponseEntity.ok("Entrega programada exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al programar entrega: " + e.getMessage());
         }
     }
 }

@@ -20,4 +20,7 @@ public interface ClienteServiceClient {
 
     @GetMapping("/api/clientes/clientes/{ids}")
     List<ClienteDTO> getClientesByIds(@PathVariable List<Long> ids);
+
+    @GetMapping("/api/clientes/cliente/{id}")
+    ClienteDTO getClienteById(@PathVariable Long id);
 }

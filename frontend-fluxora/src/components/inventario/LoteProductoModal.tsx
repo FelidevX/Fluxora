@@ -414,7 +414,7 @@ export default function LoteProductoModal({
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
-                        value={multiplicador || ""}
+                        value={multiplicador}
                         onChange={(e) =>
                           handleMultiplicadorChange(Number(e.target.value))
                         }

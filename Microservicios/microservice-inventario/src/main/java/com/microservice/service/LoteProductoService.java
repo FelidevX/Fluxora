@@ -8,6 +8,8 @@ import com.microservice.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,5 +115,37 @@ public class LoteProductoService {
                 .fechaVencimiento(lote.getFechaVencimiento())
                 .estado(lote.getEstado())
                 .build();
+    }
+
+    public void descontarStock(Long productoId, Map<String, Object> datos) {
+        Integer descontarCantidad = (Integer) datos.get("descontarCantidad");
+        List<LoteProducto> lotes = loteProductoRepository.findLotesDisponiblesByProductoIdOrderByFechaVencimientoAsc(productoId);
+
+        for (LoteProducto lote : lotes) {
+            if (descontarCantidad <= 0) {
+                break;
+            }
+            Integer stockActual = lote.getStockActual();
+            if (stockActual >= descontarCantidad) {
+                lote.setStockActual(stockActual - descontarCantidad);
+                descontarCantidad = 0;
+            } else {
+                descontarCantidad -= stockActual;
+                lote.setStockActual(0);
+            }
+            loteProductoRepository.save(lote);
+        }
+
+        if (descontarCantidad > 0) {
+            throw new RuntimeException("No hay suficiente stock para descontar la cantidad solicitada.");
+        }
+    }
+
+    public LoteProducto getLoteById(Long loteId) {
+        Optional<LoteProducto> lote = loteProductoRepository.findById(loteId);
+        if (lote.isEmpty()) {
+            throw new RuntimeException("Lote de producto no encontrado con ID: " + loteId);
+        }
+        return lote.get();
     }
 }

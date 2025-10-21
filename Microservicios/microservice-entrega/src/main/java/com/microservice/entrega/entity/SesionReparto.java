@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Pedido {
+public class SesionReparto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

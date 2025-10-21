@@ -19,6 +19,7 @@ export interface FormularioEntrega {
   corriente: string;
   especial: string;
   comentario: string;
+  [key: string]: any;
 }
 
 export interface Cliente {

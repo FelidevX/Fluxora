@@ -25,16 +25,32 @@ export default function PantallaFormulario({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validaciones básicas
-    if (!formData.corriente && !formData.especial) {
-      alert("Por favor, ingrese al menos una cantidad (corriente o especial).");
+
+    const corrienteTotal = clienteActual.productosProgramados
+      .filter((p: any) => p.tipoProducto === "CORRIENTE")
+      .reduce((sum: number, p: any) => sum + parseFloat(formData[p.nombreProducto] || "0"), 0);
+
+    const especialTotal = clienteActual.productosProgramados
+      .filter((p: any) => p.tipoProducto === "ESPECIAL")
+      .reduce((sum: number, p: any) => sum + parseFloat(formData[p.nombreProducto] || "0"), 0);
+
+    const productoConCantidad = clienteActual.productosProgramados.some(
+      (producto: any) => {
+        const cantidad = parseFloat(formData[producto.nombreProducto] ?? producto.cantidad_kg ?? 0);
+        return cantidad > 0;
+      }
+    );
+
+    if (!productoConCantidad) {
+      alert("Por favor, ingrese al menos una cantidad para algún producto.");
       return;
     }
 
-    console.log("Datos del formulario:", formData);
-    // Solo pasar los datos, no hacer POST request aquí
-    onContinue(formData);
+    onContinue({
+      ...formData,
+      corriente: corrienteTotal.toString(),
+      especial: especialTotal.toString(),
+    });
   };
 
   const obtenerDatosFormulario = async () => {
@@ -86,20 +102,33 @@ export default function PantallaFormulario({
 
   useEffect(() => {
     if (clienteActual) {
-      setFormData({
-        corriente: clienteActual.rutaCliente.kg_corriente_programado?.toString() || "",
-        especial: clienteActual.rutaCliente.kg_especial_programado?.toString() || "",
-        comentario: "",
+      const productosForm: { [key: string]: string } = {};
+      clienteActual.productosProgramados.forEach((producto: any) => {
+        productosForm[producto.nombreProducto] = producto.cantidad_kg?.toString() || "";
       });
+
+      setFormData({
+        corriente: clienteActual.productosProgramados.find((p: any) => p.tipoProducto === "CORRIENTE")?.cantidad_kg?.toString() || "",
+        especial: clienteActual.productosProgramados.find((p: any) => p.tipoProducto === "ESPECIAL")?.cantidad_kg?.toString() || "",
+        comentario: "",
+        ...productosForm,
+      });
+      console.log("Formulario prellenado con datos del cliente:", formData);
     }
   }, [clienteActual]);
 
   const calcularTotal = () => {
-    const corriente = parseFloat(formData.corriente) * 7500;
-    const especial = parseFloat(formData.especial) * 8000;
+    if (!clienteActual?.productosProgramados) return "0";
 
-    if (isNaN(corriente) && isNaN(especial)) return "0";
-    return (corriente + especial).toLocaleString();
+    const total = clienteActual.productosProgramados.reduce((sum: number, producto: any) => {
+      const cantidad = parseFloat(formData[producto.nombreProducto] ?? producto.cantidad_kg ?? 0);
+      let precio = 0;
+      if (producto.tipoProducto === "CORRIENTE") precio = 7500;
+      if (producto.tipoProducto === "ESPECIAL") precio = 8000;
+      return sum + (isNaN(cantidad) ? 0 : cantidad * precio);
+    }, 0);
+
+    return total.toLocaleString();
   };
 
   if (loading) {
@@ -119,53 +148,37 @@ export default function PantallaFormulario({
         <p className="text-gray-600">{clienteActual?.cliente.direccion || entrega.direccion}</p>
         {clienteActual && (
           <div className="text-sm text-gray-500 mt-2">
-            <p>Estado: {clienteActual.rutaCliente.estado}</p>
-            <p>Programado - Corriente: {clienteActual.rutaCliente.kg_corriente_programado} KG</p>
-            <p>Programado - Especial: {clienteActual.rutaCliente.kg_especial_programado} KG</p>
+            <p>Programado - Corriente: {formData.corriente} KG</p>
+            <p>Programado - Especial: {formData.especial === "" ? 0 : formData.especial} KG</p>
           </div>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between bg-gray-100 rounded-lg p-4">
-          <span className="text-gray-700 font-medium">Corriente =</span>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              step="0.1"
-              value={formData.corriente}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, corriente: e.target.value }))
-              }
-              className="w-32 px-3 py-1 border border-gray-300 rounded text-center text-gray-600"
-              placeholder={clienteActual?.rutaCliente.kg_corriente_programado?.toString() || "0"}
-            />
-            <span className="text-gray-600 font-medium">KG</span>
-            <button type="button" className="text-blue-600 hover:text-blue-800">
-              <span className="material-symbols-outlined">edit</span>
-            </button>
+        {clienteActual?.productosProgramados.map((producto: any, idx: number) => (
+          <div key={idx} className="flex items-center justify-between bg-blue-500 rounded-lg p-4 mb-2">
+            <span className="text-white font-bold">{producto.nombreProducto}:</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                step="0.1"
+                value={formData[producto.nombreProducto] || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    [producto.nombreProducto]: e.target.value,
+                  }))
+                }
+                className="w-32 px-3 py-1 border bg-gray-100 border-gray-300 rounded text-center text-gray-700"
+                placeholder={producto.cantidad_kg?.toString() || "0"}
+              />
+              <span className="text-white font-medium">KG</span>
+              <button type="button" className="text-white hover:text-blue-800">
+                <span className="material-symbols-outlined">edit</span>
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div className="flex items-center justify-between bg-gray-100 rounded-lg p-4">
-          <span className="text-gray-700 font-medium">Especial =</span>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              step="0.1"
-              value={formData.especial}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, especial: e.target.value }))
-              }
-              className="w-32 px-3 py-1 border border-gray-300 rounded text-center text-gray-600"
-              placeholder={clienteActual?.rutaCliente.kg_especial_programado?.toString() || "0"}
-            />
-            <span className="text-gray-600 font-medium">KG</span>
-            <button type="button" className="text-blue-600 hover:text-blue-800">
-              <span className="material-symbols-outlined">edit</span>
-            </button>
-          </div>
-        </div>
+        ))}
 
         <div>
           <label className="block text-gray-700 font-medium mb-2">

@@ -26,10 +26,14 @@ public class ProgramacionEntrega {
 
     private Long id_ruta;
     private Long id_cliente;
+    private Long id_lote;
     private LocalDate fecha_programada;
+    private String nombreProducto;
+    private Integer cantidadProducto;
     private Double kg_corriente_programado;
     private Double kg_especial_programado;
     private Integer orden;
+    private String estado;
     
     @CreationTimestamp
     private LocalDateTime fecha_creacion;

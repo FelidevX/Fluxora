@@ -10,6 +10,7 @@ import java.time.LocalDate;
 public class LoteMateriaPrimaDTO {
     private Long id;
     private Long materiaPrimaId;
+    private String materiaPrimaNombre; // Nombre de la materia prima (JOIN)
     private Long compraId; // ID de la compra asociada (nullable)
     private Double cantidad; // Cantidad original comprada (fija)
     private Double stockActual; // Cantidad disponible actual

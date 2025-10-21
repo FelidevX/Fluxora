@@ -149,9 +149,16 @@ public class CompraMateriaPrimaService {
             List<LoteMateriaPrima> lotes) {
         
         List<LoteMateriaPrimaDTO> lotesDTO = lotes.stream()
-                .map(lote -> LoteMateriaPrimaDTO.builder()
+                .map(lote -> {
+                    // Obtener el nombre de la materia prima
+                    String materiaPrimaNombre = materiaPrimaRepository.findById(lote.getMateriaPrimaId())
+                            .map(MateriaPrima::getNombre)
+                            .orElse("Desconocida");
+                    
+                    return LoteMateriaPrimaDTO.builder()
                             .id(lote.getId())
                             .materiaPrimaId(lote.getMateriaPrimaId())
+                            .materiaPrimaNombre(materiaPrimaNombre)
                             .compraId(compra.getId())
                             .cantidad(lote.getCantidad())
                             .stockActual(lote.getStockActual())
@@ -159,7 +166,8 @@ public class CompraMateriaPrimaService {
                             .numeroLote(lote.getNumeroLote())
                             .fechaCompra(lote.getFechaCompra())
                             .fechaVencimiento(lote.getFechaVencimiento())
-                            .build())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         // Calcular monto total

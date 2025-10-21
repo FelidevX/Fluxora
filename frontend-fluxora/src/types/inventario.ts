@@ -17,10 +17,51 @@ export interface MateriaPrimaDTO {
 export interface LoteMateriaPrima {
   id?: number;
   materiaPrimaId: number;
-  cantidad: number;
+  compraId?: number | null; // ID de la compra asociada (nuevo)
+  cantidad: number; // Cantidad original comprada (fija)
+  stockActual?: number; // Cantidad disponible actual (nuevo)
   costoUnitario: number;
+  numeroLote?: string | null; // Número de lote del proveedor (nuevo)
   fechaCompra: string;
   fechaVencimiento?: string | null;
+  materiaPrimaNombre?: string; // Nombre de la materia prima (para responses con JOIN)
+}
+
+// Enum de tipo de documento
+export type TipoDocumento = "BOLETA" | "FACTURA";
+
+// DTO para crear lote dentro de una compra
+export interface LoteCompraDTO {
+  materiaPrimaId: number;
+  materiaPrimaNombre?: string; // Para mostrar en UI
+  cantidad: number;
+  costoUnitario: number;
+  numeroLote?: string | null;
+  fechaVencimiento?: string | null;
+}
+
+// DTO para crear una compra
+export interface CompraMateriaPrimaDTO {
+  numDoc: string;
+  tipoDoc: TipoDocumento;
+  proveedor: string;
+  fechaCompra: string;
+  fechaPago?: string | null; // Fecha de pago (opcional)
+  lotes: LoteCompraDTO[];
+}
+
+// Response completo de una compra
+export interface CompraMateriaPrimaResponse {
+  id: number;
+  numDoc: string;
+  tipoDoc: TipoDocumento;
+  proveedor: string;
+  fechaCompra: string;
+  fechaPago?: string | null; // Fecha de pago (opcional)
+  createdAt: string;
+  totalLotes: number;
+  montoTotal: number;
+  lotes: LoteMateriaPrima[];
 }
 
 export interface Producto {

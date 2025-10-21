@@ -35,25 +35,14 @@ function InventarioContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card
-            title="Materias Primas"
-            description="Gestiona las materias primas disponibles en el inventario"
+            title="Materias Primas y Compras"
+            description="Gestiona materias primas y registra compras"
             icon="inventory"
             iconColor="bg-blue-100 text-blue-600"
             buttonText="Gestionar Materias Primas"
             buttonVariant="primary"
             href="/dashboard/inventario/materias"
           />
-
-          <Card
-            title="Producción"
-            description="Administra la producción de productos"
-            icon="inventory"
-            iconColor="bg-blue-100 text-blue-600"
-            buttonText="Gestionar Productos"
-            buttonVariant="primary"
-            href="/dashboard/inventario/productos"
-          />
-
           <Card
             title="Recetas"
             description="Crear y gestionar recetas base para producción"
@@ -62,6 +51,15 @@ function InventarioContent() {
             buttonText="Gestionar Recetas"
             buttonVariant="primary"
             href="/dashboard/inventario/recetas"
+          />
+          <Card
+            title="Producción"
+            description="Administra la producción de productos"
+            icon="inventory"
+            iconColor="bg-green-100 text-green-600"
+            buttonText="Gestionar Productos"
+            buttonVariant="primary"
+            href="/dashboard/inventario/productos"
           />
         </div>
 

@@ -41,9 +41,9 @@ public class MateriaPrimaService {
         return repository.findAll().stream()
                 .map(entity -> {
                     MateriaPrimaDTO dto = toDTO(entity);
-                    // calcular stock actual como suma de lotes
-                    Double totalCantidad = loteRepository.sumCantidadByMateriaPrimaId(entity.getId());
-                    dto.setCantidad(totalCantidad == null ? 0.0 : totalCantidad);
+                    // calcular stock actual como suma de stock_actual de lotes
+                    Double stockActual = loteRepository.sumStockActualByMateriaPrimaId(entity.getId());
+                    dto.setCantidad(stockActual == null ? 0.0 : stockActual);
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -55,12 +55,12 @@ public class MateriaPrimaService {
     }
 
     public MateriaPrimaDTO actualizarStock(Long id, Double nuevaCantidad) {
-        Double totalCantidad = loteRepository.sumCantidadByMateriaPrimaId(id);
+        Double stockActual = loteRepository.sumStockActualByMateriaPrimaId(id);
         MateriaPrima entity = repository.findById(id)
             .orElseThrow(() -> new RuntimeException("Materia prima no encontrada con ID: " + id));
 
         MateriaPrimaDTO dto = toDTO(entity);
-        dto.setCantidad(totalCantidad == null ? 0.0 : totalCantidad);
+        dto.setCantidad(stockActual == null ? 0.0 : stockActual);
         return dto;
     }
 

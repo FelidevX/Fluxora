@@ -28,26 +28,34 @@ public class LoteService {
         LoteMateriaPrima lote = LoteMateriaPrima.builder()
                 .materiaPrimaId(materia.getId())
                 .cantidad(dto.getCantidad())
+                .stockActual(dto.getCantidad()) // stock_actual se inicializa con cantidad
                 .costoUnitario(dto.getCostoUnitario())
+                .numeroLote(dto.getNumeroLote())
                 .fechaCompra(dto.getFechaCompra())
                 .fechaVencimiento(dto.getFechaVencimiento())
+                .compra(null) // Lote sin compra asociada (compatibilidad legacy)
                 .build();
 
         LoteMateriaPrima saved = loteRepository.save(lote);
-        dto.setId(saved.getId());
-        return dto;
+        return convertToDTO(saved);
     }
 
     public List<LoteMateriaPrimaDTO> listByMateria(Long materiaId) {
         List<LoteMateriaPrima> lotes = loteRepository.findLotesByMateriaPrimaIdOrderByFechaCompraAsc(materiaId);
-        return lotes.stream().map(l -> LoteMateriaPrimaDTO.builder()
-                .id(l.getId())
-                .materiaPrimaId(l.getMateriaPrimaId())
-                .cantidad(l.getCantidad())
-                .costoUnitario(l.getCostoUnitario())
-                .fechaCompra(l.getFechaCompra())
-                .fechaVencimiento(l.getFechaVencimiento())
-                .build())
-                .collect(Collectors.toList());
+        return lotes.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    private LoteMateriaPrimaDTO convertToDTO(LoteMateriaPrima lote) {
+        return LoteMateriaPrimaDTO.builder()
+                .id(lote.getId())
+                .materiaPrimaId(lote.getMateriaPrimaId())
+                .compraId(lote.getCompra() != null ? lote.getCompra().getId() : null)
+                .cantidad(lote.getCantidad())
+                .stockActual(lote.getStockActual())
+                .costoUnitario(lote.getCostoUnitario())
+                .numeroLote(lote.getNumeroLote())
+                .fechaCompra(lote.getFechaCompra())
+                .fechaVencimiento(lote.getFechaVencimiento())
+                .build();
     }
 }

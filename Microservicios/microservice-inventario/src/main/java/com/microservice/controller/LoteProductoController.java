@@ -2,6 +2,7 @@ package com.microservice.controller;
 
 import com.microservice.dto.LoteProductoDTO;
 import com.microservice.entity.LoteProducto;
+import com.microservice.dto.StockDisponibleDTO;
 import com.microservice.service.LoteProductoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -71,5 +72,12 @@ public class LoteProductoController {
     public ResponseEntity<LoteProducto> getLoteById(@PathVariable Long loteId) {
         LoteProducto lote = loteProductoService.getLoteById(loteId);
         return ResponseEntity.ok(lote);
+      
+    @GetMapping("/{productoId}/verificar-stock")
+    public ResponseEntity<List<StockDisponibleDTO>> verificarStockDisponible(
+            @PathVariable Long productoId,
+            @RequestParam double multiplicador) {
+        List<StockDisponibleDTO> stocks = loteProductoService.verificarStockDisponible(productoId, multiplicador);
+        return ResponseEntity.ok(stocks);
     }
 }

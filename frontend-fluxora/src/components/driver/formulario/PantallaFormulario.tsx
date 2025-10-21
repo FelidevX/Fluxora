@@ -46,10 +46,20 @@ export default function PantallaFormulario({
       return;
     }
 
+    // Crear array de productos con toda la información
+    const productosEntregados = clienteActual.productosProgramados.map((producto: any) => ({
+      id_producto: producto.id_producto,
+      id_lote: producto.id_lote,
+      nombreProducto: producto.nombreProducto,
+      tipoProducto: producto.tipoProducto,
+      cantidad_kg: parseFloat(formData[producto.nombreProducto] || "0"),
+    }));
+
     onContinue({
       ...formData,
       corriente: corrienteTotal.toString(),
       especial: especialTotal.toString(),
+      productos: productosEntregados,
     });
   };
 
@@ -57,7 +67,6 @@ export default function PantallaFormulario({
     try {
       let today = new Date();
       
-      // Formatear la fecha como dd-mm-yyyy
       const day = today.getDate().toString().padStart(2, '0');
       const month = (today.getMonth() + 1).toString().padStart(2, '0');
       const year = today.getFullYear();

@@ -268,7 +268,6 @@ public class RutaService {
                 throw new RuntimeException("No hay entregas programadas para hoy en la ruta con ID: " + idRuta);
             }
 
-            // Sumar los kilos programados por categoría (simulación)
             Double totalKgCorriente = programacionesHoy.stream()
                     .map(pe -> pe.getKg_corriente_programado()) 
                     .reduce(0.0, Double::sum);

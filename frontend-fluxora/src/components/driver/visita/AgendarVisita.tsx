@@ -187,7 +187,6 @@ export default function PantallaAgendarVisita({
   useEffect(() => {
     obtenerDatosFormulario();
     obtenerProductosDisponibles();
-    console.log(formularioData);
   }, []);
 
   const clienteActual = datosFormulario
@@ -272,13 +271,21 @@ export default function PantallaAgendarVisita({
       }
 
       // 1. POST para registrar la entrega actual
-      const corriente = clienteActual.productosProgramados
-        .filter((p: any) => p.tipoProducto === "CORRIENTE")
-        .reduce((sum: number, p: any) => sum + parseFloat(formularioData[p.nombreProducto] || "0"), 0);
+      const productosEntregados = formularioData.productos || clienteActual.productosProgramados.map((p: any) => ({
+        id_producto: p.id_producto,
+        id_lote: p.id_lote,
+        nombreProducto: p.nombreProducto,
+        tipoProducto: p.tipoProducto,
+        cantidad_kg: parseFloat(formularioData[p.nombreProducto] || "0"),
+      }));
 
-      const especial = clienteActual.productosProgramados
+      const corriente = productosEntregados
+        .filter((p: any) => p.tipoProducto === "CORRIENTE")
+        .reduce((sum: number, p: any) => sum + (p.cantidad_kg || 0), 0);
+
+      const especial = productosEntregados
         .filter((p: any) => p.tipoProducto === "ESPECIAL")
-        .reduce((sum: number, p: any) => sum + parseFloat(formularioData[p.nombreProducto] || "0"), 0);
+        .reduce((sum: number, p: any) => sum + (p.cantidad_kg || 0), 0);
 
       const entregaPayload = {
         id_pedido: pedidoId,
@@ -287,8 +294,9 @@ export default function PantallaAgendarVisita({
         corriente_entregado: corriente,
         especial_entregado: especial,
         hora_entregada: new Date().toISOString(),
+        productos: productosEntregados.filter((p: any) => p.cantidad_kg > 0)
       };
-
+      
       const entregaResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/registrar`,
         {

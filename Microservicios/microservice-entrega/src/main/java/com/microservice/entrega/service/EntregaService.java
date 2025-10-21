@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.microservice.entrega.client.ClienteServiceClient;
 import com.microservice.entrega.client.InventarioServiceClient;
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
@@ -202,8 +203,51 @@ public class EntregaService {
         return rutasActivas;
     }
 
-    public void registrarEntrega(RegistroEntrega registroEntrega) {
-        registroEntregaRepository.save(registroEntrega);
+    public void registrarEntrega(RegistroEntregaDTO dto) {
+        try {
+            RegistroEntrega registroEntrega = new RegistroEntrega();
+            registroEntrega.setId_pedido(dto.getId_pedido());
+            registroEntrega.setId_cliente(dto.getId_cliente());
+            registroEntrega.setHora_entregada(dto.getHora_entregada());
+            registroEntrega.setComentario(dto.getComentario());
+            registroEntrega.setCorriente_entregado(dto.getCorriente_entregado());
+            registroEntrega.setEspecial_entregado(dto.getEspecial_entregado());
+
+            registroEntregaRepository.save(registroEntrega);
+
+            for (var producto : dto.getProductos()) {
+                if (producto.getCantidad_kg() != null && producto.getCantidad_kg() > 0) {
+                    try {
+                        Map<String, Object> datosDescuento = new HashMap<>();
+                        datosDescuento.put("descontarCantidad", producto.getCantidad_kg().intValue());
+                        
+                        System.out.println("Descontando " + producto.getCantidad_kg() + " kg del producto ID: " + producto.getId_producto());
+
+                        ResponseEntity<?> response = inventarioServiceClient.descontarInventario(
+                            producto.getId_producto(), 
+                            datosDescuento
+                        );
+
+                        if (!response.getStatusCode().is2xxSuccessful()) {
+                            throw new RuntimeException("Error al descontar inventario para producto ID: " + producto.getId_producto());
+                        }
+
+                        System.out.println("Inventario descontado correctamente para: " + producto.getNombreProducto());
+
+                    } catch (Exception e) {
+                        System.err.println("Error al descontar inventario del producto " + producto.getNombreProducto() + ": " + e.getMessage());
+                        throw new RuntimeException("Error al descontar inventario: " + e.getMessage());
+                    }
+                }
+            }
+
+            System.out.println("✓ Entrega registrada e inventario actualizado correctamente");
+
+        } catch (Exception e) {
+            System.err.println("Error en registrarEntrega: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error al registrar entrega: " + e.getMessage());
+        }
     }
 
     public List<RegistroEntrega> getHistorialEntregasCliente(Long idCliente) {
@@ -474,16 +518,6 @@ public class EntregaService {
 
                 programacionEntregaRepository.save(programacion);
 
-                
-                Map<String, Object> datosDescuento = new HashMap<>();
-                datosDescuento.put("descontarCantidad", cantidad);
-                System.out.println(datosDescuento.get("descontarCantidad"));
-
-
-                ResponseEntity<?> response = inventarioServiceClient.descontarInventario(idProducto, datosDescuento);
-                if (!response.getStatusCode().is2xxSuccessful()) {
-                    throw new RuntimeException("Error al descontar inventario para producto ID: " + idProducto);
-                }
             }
             return "Entrega programada exitosamente";
         } catch (Exception e) {

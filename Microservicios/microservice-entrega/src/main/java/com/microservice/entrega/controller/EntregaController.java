@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
@@ -35,17 +36,23 @@ public class EntregaController {
 
     // Registrar entrega a un cliente
     @PostMapping("/registrar")
-    public ResponseEntity<Map<String, Object>> registrarEntrega(@RequestBody RegistroEntrega registroEntrega) {
+    public ResponseEntity<Map<String, Object>> registrarEntrega(@RequestBody RegistroEntregaDTO registroEntregaDTO) {
         try {
-
-            if (registroEntrega.getId_pedido() == null) {
+            if (registroEntregaDTO.getId_pedido() == null) {
                 System.err.println("ERROR: id_pedido es NULL");
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "El id_pedido es obligatorio");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
-            entregaService.registrarEntrega(registroEntrega);
+            if (registroEntregaDTO.getProductos() == null || registroEntregaDTO.getProductos().isEmpty()) {
+                System.err.println("ERROR: No se enviaron productos");
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Debe incluir al menos un producto");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            entregaService.registrarEntrega(registroEntregaDTO);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Entrega registrada exitosamente");

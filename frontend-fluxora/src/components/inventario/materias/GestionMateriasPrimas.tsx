@@ -27,22 +27,14 @@ export default function GestionMateriasPrimas() {
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [materiaAActualizar, setMateriaAActualizar] =
     useState<MateriaPrima | null>(null);
-  const [cantidadAAgregar, setCantidadAAgregar] = useState(0);
-  const [costoUnitario, setCostoUnitario] = useState(0);
-  const [fechaCompraInput, setFechaCompraInput] = useState(
-    currentDate || new Date().toISOString().split("T")[0]
-  );
-  const [fechaVencimientoInput, setFechaVencimientoInput] = useState<
-    string | null
-  >(null);
   const [lotes, setLotes] = useState<
     Array<{
       id?: number;
       materiaPrimaId: number;
       cantidad: number;
+      stockActual?: number;
       costoUnitario: number;
       fechaCompra: string;
       fechaVencimiento?: string | null;
@@ -111,10 +103,7 @@ export default function GestionMateriasPrimas() {
 
   const handleAgregarStock = (materia: MateriaPrima) => {
     setMateriaAActualizar(materia);
-    setCantidadAAgregar(0);
-    setCostoUnitario(0);
-    setFechaVencimientoInput(null);
-    // Antes de abrir, cargar lotes existentes
+    // Cargar lotes existentes
     fetchLotes(materia.id);
     setShowStockModal(true);
   };
@@ -126,64 +115,22 @@ export default function GestionMateriasPrimas() {
       );
       if (!res.ok) throw new Error("Error al obtener lotes");
       const data = await res.json();
-      setLotes(Array.isArray(data) ? data : []);
+      // Filtrar solo lotes con stock > 0
+      const lotesConStock = Array.isArray(data)
+        ? data.filter(
+            (lote: any) => (lote.stockActual || lote.cantidad || 0) > 0
+          )
+        : [];
+      setLotes(lotesConStock);
     } catch (err) {
       console.error("Error fetching lotes:", err);
       setLotes([]);
     }
   };
 
-  const handleStockSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cantidadAAgregar <= 0) return;
-    setShowConfirmModal(true);
-  };
-
-  const handleConfirmStock = async () => {
-    if (!materiaAActualizar) return;
-
-    try {
-      // Crear un lote con la cantidad y el costo proporcionado por el usuario
-      const lote = {
-        cantidad: cantidadAAgregar,
-        costoUnitario: costoUnitario,
-        fechaCompra: fechaCompraInput,
-        fechaVencimiento: fechaVencimientoInput || null,
-      };
-
-      const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${materiaAActualizar.id}/lotes`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(lote),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error creando lote: ${response.status}`);
-      }
-
-      // Refresh materia list and lotes
-      await cargarMaterias();
-      await fetchLotes(materiaAActualizar.id);
-
-      setShowConfirmModal(false);
-      setShowStockModal(false);
-      setMateriaAActualizar(null);
-      setCantidadAAgregar(0);
-      setCostoUnitario(0);
-      setFechaVencimientoInput(null);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const handleCancelStock = () => {
     setShowStockModal(false);
-    setShowConfirmModal(false);
     setMateriaAActualizar(null);
-    setCantidadAAgregar(0);
   };
 
   // Filtrar materias primas por búsqueda (nombre o unidad)
@@ -225,9 +172,9 @@ export default function GestionMateriasPrimas() {
   // Definir acciones de la tabla
   const actions = [
     {
-      label: "Registrar Compra",
-      icon: "add",
-      variant: "success" as const,
+      label: "Visualizar Lotes",
+      icon: "visibility",
+      variant: "primary" as const,
       onClick: (materia: MateriaPrima) => handleAgregarStock(materia),
     },
     {
@@ -344,214 +291,153 @@ export default function GestionMateriasPrimas() {
         }}
       />
 
-      {/* Modal de Agregar Stock */}
+      {/* Modal de Visualizar Lotes */}
       {showStockModal && (
         <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 relative">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Registrar Compra Rápida
-              </h3>
-              <p className="text-gray-600">{materiaAActualizar?.nombre}</p>
-              <p className="text-sm text-gray-500">
-                Stock actual: {materiaAActualizar?.cantidad ?? 0}{" "}
-                {materiaAActualizar?.unidad}
-              </p>
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Visualizar Lotes
+                  </h3>
+                  <p className="text-gray-600 mt-1">
+                    {materiaAActualizar?.nombre}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Stock total disponible:{" "}
+                    <span className="font-semibold text-green-600">
+                      {materiaAActualizar?.cantidad ?? 0}
+                    </span>{" "}
+                    {materiaAActualizar?.unidad}
+                  </p>
+                </div>
+                <button
+                  onClick={handleCancelStock}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <MaterialIcon name="close" className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
-            {/* Lista de lotes existentes para esta materia */}
-            <div className="p-4 max-h-48 overflow-y-auto">
-              <h4 className="text-sm font-medium text-gray-800 mb-2">
-                Lotes existentes
-              </h4>
+            <div className="p-6">
+              <p className="text-sm text-gray-600 mb-4">
+                Lotes con stock disponible (ordenados por fecha de vencimiento -
+                FEFO)
+              </p>
+
               {lotes && lotes.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-gray-700">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="py-2 px-2">Fecha compra</th>
-                        <th className="py-2 px-2">Cantidad</th>
-                        <th className="py-2 px-2">Costo unit.</th>
-                        <th className="py-2 px-2">Vencimiento</th>
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="py-3 px-4 text-gray-700 font-medium">
+                          Fecha Compra
+                        </th>
+                        <th className="py-3 px-4 text-gray-700 font-medium">
+                          Fecha Vencimiento
+                        </th>
+                        <th className="py-3 px-4 text-gray-700 font-medium text-right">
+                          Cantidad Original
+                        </th>
+                        <th className="py-3 px-4 text-gray-700 font-medium text-right">
+                          Stock Actual
+                        </th>
+                        <th className="py-3 px-4 text-gray-700 font-medium text-right">
+                          Costo Unitario
+                        </th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {lotes.map((lote) => (
-                        <tr
-                          key={
-                            lote.id ??
-                            `${lote.materiaPrimaId}-${lote.fechaCompra}-${lote.cantidad}`
-                          }
-                          className="odd:bg-gray-50"
-                        >
-                          <td className="py-2 px-2">
-                            {lote.fechaCompra
-                              ? new Date(lote.fechaCompra).toLocaleDateString(
-                                  "es-CL"
-                                )
-                              : "-"}
-                          </td>
-                          <td className="py-2 px-2">
-                            {lote.cantidad} {materiaAActualizar?.unidad}
-                          </td>
-                          <td className="py-2 px-2">
-                            {typeof lote.costoUnitario === "number"
-                              ? lote.costoUnitario.toLocaleString("es-CL", {
-                                  style: "currency",
-                                  currency: "CLP",
-                                })
-                              : "-"}
-                          </td>
-                          <td className="py-2 px-2">
-                            {lote.fechaVencimiento
-                              ? new Date(
-                                  lote.fechaVencimiento
-                                ).toLocaleDateString("es-CL")
-                              : "-"}
-                          </td>
-                        </tr>
-                      ))}
+                    <tbody className="divide-y divide-gray-200">
+                      {lotes.map((lote) => {
+                        const stockActual = lote.stockActual ?? lote.cantidad;
+                        const porcentajeConsumido =
+                          ((lote.cantidad - stockActual) / lote.cantidad) * 100;
+
+                        return (
+                          <tr
+                            key={
+                              lote.id ??
+                              `${lote.materiaPrimaId}-${lote.fechaCompra}-${lote.cantidad}`
+                            }
+                            className="hover:bg-gray-50"
+                          >
+                            <td className="py-3 px-4 text-gray-900">
+                              {lote.fechaCompra
+                                ? new Date(lote.fechaCompra).toLocaleDateString(
+                                    "es-CL"
+                                  )
+                                : "-"}
+                            </td>
+                            <td className="py-3 px-4">
+                              {lote.fechaVencimiento ? (
+                                <span className="text-orange-600 font-medium">
+                                  {new Date(
+                                    lote.fechaVencimiento
+                                  ).toLocaleDateString("es-CL")}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">
+                                  Sin vencimiento
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-right text-gray-900">
+                              {lote.cantidad} {materiaAActualizar?.unidad}
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <span
+                                  className={`font-semibold ${
+                                    porcentajeConsumido > 50
+                                      ? "text-orange-600"
+                                      : "text-green-600"
+                                  }`}
+                                >
+                                  {stockActual} {materiaAActualizar?.unidad}
+                                </span>
+                                {porcentajeConsumido > 0 && (
+                                  <span className="text-xs text-gray-500">
+                                    ({porcentajeConsumido.toFixed(0)}% usado)
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right text-gray-900">
+                              {typeof lote.costoUnitario === "number"
+                                ? lote.costoUnitario.toLocaleString("es-CL", {
+                                    style: "currency",
+                                    currency: "CLP",
+                                  })
+                                : "-"}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">
-                  No hay lotes registrados para esta materia.
-                </p>
+                <div className="text-center py-8">
+                  <MaterialIcon
+                    name="inventory_2"
+                    className="w-12 h-12 text-gray-300 mx-auto mb-3"
+                  />
+                  <p className="text-gray-500">
+                    No hay lotes con stock disponible para esta materia prima.
+                  </p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Los lotes consumidos completamente no se muestran aquí.
+                  </p>
+                </div>
               )}
             </div>
 
-            <form onSubmit={handleStockSubmit} className="p-6">
-              <div className="mb-4 space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cantidad a agregar
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      value={cantidadAAgregar}
-                      onChange={(e) =>
-                        setCantidadAAgregar(parseFloat(e.target.value) || 0)
-                      }
-                      min="0"
-                      step="0.1"
-                      placeholder="0"
-                      required
-                      className="flex-1"
-                    />
-                    <span className="text-gray-600 font-medium">
-                      {materiaAActualizar?.unidad}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Input
-                    label="Costo unitario (CLP):"
-                    type="number"
-                    value={costoUnitario}
-                    onChange={(e) =>
-                      setCostoUnitario(parseFloat(e.target.value) || 0)
-                    }
-                    min="0"
-                    step="0.01"
-                    placeholder="Ej: 1200"
-                    className="w-full"
-                  />
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fecha de compra:
-                    </label>
-                    <input
-                      type="date"
-                      value={fechaCompraInput}
-                      onChange={(e) => setFechaCompraInput(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fecha de vencimiento (opcional):
-                  </label>
-                  <input
-                    type="date"
-                    value={fechaVencimientoInput ?? ""}
-                    onChange={(e) =>
-                      setFechaVencimientoInput(e.target.value || null)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-
-                {cantidadAAgregar > 0 && (
-                  <p className="text-sm text-green-600 mt-2">
-                    Stock total después:{" "}
-                    {(materiaAActualizar?.cantidad || 0) + cantidadAAgregar}{" "}
-                    {materiaAActualizar?.unidad}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleCancelStock}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  variant="success"
-                  disabled={cantidadAAgregar <= 0}
-                >
-                  Registrar
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Confirmación */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
-            <div className="p-5 text-center">
-              <div className="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-green-100 mb-3">
-                <MaterialIcon name="add" className="h-5 w-5 text-green-600" />
-              </div>
-              <h3 className="text-base font-medium text-gray-900 mb-2">
-                Confirmar registro de compra
-              </h3>
-              <p className="text-gray-600 mb-2 text-sm">
-                ¿Está seguro de que desea agregar{" "}
-                <strong>
-                  {cantidadAAgregar} {materiaAActualizar?.unidad}
-                </strong>{" "}
-                a:
-              </p>
-              <p className="font-medium text-gray-900 mb-5 text-sm">
-                {materiaAActualizar?.nombre}?
-              </p>
-              <div className="flex gap-2 justify-center">
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowConfirmModal(false)}
-                  className="px-3 py-1 text-sm"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="success"
-                  onClick={handleConfirmStock}
-                  className="px-3 py-1 text-sm"
-                >
-                  Confirmar
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex gap-3 justify-end">
+                <Button variant="secondary" onClick={handleCancelStock}>
+                  Cerrar
                 </Button>
               </div>
             </div>

@@ -24,11 +24,15 @@ public interface LoteMateriaPrimaRepository extends JpaRepository<LoteMateriaPri
     @Query(value = "SELECT * FROM lotes_materia_prima l WHERE l.materia_prima_id = :materiaId ORDER BY l.fecha_compra ASC", nativeQuery = true)
     java.util.List<com.microservice.entity.LoteMateriaPrima> findLotesByMateriaPrimaIdOrderByFechaCompraAsc(@Param("materiaId") Long materiaId);
 
+    // Buscar lotes ordenados por fecha de vencimiento (FEFO - First Expired, First Out)
+    @Query(value = "SELECT * FROM lotes_materia_prima l WHERE l.materia_prima_id = :materiaId ORDER BY l.fecha_vencimiento ASC NULLS LAST", nativeQuery = true)
+    java.util.List<com.microservice.entity.LoteMateriaPrima> findLotesByMateriaPrimaIdOrderByFechaVencimientoAsc(@Param("materiaId") Long materiaId);
+
     // Buscar lotes por compra
     @Query(value = "SELECT * FROM lotes_materia_prima l WHERE l.compra_id = :compraId ORDER BY l.fecha_compra ASC", nativeQuery = true)
     java.util.List<com.microservice.entity.LoteMateriaPrima> findLotesByCompraId(@Param("compraId") Long compraId);
 
-    // Buscar lotes con stock disponible (FIFO)
+    // Buscar lotes con stock disponible (FIFO por fecha de compra)
     @Query(value = "SELECT * FROM lotes_materia_prima l WHERE l.materia_prima_id = :materiaId AND l.stock_actual > 0 ORDER BY l.fecha_compra ASC", nativeQuery = true)
     java.util.List<com.microservice.entity.LoteMateriaPrima> findLotesDisponiblesByMateriaPrimaId(@Param("materiaId") Long materiaId);
 }

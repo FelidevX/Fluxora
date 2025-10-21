@@ -1,6 +1,7 @@
 package com.microservice.controller;
 
 import com.microservice.dto.LoteProductoDTO;
+import com.microservice.dto.StockDisponibleDTO;
 import com.microservice.service.LoteProductoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,5 +58,13 @@ public class LoteProductoController {
     public ResponseEntity<Integer> getStockTotal(@PathVariable Long productoId) {
         Integer stockTotal = loteProductoService.getStockTotalByProducto(productoId);
         return ResponseEntity.ok(stockTotal);
+    }
+
+    @GetMapping("/{productoId}/verificar-stock")
+    public ResponseEntity<List<StockDisponibleDTO>> verificarStockDisponible(
+            @PathVariable Long productoId,
+            @RequestParam double multiplicador) {
+        List<StockDisponibleDTO> stocks = loteProductoService.verificarStockDisponible(productoId, multiplicador);
+        return ResponseEntity.ok(stocks);
     }
 }

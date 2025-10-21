@@ -452,6 +452,7 @@ public class EntregaService {
                 Long idLote = Long.valueOf(prod.get("id_lote").toString());
                 Integer cantidad = Integer.valueOf(prod.get("cantidad_kg").toString());
                 String nombreProducto = prod.get("nombreProducto").toString();
+                String tipoProducto = prod.get("tipoProducto").toString();
 
                 ProgramacionEntrega programacion = new ProgramacionEntrega();
                 programacion.setId_ruta(idRuta);
@@ -460,6 +461,16 @@ public class EntregaService {
                 programacion.setCantidadProducto(cantidad);
                 programacion.setNombreProducto(nombreProducto);
                 programacion.setFecha_programada(fechaProgramacion);
+
+                if(tipoProducto.equalsIgnoreCase("corriente")){
+                    programacion.setKg_corriente_programado((double) cantidad);
+                    programacion.setKg_especial_programado(0.0);
+                } else if(tipoProducto.equalsIgnoreCase("especial")){
+                    programacion.setKg_especial_programado((double) cantidad);
+                    programacion.setKg_corriente_programado(0.0);
+                } else {
+                    throw new IllegalArgumentException("Tipo de producto inválido: " + tipoProducto);
+                }
 
                 programacionEntregaRepository.save(programacion);
 

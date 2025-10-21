@@ -270,11 +270,11 @@ public class RutaService {
 
             // Sumar los kilos programados por categoría (simulación)
             Double totalKgCorriente = programacionesHoy.stream()
-                    .map(pe -> 10.0) // valor estático de mientras para pruebas, esperar al topa
+                    .map(pe -> pe.getKg_corriente_programado()) 
                     .reduce(0.0, Double::sum);
 
             Double totalKgEspecial = programacionesHoy.stream()
-                    .map(pe -> 12.0) // valor estático de mientras para pruebas, esperar al topa
+                    .map(pe -> pe.getKg_especial_programado()) 
                     .reduce(0.0, Double::sum);
 
             SesionReparto pedido = new SesionReparto();

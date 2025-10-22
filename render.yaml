@@ -1,37 +1,39 @@
-# render.yaml
-# Despliegue de la arquitectura de microservicios Fluxora
+# render.yaml (Versión corregida)
 services:
-  # 1. Base de datos PostgreSQL (Render Managed Database)
-  # Este servicio usa la infraestructura de base de datos administrada de Render.
+  # 1. Base de datos PostgreSQL (Managed Database)
+  # Este servicio usa el tipo 'pserv' (PostgreSQL Service), que NO acepta 'port' ni 'internal'.
   - type: pserv
     name: fluxora-db
-    plan: starter # O el plan que prefieras (ej. standard, pro)
+    plan: starter
     disk:
       name: postgres-data
-      sizeGB: 10 # Tamaño del disco
+      sizeGB: 10
     databaseName: fluxora_db
     user: fluxora
-    # Render inyectará las variables de conexión para otros servicios automáticamente
-    
+    # Render se encarga de inyectar las variables de conexión (PGHOST, PGUSER, etc.)
+
   # 2. Servidor de Descubrimiento (Eureka Server)
+  # Debe ser público para que los microservicios se registren, pero se limitará el acceso en la consola.
   - type: web
     name: eureka-server
-    rootDir: ./Microservicios/microservice-eureka # Contexto del build
+    rootDir: ./Microservicios/microservice-eureka
     plan: starter
-    buildCommand: ./mvnw clean install -DskipTests # Asumiendo un proyecto Maven/Spring Boot
+    buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
+    # Aquí es donde se define el puerto para un Web Service
     port: 8761
     
-  # 3. Microservicios de Backend (Internos)
+  # 3. Microservicios de Backend (Usamos 'type: web' y luego configuramos el acceso)
+  # Render trata a todos estos como servicios web. Hacemos que sean internos desde la consola de Render.
   - type: web
     name: cliente-service
     rootDir: ./Microservicios/microservice-cliente
     plan: starter
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
+    # Los microservicios de Spring Boot DEBEN tener el puerto interno
     port: 8083
-    internal: true # SOLO accesible por el API Gateway
-    
+
   - type: web
     name: usuario-service
     rootDir: ./Microservicios/microservice-usuario
@@ -39,8 +41,7 @@ services:
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     port: 8081
-    internal: true
-    
+
   - type: web
     name: entrega-service
     rootDir: ./Microservicios/microservice-entrega
@@ -48,7 +49,6 @@ services:
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     port: 8084
-    internal: true
 
   - type: web
     name: inventario-service
@@ -57,7 +57,6 @@ services:
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     port: 8082
-    internal: true
     
   # 4. API Gateway (Punto de acceso público al Backend)
   - type: web
@@ -66,11 +65,14 @@ services:
     plan: starter
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
-    port: 8080 # Este sí es un puerto público
-    
+    port: 8080 # Puerto público
+
   # 5. Frontend Next.js (Punto de acceso para usuarios)
   - type: web
     name: frontend-fluxora
     rootDir: ./frontend-fluxora
     plan: starter
     port: 3000
+    # Comandos de build para Next.js:
+    # buildCommand: npm install && npm run build
+    # startCommand: npm start

@@ -255,34 +255,27 @@ export default function ProductosPage() {
         </Badge>
       ),
     },
+  ];
+
+  // Definir acciones de la tabla
+  const actions = [
     {
-      key: "acciones",
-      label: "Acciones",
-      render: (producto: Producto) => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleGestionarLotes(producto)}
-            className="p-2 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
-            title="Gestionar lotes de producción"
-          >
-            <MaterialIcon name="inventory_2" />
-          </button>
-          <button
-            onClick={() => handleEdit(producto)}
-            className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-600 transition-colors"
-            title="Editar producto"
-          >
-            <MaterialIcon name="edit" />
-          </button>
-          <button
-            onClick={() => handleDelete(producto)}
-            className="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
-            title="Eliminar producto"
-          >
-            <MaterialIcon name="delete" />
-          </button>
-        </div>
-      ),
+      label: "Gestionar Lotes",
+      icon: "inventory_2",
+      variant: "primary" as const,
+      onClick: (producto: Producto) => handleGestionarLotes(producto),
+    },
+    {
+      label: "Editar",
+      icon: "edit",
+      variant: "warning" as const,
+      onClick: (producto: Producto) => handleEdit(producto),
+    },
+    {
+      label: "Eliminar",
+      icon: "delete",
+      variant: "danger" as const,
+      onClick: (producto: Producto) => handleDelete(producto),
     },
   ];
 
@@ -336,6 +329,7 @@ export default function ProductosPage() {
         <DataTable
           data={productosFiltrados}
           columns={columns}
+          actions={actions}
           loading={loading}
           emptyMessage="No hay productos registrados"
         />

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.microservice.entrega.client.ClienteServiceClient;
 import com.microservice.entrega.client.InventarioServiceClient;
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.dto.ProductoEntregadoDTO;
 import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
@@ -24,6 +25,7 @@ import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.RutaCliente;
 import com.microservice.entrega.repository.SesionRepartoRepository;
+import com.microservice.entrega.util.EmailTemplateGenerator;
 import com.microservice.entrega.repository.ProgramacionEntregaRepository;
 import com.microservice.entrega.repository.RegistroEntregaRepository;
 import com.microservice.entrega.repository.RutaClienteRepository;
@@ -52,6 +54,12 @@ public class EntregaService {
 
     @Autowired
     private InventarioServiceClient inventarioServiceClient;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private EmailTemplateGenerator emailTemplateGenerator;
 
     // Obtener rutas programadas por fecha
     public List<Map<String, Object>> getRutasProgramadasPorFecha(String fecha) {
@@ -215,6 +223,11 @@ public class EntregaService {
 
             registroEntregaRepository.save(registroEntrega);
 
+            String emailDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getEmail();
+            String nombreDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getNombre();
+
+
+
             for (var producto : dto.getProductos()) {
                 if (producto.getCantidad_kg() != null && producto.getCantidad_kg() > 0) {
                     try {
@@ -241,7 +254,40 @@ public class EntregaService {
                 }
             }
 
-            System.out.println("✓ Entrega registrada e inventario actualizado correctamente");
+            try {
+                // Filtrar productos con cantidad mayor a cero
+                List<ProductoEntregadoDTO> productosEntregados = dto.getProductos().stream()
+                        .filter(p -> p.getCantidad_kg() != null && p.getCantidad_kg() > 0)
+                        .toList();
+
+                if (!productosEntregados.isEmpty()) {
+                    // Calcular total del pedido
+                    double totalPedido = productosEntregados.stream()
+                            .mapToDouble(p -> {
+                                double precio = p.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? 7500.0 : 8000.0;
+                                return p.getCantidad_kg() * precio;
+                            })
+                            .sum();
+
+                    // Genera HTML del correo
+                    String cuerpoHTML = emailTemplateGenerator.generarEmailEntregaPedido(
+                        nombreDestinatario,
+                        dto.getId_pedido(),
+                        productosEntregados,
+                        totalPedido,
+                        dto.getComentario(),
+                        dto.getHora_entregada()
+                    );
+
+                    // Asunto del correo
+                    String asunto = "✅ Tu pedido #" + dto.getId_pedido() + " ha sido entregado";
+
+                    emailService.enviarEmailSimple(emailDestinatario, asunto, cuerpoHTML);
+                    
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Error al enviar correo (la entrega fue registrada correctamente): " + e.getMessage());
+            }
 
         } catch (Exception e) {
             System.err.println("Error en registrarEntrega: " + e.getMessage());

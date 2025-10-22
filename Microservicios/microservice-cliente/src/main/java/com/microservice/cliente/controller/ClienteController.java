@@ -36,4 +36,9 @@ public class ClienteController {
         return clienteService.getClienteByIds(id);
     }
 
+    @GetMapping("/cliente/{id}")
+    public ClienteDTO getClienteById(@PathVariable Long id) {
+        return clienteService.getClienteById(id);
+    }
+
 }

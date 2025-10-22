@@ -1,26 +1,28 @@
-# render.yaml (Versión Final)
+# render.yaml (Versión con la sintaxis 'runtime' correcta)
 services:
-  # 1. Base de datos PostgreSQL (Render Managed Database)
+  # 1. Base de datos PostgreSQL (pserv)
   - type: pserv
     name: fluxora-db
     plan: starter
-    # **SE ELIMINA** la sección 'disk'
     envVars:
       - key: DATABASE_NAME
         value: fluxora_db
       - key: USER
         value: fluxora
-      - key: PASSWORD
-        generateValue: true 
+      - key: PASSWORD 
+        generateValue: true
 
   # 2. Servidor de Descubrimiento (Eureka Server)
   - type: web
     name: eureka-server
     rootDir: ./Microservicios/microservice-eureka
     plan: starter
-    env: java # <--- CORRECCIÓN DE RUNTIME
-    buildCommand: ./mvnw clean install -DskipTests
-    startCommand: java -jar target/*.jar
+    # CORRECCIÓN 1: Cambiar 'env: java' a 'runtime: java'
+    runtime: java 
+    # Comando de construcción
+    buildCommand: ./mvnw clean install -DskipTests 
+    # Comando de inicio
+    startCommand: java -jar target/*.jar 
     envVars:
       - key: PORT
         value: 8761
@@ -30,64 +32,74 @@ services:
     name: cliente-service
     rootDir: ./Microservicios/microservice-cliente
     plan: starter
-    env: java # <--- CORRECCIÓN DE RUNTIME
+    runtime: java # <--- CORRECCIÓN CLAVE
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: PORT
         value: 8083
+      - key: EUREKA_SERVER_URL # URL interna para que el servicio se registre
+        value: http://eureka-server:8761/eureka/ 
 
   - type: web
     name: usuario-service
     rootDir: ./Microservicios/microservice-usuario
     plan: starter
-    env: java # <--- CORRECCIÓN DE RUNTIME
+    runtime: java # <--- CORRECCIÓN CLAVE
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: PORT
         value: 8081
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
 
   - type: web
     name: entrega-service
     rootDir: ./Microservicios/microservice-entrega
     plan: starter
-    env: java # <--- CORRECCIÓN DE RUNTIME
+    runtime: java # <--- CORRECCIÓN CLAVE
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: PORT
         value: 8084
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
 
   - type: web
     name: inventario-service
     rootDir: ./Microservicios/microservice-inventario
     plan: starter
-    env: java # <--- CORRECCIÓN DE RUNTIME
+    runtime: java # <--- CORRECCIÓN CLAVE
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: PORT
         value: 8082
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
     
   # 4. API Gateway (Punto de acceso público al Backend)
   - type: web
     name: api-gateway
     rootDir: ./Microservicios/microservice-gateway
     plan: starter
-    env: java # <--- CORRECCIÓN DE RUNTIME
+    runtime: java # <--- CORRECCIÓN CLAVE
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: PORT
         value: 8080
-
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/ # Necesita el URL para resolver rutas
+        
   # 5. Frontend Next.js (Punto de acceso para usuarios)
   - type: web
     name: frontend-fluxora
     rootDir: ./frontend-fluxora
     plan: starter
-    env: node # <--- CORRECCIÓN DE RUNTIME (Para Next.js)
+    runtime: node # <--- CORRECCIÓN CLAVE
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:

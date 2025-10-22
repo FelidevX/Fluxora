@@ -1,4 +1,4 @@
-# render.yaml (Versión Final Aceptada por el validador)
+# render.yaml (Versión con ruta de Dockerfile para evitar errores de runtime)
 services:
   # 1. Base de datos PostgreSQL (pserv)
   - type: pserv 
@@ -13,24 +13,24 @@ services:
         generateValue: true
 
   # 2. Servidor de Descubrimiento (Eureka Server)
-  # Usamos 'web' porque tiene un puerto (8761).
   - type: web
     name: eureka-server
     rootDir: ./Microservicios/microservice-eureka
     plan: starter
-    runtime: java 
+    # Usamos dockerfilePath para evitar el error 'invalid runtime java'
+    dockerfilePath: Dockerfile 
     buildCommand: ./mvnw clean install -DskipTests 
     startCommand: java -jar target/*.jar 
     envVars:
       - key: PORT
         value: 8761
     
-  # 3. Microservicios de Backend (Ahora todos son 'web')
+  # 3. Microservicios de Backend (Usando dockerfilePath)
   - type: web
     name: cliente-service
     rootDir: ./Microservicios/microservice-cliente
     plan: starter
-    runtime: java 
+    dockerfilePath: Dockerfile 
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -39,13 +39,11 @@ services:
       - key: EUREKA_SERVER_URL
         value: http://eureka-server:8761/eureka/ 
 
-  # El resto de microservicios siguen el mismo patrón 'type: web' y 'runtime: java'
-
   - type: web
     name: usuario-service
     rootDir: ./Microservicios/microservice-usuario
     plan: starter
-    runtime: java 
+    dockerfilePath: Dockerfile 
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -58,7 +56,7 @@ services:
     name: entrega-service
     rootDir: ./Microservicios/microservice-entrega
     plan: starter
-    runtime: java 
+    dockerfilePath: Dockerfile 
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -71,7 +69,7 @@ services:
     name: inventario-service
     rootDir: ./Microservicios/microservice-inventario
     plan: starter
-    runtime: java 
+    dockerfilePath: Dockerfile 
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -85,7 +83,7 @@ services:
     name: api-gateway
     rootDir: ./Microservicios/microservice-gateway
     plan: starter
-    runtime: java 
+    dockerfilePath: Dockerfile 
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -94,7 +92,8 @@ services:
       - key: EUREKA_SERVER_URL
         value: http://eureka-server:8761/eureka/
         
-  # 5. Frontend Next.js (Punto de acceso para usuarios)
+  # 5. Frontend Next.js (Necesita 'runtime' si no tiene Dockerfile)
+  # Si el frontend no tiene Dockerfile, debemos mantener el 'runtime: node'
   - type: web
     name: frontend-fluxora
     rootDir: ./frontend-fluxora

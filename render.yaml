@@ -1,32 +1,26 @@
-# render.yaml (Versión final y funcional)
+# render.yaml (Versión Final)
 services:
   # 1. Base de datos PostgreSQL (Render Managed Database)
-  # El tipo 'pserv' solo acepta las propiedades listadas.
   - type: pserv
     name: fluxora-db
     plan: starter
-    disk:
-      name: postgres-data
-      sizeGB: 10
-    # **IMPORTANTE:** En un 'pserv', las credenciales se definen como envVars
-    # para que Render sepa qué credenciales debe usar al crear la DB
+    # **SE ELIMINA** la sección 'disk'
     envVars:
       - key: DATABASE_NAME
         value: fluxora_db
       - key: USER
         value: fluxora
-      - key: PASSWORD # Render usa esta clave para la contraseña
-        generateValue: true # Genera una contraseña segura automáticamente
+      - key: PASSWORD
+        generateValue: true 
 
   # 2. Servidor de Descubrimiento (Eureka Server)
   - type: web
     name: eureka-server
     rootDir: ./Microservicios/microservice-eureka
     plan: starter
+    env: java # <--- CORRECCIÓN DE RUNTIME
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
-    # **CORRECCIÓN CLAVE:** El puerto se define como una variable de entorno,
-    # y la aplicación debe estar configurada para usar $PORT
     envVars:
       - key: PORT
         value: 8761
@@ -36,18 +30,18 @@ services:
     name: cliente-service
     rootDir: ./Microservicios/microservice-cliente
     plan: starter
+    env: java # <--- CORRECCIÓN DE RUNTIME
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: PORT
-        value: 8083 # Puerto interno
-      - key: EUREKA_SERVER_URL
-        value: http://eureka-server:8761/eureka/ # Comunicación interna a Eureka
+        value: 8083
 
   - type: web
     name: usuario-service
     rootDir: ./Microservicios/microservice-usuario
     plan: starter
+    env: java # <--- CORRECCIÓN DE RUNTIME
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -58,6 +52,7 @@ services:
     name: entrega-service
     rootDir: ./Microservicios/microservice-entrega
     plan: starter
+    env: java # <--- CORRECCIÓN DE RUNTIME
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -68,6 +63,7 @@ services:
     name: inventario-service
     rootDir: ./Microservicios/microservice-inventario
     plan: starter
+    env: java # <--- CORRECCIÓN DE RUNTIME
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
@@ -79,21 +75,21 @@ services:
     name: api-gateway
     rootDir: ./Microservicios/microservice-gateway
     plan: starter
+    env: java # <--- CORRECCIÓN DE RUNTIME
     buildCommand: ./mvnw clean install -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: PORT
-        value: 8080 # Puerto público
+        value: 8080
 
   # 5. Frontend Next.js (Punto de acceso para usuarios)
   - type: web
     name: frontend-fluxora
     rootDir: ./frontend-fluxora
     plan: starter
-    # Para Node.js/Next.js, el puerto por defecto es 10000, 
-    # pero puedes forzarlo si tu app lo necesita
+    env: node # <--- CORRECCIÓN DE RUNTIME (Para Next.js)
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: PORT
         value: 3000
-    buildCommand: npm install && npm run build
-    startCommand: npm start

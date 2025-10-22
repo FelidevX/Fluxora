@@ -422,7 +422,7 @@ export default function VisualizarCompras() {
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         title="Eliminar Compra"
-        message="¿Está seguro de que desea eliminar esta compra? Esta acción no se puede deshacer y se eliminarán también todos los lotes asociados."
+        message="¿Está seguro de que desea eliminar esta compra? Solo podrás eliminarlo si es que no has utilizado los lotes asociados."
         itemName={compraAEliminar?.numDoc}
       />
     </div>

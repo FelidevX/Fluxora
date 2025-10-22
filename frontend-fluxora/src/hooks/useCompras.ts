@@ -173,9 +173,8 @@ export function useCompras(): UseComprasResult {
 
       await cargarCompras();
     } catch (err) {
-      console.error("Error al eliminar compra:", err);
       setError(
-        "Error al eliminar la compra. Verifique que no tenga lotes consumidos."
+        "No se puede eliminar esta compra ya que los lotes ya han sido utilizados."
       );
       throw err;
     } finally {

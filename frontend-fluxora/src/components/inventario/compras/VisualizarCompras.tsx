@@ -6,6 +6,7 @@ import { CompraMateriaPrimaResponse } from "@/types/inventario";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import DataTable from "@/components/ui/DataTable";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 export default function VisualizarCompras() {
   const {
@@ -23,6 +24,9 @@ export default function VisualizarCompras() {
   const [compraSeleccionada, setCompraSeleccionada] =
     useState<CompraMateriaPrimaResponse | null>(null);
   const [filtroReciente, setFiltroReciente] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [compraAEliminar, setCompraAEliminar] =
+    useState<CompraMateriaPrimaResponse | null>(null);
 
   useEffect(() => {
     cargarCompras();
@@ -33,20 +37,29 @@ export default function VisualizarCompras() {
     setShowDetalleModal(true);
   };
 
-  const handleEliminar = async (compra: CompraMateriaPrimaResponse) => {
-    if (
-      !confirm(
-        `¿Está seguro de eliminar la compra ${compra.numDoc}? Solo se puede eliminar si los lotes no han sido consumidos.`
-      )
-    ) {
-      return;
-    }
+  const handleDelete = (compra: CompraMateriaPrimaResponse) => {
+    setCompraAEliminar(compra);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!compraAEliminar) return;
 
     try {
-      await eliminarCompra(compra.id);
+      await eliminarCompra(compraAEliminar.id);
+      setShowDeleteModal(false);
+      setCompraAEliminar(null);
     } catch (err) {
-      // El error ya se maneja en el hook
+      console.error("Error al eliminar la compra:", err);
+    } finally {
+      setShowDeleteModal(false);
+      setCompraAEliminar(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setCompraAEliminar(null);
   };
 
   const handleFiltrarRecientes = async (dias: number | null) => {
@@ -143,7 +156,7 @@ export default function VisualizarCompras() {
       label: "Eliminar",
       icon: "delete",
       variant: "danger" as const,
-      onClick: (compra: CompraMateriaPrimaResponse) => handleEliminar(compra),
+      onClick: (compra: CompraMateriaPrimaResponse) => handleDelete(compra),
     },
   ];
 
@@ -402,6 +415,16 @@ export default function VisualizarCompras() {
           </div>
         </div>
       )}
+
+      {/** Modal de confirmación para eliminar compra */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Compra"
+        message="¿Está seguro de que desea eliminar esta compra? Solo podrás eliminarlo si es que no has utilizado los lotes asociados."
+        itemName={compraAEliminar?.numDoc}
+      />
     </div>
   );
 }

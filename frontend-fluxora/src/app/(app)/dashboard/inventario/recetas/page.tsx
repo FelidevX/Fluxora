@@ -19,6 +19,7 @@ import ReparadorRecetas, {
 } from "@/components/inventario/recetas/ReparadorRecetas";
 import Modal from "@/components/ui/Modal";
 import Link from "next/link";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 export default function RecetasManager() {
   const { materias, setOnMateriaCreated } = useMaterias();
@@ -37,6 +38,10 @@ export default function RecetasManager() {
   const [showForm, setShowForm] = useState(false);
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [missingMaterials, setMissingMaterials] = useState<string[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recetaAEliminar, setRecetaAEliminar] = useState<RecetaMaestra | null>(
+    null
+  );
 
   const [formulario, setFormulario] = useState<RecetaMaestraDTO>({
     nombre: "",
@@ -164,15 +169,28 @@ export default function RecetasManager() {
     }
   };
 
-  const handleEliminarReceta = async (id: number) => {
-    if (!confirm("¿Está seguro de que desea eliminar esta receta?")) {
-      return;
-    }
+  const handleDelete = (receta: RecetaMaestra) => {
+    setRecetaAEliminar(receta);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!recetaAEliminar) return;
     try {
-      await eliminarReceta(id);
+      await eliminarReceta(recetaAEliminar.id);
+      setShowDeleteModal(false);
+      setRecetaAEliminar(null);
     } catch (err) {
       console.error(err);
+    } finally {
+      setShowDeleteModal(false);
+      setRecetaAEliminar(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setRecetaAEliminar(null);
   };
 
   // Verificar materias primas faltantes en recetas rotas
@@ -278,7 +296,7 @@ export default function RecetasManager() {
       label: "Eliminar",
       icon: "delete",
       variant: "danger" as const,
-      onClick: (receta: RecetaMaestra) => handleEliminarReceta(receta.id),
+      onClick: (receta: RecetaMaestra) => handleDelete(receta),
     },
   ];
 
@@ -674,6 +692,16 @@ export default function RecetasManager() {
           </div>
         )}
       </Modal>
+
+      {/* Modal de confirmación de eliminación */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Receta"
+        message="¿Está seguro de que desea eliminar esta receta?"
+        itemName={recetaAEliminar?.nombre}
+      />
     </div>
   );
 }

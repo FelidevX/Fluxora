@@ -1,5 +1,5 @@
 import React from "react";
-import { X, AlertTriangle } from "lucide-react";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 
 const ConfirmDeleteModal = ({
   isOpen,
@@ -23,7 +23,7 @@ const ConfirmDeleteModal = ({
         <div className="p-6 border-b border-gray-200 sticky top-0 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <MaterialIcon name="warning" className="text-red-600 mt-0.5" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           </div>
@@ -31,7 +31,7 @@ const ConfirmDeleteModal = ({
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <MaterialIcon name="close" className="text-red-600 mt-0.5" />
           </button>
         </div>
 

@@ -1,23 +1,4 @@
 services:
-  # Base de datos PostgreSQL
-  - type: pserv
-    name: fluxora-db
-    env: docker
-    plan: free
-    region: oregon
-    dockerfilePath: ./Dockerfile.postgres
-    envVars:
-      - key: POSTGRES_USER
-        value: fluxora
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-      - key: POSTGRES_DB
-        value: fluxora_db
-    disk:
-      name: postgres-data
-      mountPath: /var/lib/postgresql/data
-      sizeGB: 1
-
   # Eureka Server (debe desplegarse primero)
   - type: web
     name: eureka-server
@@ -52,7 +33,9 @@ services:
           name: fluxora-db
           property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: fluxora
+        fromDatabase:
+          name: fluxora-db
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
         fromDatabase:
           name: fluxora-db
@@ -81,7 +64,9 @@ services:
           name: fluxora-db
           property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: fluxora
+        fromDatabase:
+          name: fluxora-db
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
         fromDatabase:
           name: fluxora-db
@@ -110,7 +95,9 @@ services:
           name: fluxora-db
           property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: fluxora
+        fromDatabase:
+          name: fluxora-db
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
         fromDatabase:
           name: fluxora-db
@@ -139,7 +126,9 @@ services:
           name: fluxora-db
           property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: fluxora
+        fromDatabase:
+          name: fluxora-db
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
         fromDatabase:
           name: fluxora-db
@@ -165,12 +154,6 @@ services:
         value: 8080
       - key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
         value: https://eureka-server.onrender.com/eureka/
-      - key: SPRING_CLOUD_GATEWAY_ROUTES_0_ID
-        value: usuario-service
-      - key: SPRING_CLOUD_GATEWAY_ROUTES_0_URI
-        value: lb://USUARIO-SERVICE
-      - key: SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0
-        value: Path=/api/usuarios/**
 
   # Frontend Next.js
   - type: web

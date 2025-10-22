@@ -28,8 +28,17 @@ public class ClienteService {
         List<Cliente> clientes = clienteRepository.findAllById(ids);
         return clientes.stream()
                 .map(cliente -> new ClienteDTO(cliente.getId(), cliente.getNombre(),
-                        cliente.getDireccion(), cliente.getLatitud(), cliente.getLongitud()))
+                        cliente.getDireccion(), cliente.getLatitud(), cliente.getLongitud(), cliente.getEmail()))
                 .collect(Collectors.toList());
+    }
+
+    public ClienteDTO getClienteById(Long id) {
+        Cliente cliente = clienteRepository.findById(id).orElse(null);
+        if (cliente != null) {
+            return new ClienteDTO(cliente.getId(), cliente.getNombre(),
+                    cliente.getDireccion(), cliente.getLatitud(), cliente.getLongitud(), cliente.getEmail());
+        }
+        return null;
     }
 
 }

@@ -129,13 +129,25 @@ export function useProductos(): UseProductosResult {
       const response = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
 
       if (!response.ok) {
+        if (response.status === 400 || response.status === 409) {
+          const errorText = await response.text();
+          setError(
+            "No se puede eliminar este producto porque uno o más de sus lotes ya han sido utilizados en producción."
+          );
+          throw new Error(
+            errorText || "El producto tiene lotes que ya han sido utilizados"
+          );
+        }
         throw new Error(`Error al eliminar producto: ${response.status}`);
       }
 
       await cargarProductos();
     } catch (err) {
       console.error("Error al eliminar producto:", err);
-      setError("Error al eliminar el producto");
+      if (!error) {
+        // Solo setear error si no se seteó antes
+        setError("Error al eliminar el producto");
+      }
       throw err;
     } finally {
       setLoading(false);
@@ -237,13 +249,23 @@ export function useProductos(): UseProductosResult {
       );
 
       if (!response.ok) {
+        if (response.status === 400 || response.status === 409) {
+          const errorText = await response.text();
+          setError(
+            "No se puede eliminar este lote ya que ha sido utilizado en producción."
+          );
+          throw new Error(errorText || "El lote ya ha sido utilizado");
+        }
         throw new Error(`Error al eliminar lote: ${response.status}`);
       }
 
       await cargarProductos();
     } catch (err) {
       console.error("Error al eliminar lote:", err);
-      setError("Error al eliminar el lote");
+      if (!error) {
+        // Solo setear error si no se seteó antes
+        setError("Error al eliminar el lote");
+      }
       throw err;
     } finally {
       setLoading(false);

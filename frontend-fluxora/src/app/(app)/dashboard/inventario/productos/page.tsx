@@ -11,6 +11,7 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import LoteProductoModal from "@/components/inventario/LoteProductoModal";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModalText";
 
 export default function ProductosPage() {
   const {
@@ -35,6 +36,10 @@ export default function ProductosPage() {
   );
   const [recetaSeleccionada, setRecetaSeleccionada] =
     useState<RecetaMaestra | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(
+    null
+  );
 
   const [formulario, setFormulario] = useState<ProductoDTO>({
     nombre: "",
@@ -138,16 +143,28 @@ export default function ProductosPage() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar este producto?")) return;
+  const handleDelete = (producto: Producto) => {
+    setProductoAEliminar(producto);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!productoAEliminar) return;
 
     try {
-      await eliminarProducto(id);
-      alert("Producto eliminado exitosamente");
+      await eliminarProducto(productoAEliminar.id);
+      setShowDeleteModal(false);
+      setProductoAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar producto:", err);
-      alert("Error al eliminar el producto");
+      // El error ya está en el estado global del hook
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setProductoAEliminar(null);
+    clearError();
   };
 
   const handleGestionarLotes = (producto: Producto) => {
@@ -245,21 +262,21 @@ export default function ProductosPage() {
         <div className="flex gap-2">
           <button
             onClick={() => handleGestionarLotes(producto)}
-            className="text-blue-600 hover:text-blue-800"
+            className="p-2 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
             title="Gestionar lotes de producción"
           >
             <MaterialIcon name="inventory_2" />
           </button>
           <button
             onClick={() => handleEdit(producto)}
-            className="text-yellow-600 hover:text-yellow-800"
+            className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-600 transition-colors"
             title="Editar producto"
           >
             <MaterialIcon name="edit" />
           </button>
           <button
-            onClick={() => handleDelete(producto.id)}
-            className="text-red-600 hover:text-red-800"
+            onClick={() => handleDelete(producto)}
+            className="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
             title="Eliminar producto"
           >
             <MaterialIcon name="delete" />
@@ -552,6 +569,17 @@ export default function ProductosPage() {
           onClose={() => setProductoParaLotes(null)}
         />
       )}
+
+      {/* Modal de confirmación para eliminar producto */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Producto"
+        message="¿Está seguro de que desea eliminar este producto? Se eliminarán también todos sus lotes de producción. Esta acción no se puede deshacer."
+        itemName={productoAEliminar?.nombre}
+        requireConfirmation={true}
+      />
     </div>
   );
 }

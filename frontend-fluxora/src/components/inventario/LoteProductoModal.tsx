@@ -9,6 +9,7 @@ import { useCurrentDate } from "@/hooks/useDate";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModalText";
 
 interface LoteProductoModalProps {
   producto: Producto;
@@ -21,8 +22,14 @@ export default function LoteProductoModal({
   isOpen,
   onClose,
 }: LoteProductoModalProps) {
-  const { cargarLotes, crearLote, actualizarLote, eliminarLote } =
-    useProductos();
+  const {
+    cargarLotes,
+    crearLote,
+    actualizarLote,
+    eliminarLote,
+    error,
+    clearError,
+  } = useProductos();
   const { recetas, loading: loadingRecetas } = useRecetas();
   const { currentDate } = useCurrentDate();
 
@@ -32,6 +39,8 @@ export default function LoteProductoModal({
   const [recetaSeleccionada, setRecetaSeleccionada] =
     useState<RecetaMaestra | null>(null);
   const [multiplicador, setMultiplicador] = useState(1);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [loteAEliminar, setLoteAEliminar] = useState<LoteProducto | null>(null);
 
   // Formulario para nuevo lote
   const [formulario, setFormulario] = useState({
@@ -197,19 +206,32 @@ export default function LoteProductoModal({
     }
   };
 
-  const handleDelete = async (loteId: number) => {
-    if (!confirm("¿Está seguro de eliminar este lote?")) return;
+  const handleDelete = (lote: LoteProducto) => {
+    setLoteAEliminar(lote);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!loteAEliminar || !loteAEliminar.id) return;
 
     try {
       setLoading(true);
-      await eliminarLote(producto.id, loteId);
+      await eliminarLote(producto.id, loteAEliminar.id);
+      setShowDeleteModal(false);
+      setLoteAEliminar(null);
       await loadLotes();
-    } catch (error) {
-      console.error("Error al eliminar lote:", error);
-      alert("Error al eliminar el lote");
+    } catch (err) {
+      console.error("Error al eliminar lote:", err);
+      // El error ya está en el estado global del hook
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setLoteAEliminar(null);
+    clearError();
   };
 
   if (!isOpen) return null;
@@ -318,8 +340,8 @@ export default function LoteProductoModal({
                         </td>
                         <td className="px-4 py-2">
                           <button
-                            onClick={() => lote.id && handleDelete(lote.id)}
-                            className="text-red-600 hover:text-red-800"
+                            onClick={() => handleDelete(lote)}
+                            className="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
                             title="Eliminar lote"
                           >
                             <MaterialIcon name="delete" />
@@ -630,7 +652,51 @@ export default function LoteProductoModal({
             </form>
           )}
         </div>
+
+        {/* Mensaje de error */}
+        {error && (
+          <div className="px-6 pb-4">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+              <span className="block sm:inline">{error}</span>
+              <button
+                className="absolute top-0 bottom-0 right-0 px-4 py-3"
+                onClick={clearError}
+              >
+                <MaterialIcon name="close" className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Modal de confirmación para eliminar lote */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Lote de Producción"
+        message={
+          loteAEliminar &&
+          loteAEliminar.stockActual !== loteAEliminar.cantidadProducida
+            ? "Este lote ya ha sido utilizado parcialmente. ¿Está seguro de que desea eliminarlo? Esta acción no se puede deshacer."
+            : "¿Está seguro de que desea eliminar este lote? Esta acción no se puede deshacer."
+        }
+        itemName={
+          loteAEliminar
+            ? `Lote del ${new Date(
+                loteAEliminar.fechaProduccion
+              ).toLocaleDateString("es-CL")} - Stock: ${
+                loteAEliminar.stockActual
+              }/${loteAEliminar.cantidadProducida}`
+            : undefined
+        }
+        requireConfirmation={
+          loteAEliminar
+            ? loteAEliminar.stockActual !== loteAEliminar.cantidadProducida
+            : false
+        }
+        isLoading={loading}
+      />
     </div>
   );
 }

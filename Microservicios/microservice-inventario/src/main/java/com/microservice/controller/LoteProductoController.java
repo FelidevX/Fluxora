@@ -72,6 +72,7 @@ public class LoteProductoController {
     public ResponseEntity<LoteProducto> getLoteById(@PathVariable Long loteId) {
         LoteProducto lote = loteProductoService.getLoteById(loteId);
         return ResponseEntity.ok(lote);
+    }
       
     @GetMapping("/{productoId}/verificar-stock")
     public ResponseEntity<List<StockDisponibleDTO>> verificarStockDisponible(

@@ -28,24 +28,28 @@ services:
     envVars:
       - key: SERVER_PORT
         value: 8081
-      - key: SPRING_DATASOURCE_URL
+      - key: DATABASE_URL
         fromDatabase:
           name: fluxora-db
           property: connectionString
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DB_URL
+        value: jdbc:${DATABASE_URL}
+      - key: DB_USERNAME
         fromDatabase:
           name: fluxora-db
           property: user
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DB_PASSWORD
         fromDatabase:
           name: fluxora-db
           property: password
-      - key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+      - key: EUREKA_URL
         value: https://eureka-server.onrender.com/eureka/
-      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: update
-      - key: SPRING_JPA_SHOW_SQL
-        value: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXP
+        value: 60
+      - key: SMTP_PASSWORD
+        sync: false
 
   # Microservicio Cliente
   - type: web
@@ -59,24 +63,28 @@ services:
     envVars:
       - key: SERVER_PORT
         value: 8083
-      - key: SPRING_DATASOURCE_URL
+      - key: DATABASE_URL
         fromDatabase:
           name: fluxora-db
           property: connectionString
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DB_URL
+        value: jdbc:${DATABASE_URL}
+      - key: DB_USERNAME
         fromDatabase:
           name: fluxora-db
           property: user
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DB_PASSWORD
         fromDatabase:
           name: fluxora-db
           property: password
-      - key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+      - key: EUREKA_URL
         value: https://eureka-server.onrender.com/eureka/
-      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: update
-      - key: SPRING_JPA_SHOW_SQL
-        value: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXP
+        value: 60
+      - key: SMTP_PASSWORD
+        sync: false
 
   # Microservicio Inventario
   - type: web
@@ -90,24 +98,28 @@ services:
     envVars:
       - key: SERVER_PORT
         value: 8082
-      - key: SPRING_DATASOURCE_URL
+      - key: DATABASE_URL
         fromDatabase:
           name: fluxora-db
           property: connectionString
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DB_URL
+        value: jdbc:${DATABASE_URL}
+      - key: DB_USERNAME
         fromDatabase:
           name: fluxora-db
           property: user
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DB_PASSWORD
         fromDatabase:
           name: fluxora-db
           property: password
-      - key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+      - key: EUREKA_URL
         value: https://eureka-server.onrender.com/eureka/
-      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: update
-      - key: SPRING_JPA_SHOW_SQL
-        value: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXP
+        value: 60
+      - key: SMTP_PASSWORD
+        sync: false
 
   # Microservicio Entrega
   - type: web
@@ -121,24 +133,28 @@ services:
     envVars:
       - key: SERVER_PORT
         value: 8084
-      - key: SPRING_DATASOURCE_URL
+      - key: DATABASE_URL
         fromDatabase:
           name: fluxora-db
           property: connectionString
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DB_URL
+        value: jdbc:${DATABASE_URL}
+      - key: DB_USERNAME
         fromDatabase:
           name: fluxora-db
           property: user
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DB_PASSWORD
         fromDatabase:
           name: fluxora-db
           property: password
-      - key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+      - key: EUREKA_URL
         value: https://eureka-server.onrender.com/eureka/
-      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: update
-      - key: SPRING_JPA_SHOW_SQL
-        value: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXP
+        value: 60
+      - key: SMTP_PASSWORD
+        sync: false
 
   # API Gateway
   - type: web
@@ -152,7 +168,7 @@ services:
     envVars:
       - key: SERVER_PORT
         value: 8080
-      - key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+      - key: EUREKA_URL
         value: https://eureka-server.onrender.com/eureka/
 
   # Frontend Next.js
@@ -164,7 +180,7 @@ services:
     dockerfilePath: ./frontend-fluxora/Dockerfile
     dockerContext: ./frontend-fluxora
     envVars:
-      - key: NEXT_PUBLIC_API_URL
+      - key: NEXT_PUBLIC_API_BASE
         value: https://api-gateway.onrender.com
       - key: NODE_ENV
         value: production

@@ -570,4 +570,22 @@ public class EntregaService {
             throw new RuntimeException("Error al programar entrega diaria: " + e.getMessage(), e);
         }
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void eliminarRelacionesCliente(Long idCliente) {
+        try {
+            System.out.println("Eliminando relaciones para el cliente ID: " + idCliente);
+            // Eliminar programaciones de entrega
+            programacionEntregaRepository.deleteByIdCliente(idCliente);
+            
+            // Eliminar registros de entregas
+            registroEntregaRepository.deleteByIdCliente(idCliente);
+            
+            // Eliminar relaciones ruta-cliente
+            rutaClienteRepository.deleteByIdCliente(idCliente);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Error al eliminar relaciones del cliente: " + e.getMessage(), e);
+        }
+    }
 }

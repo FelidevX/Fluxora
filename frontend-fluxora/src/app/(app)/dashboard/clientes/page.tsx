@@ -100,8 +100,58 @@ const ClientesPage = () => {
     alert(`Editar cliente ${id}`);
   };
 
-  const handleDelete = (id: number) => {
-    alert(`Eliminar cliente ${id}`);
+  const handleDelete = async (id: number) => {
+    // Confirmar antes de eliminar
+    const confirmed = window.confirm(
+      "¿Está seguro de eliminar este cliente? Esta acción eliminará también todas las relaciones con rutas, entregas y programaciones."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      let token = localStorage.getItem("auth_token");
+
+      if (!token) throw new Error("No se encontró el token de autenticación");
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Error al eliminar el cliente");
+      }
+
+      setSuccessMessage("¡Cliente eliminado exitosamente!");
+      setErrorMessage("");
+
+      // Recargar la lista de clientes
+      await fetchClients();
+
+      // Limpiar el mensaje después de unos segundos
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 10000);
+    } catch (error: any) {
+      setErrorMessage(
+        error.message ||
+          "Error al eliminar el cliente. Por favor, intente nuevamente."
+      );
+      setSuccessMessage("");
+
+      // Limpiar el mensaje de error después de unos segundos
+      setTimeout(() => {
+        setErrorMessage("");
+      }, 10000);
+    }
   };
 
   const handleTabClick = (tab: "clientes" | "repartos") => {

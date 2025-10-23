@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,6 +15,10 @@ public interface RutaClienteRepository extends JpaRepository<RutaCliente, Long> 
 
     @Query("SELECT DISTINCT rc.id_cliente FROM RutaCliente rc")
     List<Long> findAllClienteIds();
+
+    @Modifying
+    @Query("DELETE FROM RutaCliente rc WHERE rc.id_cliente = :idCliente")
+    void deleteByIdCliente(@Param("idCliente") Long idCliente);
 
     @Query("SELECT rc FROM RutaCliente rc WHERE rc.id_ruta = :idRuta")
     List<RutaCliente> findByIdRuta(@Param("idRuta") Long idRuta);

@@ -3,6 +3,8 @@ package com.microservice.cliente.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +41,16 @@ public class ClienteController {
     @GetMapping("/cliente/{id}")
     public ClienteDTO getClienteById(@PathVariable Long id) {
         return clienteService.getClienteById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCliente(@PathVariable Long id) {
+        try {
+            clienteService.deleteCliente(id);
+            return ResponseEntity.ok("Cliente eliminado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al eliminar cliente: " + e.getMessage());
+        }
     }
 
 }

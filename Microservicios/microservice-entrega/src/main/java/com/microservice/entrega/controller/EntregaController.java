@@ -159,4 +159,16 @@ public class EntregaController {
             return ResponseEntity.badRequest().body("Error al programar entrega: " + e.getMessage());
         }
     }
+
+    // Eliminar todas las relaciones de un cliente (antes de eliminar el cliente)
+    @org.springframework.web.bind.annotation.DeleteMapping("/cliente/{idCliente}/relaciones")
+    public ResponseEntity<String> eliminarRelacionesCliente(@PathVariable Long idCliente) {
+        System.out.println("Solicitud para eliminar relaciones del cliente ID: " + idCliente);
+        try {
+            entregaService.eliminarRelacionesCliente(idCliente);
+            return ResponseEntity.ok("Relaciones del cliente eliminadas exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al eliminar relaciones del cliente: " + e.getMessage());
+        }
+    }
 }

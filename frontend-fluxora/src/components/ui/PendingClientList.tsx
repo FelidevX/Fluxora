@@ -117,9 +117,10 @@ export default function PendingClientList({
   };
 
   const filteredClients = useMemo(() => {
-    return clients.filter((client) =>
-      client.nombre.toLowerCase().includes(search.toLowerCase())
-    );
+    return clients.filter((client) => {
+      if (!client?.nombre) return false;
+      return client.nombre.toLowerCase().includes(search.toLowerCase());
+    });
   }, [clients, search]);
 
   const handleClientSelect = (clientId: number) => {

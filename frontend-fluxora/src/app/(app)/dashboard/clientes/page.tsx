@@ -76,11 +76,15 @@ const ClientesPage = () => {
 
   // Filtrar clientes por búsqueda
   const filteredClients = clients.filter((client) => {
+    // Verificar que el cliente existe
+    if (!client) return false;
+
     const q = search.toLowerCase();
+
     return (
-      client.nombre.toLowerCase().includes(q) ||
-      client.contacto.toLowerCase().includes(q) ||
-      client.direccion.toLowerCase().includes(q)
+      client.nombre?.toLowerCase().includes(q) ||
+      client.contacto?.toLowerCase().includes(q) ||
+      client.direccion?.toLowerCase().includes(q)
     );
   });
 

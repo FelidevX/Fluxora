@@ -32,6 +32,13 @@ public class Cliente {
     @Column(name = "longitud")
     private Double longitud;
 
+    // Precios personalizados por tipo de producto
+    @Column(name = "precio_corriente")
+    private Double precioCorriente;
+
+    @Column(name = "precio_especial")
+    private Double precioEspecial;
+
     // Método utilitario para OR-Tools
     public double[] getCoordenadas() {
         return new double[] { latitud != null ? latitud : 0.0, longitud != null ? longitud : 0.0 };

@@ -16,7 +16,9 @@ public class EmailTemplateGenerator {
             List<ProductoEntregadoDTO> productos,
             double totalPedido,
             String comentario,
-            LocalDateTime fechaEntrega
+            LocalDateTime fechaEntrega,
+            Double precioCorriente,
+            Double precioEspecial
     ) {
         StringBuilder html = new StringBuilder();
         
@@ -69,7 +71,7 @@ public class EmailTemplateGenerator {
         // Filas de productos
         for (ProductoEntregadoDTO producto : productos) {
             if (producto.getCantidad_kg() != null && producto.getCantidad_kg() > 0) {
-                double precio = producto.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? 7500.0 : 8000.0;
+                double precio = producto.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? precioCorriente : precioEspecial;
                 double subtotal = producto.getCantidad_kg() * precio;
                 String badgeColor = producto.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? "#2196F3" : "#FF9800";
                 

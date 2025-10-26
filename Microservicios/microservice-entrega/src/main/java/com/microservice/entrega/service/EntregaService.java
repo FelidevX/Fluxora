@@ -225,6 +225,8 @@ public class EntregaService {
 
             String emailDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getEmail();
             String nombreDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getNombre();
+            Double precioCorriente = clienteServiceClient.getClienteById(dto.getId_cliente()).getPrecioCorriente() ;
+            Double precioEspecial = clienteServiceClient.getClienteById(dto.getId_cliente()).getPrecioEspecial();
 
 
 
@@ -264,7 +266,7 @@ public class EntregaService {
                     // Calcular total del pedido
                     double totalPedido = productosEntregados.stream()
                             .mapToDouble(p -> {
-                                double precio = p.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? 7500.0 : 8000.0;
+                                double precio = p.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? precioCorriente : precioEspecial;
                                 return p.getCantidad_kg() * precio;
                             })
                             .sum();
@@ -276,7 +278,9 @@ public class EntregaService {
                         productosEntregados,
                         totalPedido,
                         dto.getComentario(),
-                        dto.getHora_entregada()
+                        dto.getHora_entregada(),
+                        precioCorriente,
+                        precioEspecial
                     );
 
                     // Asunto del correo
@@ -352,6 +356,7 @@ public class EntregaService {
                 try {
                     List<Long> clienteIds = List.of(idCliente);
                     List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(clienteIds);
+                    
                     if (!clientes.isEmpty()) {
                         clienteData.put("cliente", clientes.get(0));
                     } else {
@@ -407,7 +412,6 @@ public class EntregaService {
                         loteInfo = (Map<String, Object>) responseLote.getBody();
                     }
                     if (loteInfo != null && loteInfo.containsKey("productoId")) {
-                        System.out.println("loteInfo: " + loteInfo);
                         Long idProducto = Long.valueOf(loteInfo.get("productoId").toString());
                         prodMap.put("id_producto", idProducto);
 

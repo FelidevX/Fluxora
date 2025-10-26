@@ -31,17 +31,33 @@ public class ClienteService {
 
     public List<ClienteDTO> getClienteByIds(List<Long> ids) {
         List<Cliente> clientes = clienteRepository.findAllById(ids);
-        return clientes.stream()
-                .map(cliente -> new ClienteDTO(cliente.getId(), cliente.getNombre(),
-                        cliente.getDireccion(), cliente.getLatitud(), cliente.getLongitud(), cliente.getEmail()))
+        List<ClienteDTO> clientesDTO = clientes.stream()
+                .map(cliente -> new ClienteDTO(
+                        cliente.getId(), 
+                        cliente.getNombre(),
+                        cliente.getDireccion(), 
+                        cliente.getLatitud(), 
+                        cliente.getLongitud(), 
+                        cliente.getEmail(),
+                        cliente.getPrecioCorriente(),
+                        cliente.getPrecioEspecial()))
                 .collect(Collectors.toList());
+        
+        return clientesDTO;
     }
 
     public ClienteDTO getClienteById(Long id) {
         Cliente cliente = clienteRepository.findById(id).orElse(null);
         if (cliente != null) {
-            return new ClienteDTO(cliente.getId(), cliente.getNombre(),
-                    cliente.getDireccion(), cliente.getLatitud(), cliente.getLongitud(), cliente.getEmail());
+            return new ClienteDTO(
+                    cliente.getId(), 
+                    cliente.getNombre(),
+                    cliente.getDireccion(), 
+                    cliente.getLatitud(), 
+                    cliente.getLongitud(), 
+                    cliente.getEmail(),
+                    cliente.getPrecioCorriente(),
+                    cliente.getPrecioEspecial());
         }
         return null;
     }

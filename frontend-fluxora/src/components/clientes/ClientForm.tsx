@@ -23,6 +23,8 @@ interface ClientFormData {
   address: string;
   latitude?: number;
   longitude?: number;
+  precioCorriente?: number;
+  precioEspecial?: number;
 }
 
 interface ClientFormProps {
@@ -48,6 +50,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
     address: initialData.address || "",
     latitude: initialData.latitude || undefined,
     longitude: initialData.longitude || undefined,
+    precioCorriente: initialData.precioCorriente || 1200,
+    precioEspecial: initialData.precioEspecial || 1500,
   });
 
   const [showMap, setShowMap] = useState(false);
@@ -108,56 +112,13 @@ const ClientForm: React.FC<ClientFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      let token = localStorage.getItem("auth_token");
-
-      if (!token) {
-        throw new Error(
-          "No se encontró token de autenticación. Por favor, inicie sesión de nuevo."
-        );
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      const clientData = {
-        nombreNegocio: formData.businessName,
-        nombre: formData.contactPerson,
-        contacto: formData.phone,
-        direccion: formData.address,
-        latitud: formData.latitude,
-        longitud: formData.longitude,
-        email: formData.email,
-      };
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(clientData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Error ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const result = await response.json();
-
+      // Llamar al callback pasando los datos del formulario
+      // El componente padre (page.tsx) se encarga de transformarlos y enviarlos
       onSubmit(formData);
-      alert("Cliente registrado exitosamente");
       resetForm();
     } catch (error) {
       alert(
-        `Error al registrar cliente: ${
+        `Error al procesar el formulario: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`
       );
@@ -175,6 +136,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
       address: "",
       latitude: undefined,
       longitude: undefined,
+      precioCorriente: 1200,
+      precioEspecial: 1500,
     });
   };
 
@@ -269,6 +232,49 @@ const ClientForm: React.FC<ClientFormProps> = ({
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="cliente@gmail.com"
+                className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="precioCorriente"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Precio Pan Corriente ($)
+              </label>
+              <input
+                type="number"
+                id="precioCorriente"
+                name="precioCorriente"
+                value={formData.precioCorriente}
+                onChange={handleInputChange}
+                placeholder="1300"
+                min="0"
+                step="100"
+                className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="precioEspecial"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Precio Pan Especial ($)
+              </label>
+              <input
+                type="number"
+                id="precioEspecial"
+                name="precioEspecial"
+                value={formData.precioEspecial}
+                onChange={handleInputChange}
+                placeholder="1500"
+                min="0"
+                step="100"
                 className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 required
               />

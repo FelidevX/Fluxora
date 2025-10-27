@@ -1,107 +1,107 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useClientes } from "@/hooks/useClientes";
+import { ClienteResponse } from "@/types/Clientes";
 import ClientForm from "@/components/clientes/ClientForm";
 import DataTable from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
 import { useRouter } from "next/navigation";
 import MaterialIcon from "@/components/ui/MaterialIcon";
-
-interface Client {
-  id: number;
-  nombre: string;
-  contacto: string;
-  direccion: string;
-  ruta: string;
-  ultimaEntrega: string;
-  estado: "activo" | "inactivo";
-}
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 const ClientesPage = () => {
+  const {
+    clientes,
+    loading,
+    error,
+    cargarClientes,
+    crearCliente,
+    clearError,
+    eliminarCliente,
+  } = useClientes();
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [clients, setClients] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"clientes" | "repartos">(
     "clientes"
   );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [clienteAEliminar, setClienteAEliminar] =
+    useState<ClienteResponse | null>(null);
 
-  const fetchClients = async () => {
-    setIsLoading(true);
-    try {
-      let token = localStorage.getItem("auth_token");
-
-      if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (!res.ok) throw new Error("Error al cargar los clientes");
-      const data = await res.json();
-
-      setClients(
-        data.map((c: any) => ({
-          id: c.id || 0,
-          nombre: c.nombre || "No disponible",
-          contacto: c.contacto || "No disponible",
-          direccion: c.direccion || "No disponible",
-          ruta: c.ruta || "No disponible",
-          ultimaEntrega: c.ultimaEntrega || "No disponible",
-          estado: c.estado || "activo",
-        }))
-      );
-    } catch (error: any) {
-      setErrorMessage(
-        error.message ||
-          "Error al cargar los clientes. Por favor, intente nuevamente."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Cargar clientes al montar el componente
   useEffect(() => {
-    fetchClients();
-  }, []);
+    cargarClientes();
+  }, [cargarClientes]);
 
   // Filtrar clientes por búsqueda
-  const filteredClients = clients.filter((client) => {
+  const filteredClients = clientes.filter((client) => {
+    // Verificar que el cliente existe
+    if (!client) return false;
+
     const q = search.toLowerCase();
+
     return (
-      client.nombre.toLowerCase().includes(q) ||
-      client.contacto.toLowerCase().includes(q) ||
-      client.direccion.toLowerCase().includes(q)
+      client.nombre?.toLowerCase().includes(q) ||
+      client.contacto?.toLowerCase().includes(q) ||
+      client.direccion?.toLowerCase().includes(q)
     );
   });
 
   const handleClientSubmit = async (data: any) => {
-    // Manejo de resultado exitoso
-    setSuccessMessage("¡Cliente registrado exitosamente!");
-    setErrorMessage("");
-
-    // Limpiar el mensaje después de unos segundos
-    setTimeout(() => {
-      setSuccessMessage("");
-    }, 5000);
-    await fetchClients();
+    try {
+      // Transformar los datos del formulario al formato del backend
+      const clientData = {
+        nombreNegocio: data.businessName,
+        nombre: data.contactPerson,
+        contacto: data.phone,
+        direccion: data.address,
+        latitud: data.latitude,
+        longitud: data.longitude,
+        email: data.email,
+        precioCorriente: data.precioCorriente,
+        precioEspecial: data.precioEspecial,
+      };
+      
+      await crearCliente(clientData);
+      setSuccessMessage("¡Cliente registrado exitosamente!");
+      setErrorMessage("");
+      setTimeout(() => setSuccessMessage(""), 5000);
+    } catch (err) {
+      setErrorMessage("Error al registrar el cliente");
+      setTimeout(() => setErrorMessage(""), 5000);
+    }
   };
 
   const handleEdit = (id: number) => {
     alert(`Editar cliente ${id}`);
   };
 
-  const handleDelete = (id: number) => {
-    alert(`Eliminar cliente ${id}`);
+  const handleDelete = (cliente: ClienteResponse) => {
+    setClienteAEliminar(cliente);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!clienteAEliminar) return;
+    try {
+      await eliminarCliente(clienteAEliminar.id);
+      setShowDeleteModal(false);
+      setClienteAEliminar(null);
+    } catch (err) {
+      console.log("Error al eliminar cliente:", err);
+    } finally {
+      setShowDeleteModal(false);
+      setClienteAEliminar(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setClienteAEliminar(null);
   };
 
   const handleTabClick = (tab: "clientes" | "repartos") => {
@@ -188,7 +188,7 @@ const ClientesPage = () => {
             {
               key: "nombre",
               label: "Cliente",
-              render: (c: Client) => (
+              render: (c: ClienteResponse) => (
                 <span className="text-sm font-medium text-gray-800">
                   {c.nombre}
                 </span>
@@ -197,14 +197,14 @@ const ClientesPage = () => {
             {
               key: "contacto",
               label: "Contacto",
-              render: (c: Client) => (
+              render: (c: ClienteResponse) => (
                 <span className="text-sm text-gray-800">{c.contacto}</span>
               ),
             },
             {
               key: "direccion",
               label: "Dirección",
-              render: (c: Client) => (
+              render: (c: ClienteResponse) => (
                 <span className="text-sm text-gray-800">
                   {c.direccion.length > 40
                     ? c.direccion.slice(0, 40) + "..."
@@ -215,19 +215,21 @@ const ClientesPage = () => {
             {
               key: "ruta",
               label: "Ruta",
-              render: (c: Client) => <Badge variant="info">{c.ruta}</Badge>,
+              render: (c: ClienteResponse) => (
+                <Badge variant="info">{c.ruta}</Badge>
+              ),
             },
             {
               key: "ultimaEntrega",
               label: "Última entrega",
-              render: (c: Client) => (
+              render: (c: ClienteResponse) => (
                 <span className="text-sm text-gray-800">{c.ultimaEntrega}</span>
               ),
             },
             {
               key: "estado",
               label: "Estado",
-              render: (c: Client) => (
+              render: (c: ClienteResponse) => (
                 <Badge variant={c.estado === "activo" ? "success" : "warning"}>
                   {c.estado === "activo" ? "Activo" : "Inactivo"}
                 </Badge>
@@ -239,16 +241,16 @@ const ClientesPage = () => {
               label: "Editar",
               icon: "edit",
               variant: "primary" as const,
-              onClick: (c: Client) => handleEdit(c.id),
+              onClick: (c: ClienteResponse) => handleEdit(c.id),
             },
             {
               label: "Eliminar",
               icon: "delete",
               variant: "danger" as const,
-              onClick: (c: Client) => handleDelete(c.id),
+              onClick: (c: ClienteResponse) => handleDelete(c),
             },
           ]}
-          loading={isLoading}
+          loading={loading}
           searchValue={search}
           onSearch={setSearch}
           searchPlaceholder="Buscar cliente..."
@@ -256,6 +258,16 @@ const ClientesPage = () => {
           emptyMessage="No se encontraron clientes"
         />
       </div>
+
+      {/* Modal de confirmación para eliminar cliente */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Cliente"
+        message={"¿Está seguro que desea eliminar este cliente?"}
+        itemName={clienteAEliminar?.nombre || ""}
+      />
     </div>
   );
 };

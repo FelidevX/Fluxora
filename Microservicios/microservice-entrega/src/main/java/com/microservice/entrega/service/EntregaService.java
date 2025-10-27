@@ -225,6 +225,8 @@ public class EntregaService {
 
             String emailDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getEmail();
             String nombreDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getNombre();
+            Double precioCorriente = clienteServiceClient.getClienteById(dto.getId_cliente()).getPrecioCorriente() ;
+            Double precioEspecial = clienteServiceClient.getClienteById(dto.getId_cliente()).getPrecioEspecial();
 
 
 
@@ -264,7 +266,7 @@ public class EntregaService {
                     // Calcular total del pedido
                     double totalPedido = productosEntregados.stream()
                             .mapToDouble(p -> {
-                                double precio = p.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? 7500.0 : 8000.0;
+                                double precio = p.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? precioCorriente : precioEspecial;
                                 return p.getCantidad_kg() * precio;
                             })
                             .sum();
@@ -276,7 +278,9 @@ public class EntregaService {
                         productosEntregados,
                         totalPedido,
                         dto.getComentario(),
-                        dto.getHora_entregada()
+                        dto.getHora_entregada(),
+                        precioCorriente,
+                        precioEspecial
                     );
 
                     // Asunto del correo
@@ -352,6 +356,7 @@ public class EntregaService {
                 try {
                     List<Long> clienteIds = List.of(idCliente);
                     List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(clienteIds);
+                    
                     if (!clientes.isEmpty()) {
                         clienteData.put("cliente", clientes.get(0));
                     } else {
@@ -407,7 +412,6 @@ public class EntregaService {
                         loteInfo = (Map<String, Object>) responseLote.getBody();
                     }
                     if (loteInfo != null && loteInfo.containsKey("productoId")) {
-                        System.out.println("loteInfo: " + loteInfo);
                         Long idProducto = Long.valueOf(loteInfo.get("productoId").toString());
                         prodMap.put("id_producto", idProducto);
 
@@ -568,6 +572,103 @@ public class EntregaService {
             return "Entrega programada exitosamente";
         } catch (Exception e) {
             throw new RuntimeException("Error al programar entrega diaria: " + e.getMessage(), e);
+        }
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void eliminarRelacionesCliente(Long idCliente) {
+        try {
+            System.out.println("Eliminando relaciones para el cliente ID: " + idCliente);
+            // Eliminar programaciones de entrega
+            programacionEntregaRepository.deleteByIdCliente(idCliente);
+            
+            // Eliminar registros de entregas
+            registroEntregaRepository.deleteByIdCliente(idCliente);
+            
+            // Eliminar relaciones ruta-cliente
+            rutaClienteRepository.deleteByIdCliente(idCliente);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Error al eliminar relaciones del cliente: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Obtener estadísticas para el dashboard
+     * @return Map con datos de entregas de la semana y del día
+     */
+    public Map<String, Object> obtenerEstadisticasDashboard() {
+        Map<String, Object> estadisticas = new HashMap<>();
+        
+        LocalDate hoy = LocalDate.now();
+        LocalDateTime inicioHoy = hoy.atStartOfDay();
+        LocalDateTime finHoy = hoy.plusDays(1).atStartOfDay();
+        
+        // Estadísticas del día actual
+        Long totalProgramadosHoy = programacionEntregaRepository.countClientesByFechaProgramada(hoy);
+        Long totalEntregadosHoy = registroEntregaRepository.countByFecha(hoy);
+        Double totalKilosHoy = 0.0;
+        try {
+            Double suma = registroEntregaRepository.sumKilosByFecha(hoy);
+            totalKilosHoy = (suma != null) ? suma : 0.0;
+        } catch (Exception e) {
+            // En caso de error, dejar en 0 y seguir
+            totalKilosHoy = 0.0;
+        }
+        
+        Map<String, Object> entregasDelDia = new HashMap<>();
+        entregasDelDia.put("completadas", totalEntregadosHoy != null ? totalEntregadosHoy : 0L);
+        entregasDelDia.put("total", totalProgramadosHoy != null ? totalProgramadosHoy : 0L);
+        estadisticas.put("entregasDelDia", entregasDelDia);
+    // Kilos entregados hoy (suma de corriente + especial de las entregas registradas hoy)
+    estadisticas.put("productosVendidosHoy", totalKilosHoy);
+        
+        // Entregas de la última semana (7 días incluyendo hoy)
+        List<Map<String, Object>> entregasPorDia = new ArrayList<>();
+        LocalDate inicioSemana = hoy.minusDays(6); // Últimos 7 días
+        LocalDateTime inicioRango = inicioSemana.atStartOfDay();
+        LocalDateTime finRango = finHoy;
+        
+        // Obtener datos de entregas completadas por día
+        List<Object[]> datosEntregas = registroEntregaRepository.countEntregasPorDia(inicioRango, finRango);
+        Map<LocalDate, Long> entregasMap = new HashMap<>();
+        for (Object[] row : datosEntregas) {
+            // PostgreSQL devuelve java.sql.Date, necesitamos convertir a LocalDate
+            java.sql.Date sqlDate = (java.sql.Date) row[0];
+            LocalDate fecha = sqlDate.toLocalDate();
+            // El COUNT puede ser Long o BigInteger dependiendo de la DB
+            Long cantidad = ((Number) row[1]).longValue();
+            entregasMap.put(fecha, cantidad);
+        }
+        
+        // Crear array con todos los días de la semana
+        for (int i = 0; i < 7; i++) {
+            LocalDate fecha = inicioSemana.plusDays(i);
+            Map<String, Object> diaData = new HashMap<>();
+            diaData.put("fecha", fecha.toString());
+            diaData.put("dia", obtenerNombreDia(fecha.getDayOfWeek().getValue()));
+            diaData.put("entregas", entregasMap.getOrDefault(fecha, 0L));
+            entregasPorDia.add(diaData);
+        }
+        
+        estadisticas.put("entregasSemana", entregasPorDia);
+        
+        return estadisticas;
+    }
+    
+    /**
+     * Convierte número de día a nombre en español
+     */
+    private String obtenerNombreDia(int numeroDia) {
+        switch (numeroDia) {
+            case 1: return "Lunes";
+            case 2: return "Martes";
+            case 3: return "Miércoles";
+            case 4: return "Jueves";
+            case 5: return "Viernes";
+            case 6: return "Sábado";
+            case 7: return "Domingo";
+            default: return "";
         }
     }
 }

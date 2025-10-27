@@ -57,22 +57,26 @@ export default function PantallaAgendarVisita({
   });
 
   const [datosFormulario, setDatosFormulario] = useState<any[]>([]);
-  const [productosDisponibles, setProductosDisponibles] = useState<ProductoConLotes[]>([]);
-  const [productosAgendados, setProductosAgendados] = useState<ProductoAgendado[]>([]);
+  const [productosDisponibles, setProductosDisponibles] = useState<
+    ProductoConLotes[]
+  >([]);
+  const [productosAgendados, setProductosAgendados] = useState<
+    ProductoAgendado[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [mostrarSelectProducto, setMostrarSelectProducto] = useState(false);
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   const obtenerDatosFormulario = async () => {
     try {
       let today = new Date();
-      
-      const day = today.getDate().toString().padStart(2, '0');
-      const month = (today.getMonth() + 1).toString().padStart(2, '0');
+
+      const day = today.getDate().toString().padStart(2, "0");
+      const month = (today.getMonth() + 1).toString().padStart(2, "0");
       const year = today.getFullYear();
       const fechaFormateada = `${day}-${month}-${year}`;
 
@@ -85,11 +89,14 @@ export default function PantallaAgendarVisita({
         token = token.substring(7);
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fechaFormateada}`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fechaFormateada}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Error al obtener las entregas del día.");
@@ -102,7 +109,7 @@ export default function PantallaAgendarVisita({
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const obtenerProductosDisponibles = async () => {
     try {
@@ -126,7 +133,9 @@ export default function PantallaAgendarVisita({
       );
 
       if (!productosResponse.ok) {
-        throw new Error(`Error al obtener productos: ${productosResponse.status}`);
+        throw new Error(
+          `Error al obtener productos: ${productosResponse.status}`
+        );
       }
 
       const productos = await productosResponse.json();
@@ -148,11 +157,15 @@ export default function PantallaAgendarVisita({
             if (lotesResponse.ok) {
               const lotesData = await lotesResponse.json();
               lotes = lotesData.filter(
-                (lote: Lote) => lote.estado === "disponible" && lote.stockActual > 0
+                (lote: Lote) =>
+                  lote.estado === "disponible" && lote.stockActual > 0
               );
             }
 
-            const stockTotal = lotes.reduce((sum, lote) => sum + lote.stockActual, 0);
+            const stockTotal = lotes.reduce(
+              (sum, lote) => sum + lote.stockActual,
+              0
+            );
 
             return {
               id: producto.id,
@@ -164,7 +177,10 @@ export default function PantallaAgendarVisita({
               stockTotal: stockTotal,
             };
           } catch (error) {
-            console.error(`Error al obtener lotes del producto ${producto.id}:`, error);
+            console.error(
+              `Error al obtener lotes del producto ${producto.id}:`,
+              error
+            );
             return {
               id: producto.id,
               nombre: producto.nombre,
@@ -178,11 +194,13 @@ export default function PantallaAgendarVisita({
         })
       );
 
-      setProductosDisponibles(productosConLotesData.filter(p => p.stockTotal > 0));
+      setProductosDisponibles(
+        productosConLotesData.filter((p) => p.stockTotal > 0)
+      );
     } catch (error) {
       console.error("Error al obtener productos disponibles:", error);
     }
-  }
+  };
 
   useEffect(() => {
     obtenerDatosFormulario();
@@ -190,30 +208,35 @@ export default function PantallaAgendarVisita({
   }, []);
 
   const clienteActual = datosFormulario
-    .flatMap(ruta => ruta.clientes)
-    .find(clienteData => clienteData.cliente.id === clienteId);
+    .flatMap((ruta) => ruta.clientes)
+    .find((clienteData) => clienteData.cliente.id === clienteId);
 
   useEffect(() => {
     if (clienteActual) {
-      const productosAgendadosIniciales: ProductoAgendado[] = clienteActual.productosProgramados.map((producto: any) => ({
-        id_producto: producto.id_producto,
-        id_lote: producto.id_lote,
-        nombreProducto: producto.nombreProducto,
-        tipoProducto: producto.tipoProducto,
-        cantidad_kg: parseFloat(formularioData[producto.nombreProducto] || producto.cantidad_kg?.toString() || "0"),
-      }));
+      const productosAgendadosIniciales: ProductoAgendado[] =
+        clienteActual.productosProgramados.map((producto: any) => ({
+          id_producto: producto.id_producto,
+          id_lote: producto.id_lote,
+          nombreProducto: producto.nombreProducto,
+          tipoProducto: producto.tipoProducto,
+          cantidad_kg: parseFloat(
+            formularioData[producto.nombreProducto] ||
+              producto.cantidad_kg?.toString() ||
+              "0"
+          ),
+        }));
 
       setProductosAgendados(productosAgendadosIniciales);
-      setAgendarData({ fecha: tomorrow.toISOString().split('T')[0] });
+      setAgendarData({ fecha: tomorrow.toISOString().split("T")[0] });
     }
   }, [clienteActual, formularioData]);
 
   const agregarProducto = (productoId: number, loteId: number) => {
-    const producto = productosDisponibles.find(p => p.id === productoId);
+    const producto = productosDisponibles.find((p) => p.id === productoId);
     if (!producto) return;
 
     const yaExiste = productosAgendados.some(
-      p => p.id_producto === productoId && p.id_lote === loteId
+      (p) => p.id_producto === productoId && p.id_lote === loteId
     );
 
     if (yaExiste) {
@@ -245,16 +268,20 @@ export default function PantallaAgendarVisita({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!agendarData.fecha) {
       alert("Por favor, complete la fecha para la próxima visita.");
       return;
     }
 
-    const productoConCantidad = productosAgendados.some(p => p.cantidad_kg > 0);
+    const productoConCantidad = productosAgendados.some(
+      (p) => p.cantidad_kg > 0
+    );
 
     if (!productoConCantidad) {
-      alert("Por favor, ingrese al menos una cantidad para algún producto de la próxima visita.");
+      alert(
+        "Por favor, ingrese al menos una cantidad para algún producto de la próxima visita."
+      );
       return;
     }
 
@@ -271,13 +298,15 @@ export default function PantallaAgendarVisita({
       }
 
       // 1. POST para registrar la entrega actual
-      const productosEntregados = formularioData.productos || clienteActual.productosProgramados.map((p: any) => ({
-        id_producto: p.id_producto,
-        id_lote: p.id_lote,
-        nombreProducto: p.nombreProducto,
-        tipoProducto: p.tipoProducto,
-        cantidad_kg: parseFloat(formularioData[p.nombreProducto] || "0"),
-      }));
+      const productosEntregados =
+        formularioData.productos ||
+        clienteActual.productosProgramados.map((p: any) => ({
+          id_producto: p.id_producto,
+          id_lote: p.id_lote,
+          nombreProducto: p.nombreProducto,
+          tipoProducto: p.tipoProducto,
+          cantidad_kg: parseFloat(formularioData[p.nombreProducto] || "0"),
+        }));
 
       const corriente = productosEntregados
         .filter((p: any) => p.tipoProducto === "CORRIENTE")
@@ -294,9 +323,9 @@ export default function PantallaAgendarVisita({
         corriente_entregado: corriente,
         especial_entregado: especial,
         hora_entregada: new Date().toISOString(),
-        productos: productosEntregados.filter((p: any) => p.cantidad_kg > 0)
+        productos: productosEntregados.filter((p: any) => p.cantidad_kg > 0),
       };
-      
+
       const entregaResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/registrar`,
         {
@@ -318,7 +347,7 @@ export default function PantallaAgendarVisita({
         idRuta: rutaId,
         idCliente: clienteId,
         fechaProgramacion: agendarData.fecha,
-        productos: productosAgendados.filter(p => p.cantidad_kg > 0),
+        productos: productosAgendados.filter((p) => p.cantidad_kg > 0),
       };
 
       console.log("Agendando entrega:", programacionPayload);
@@ -343,7 +372,9 @@ export default function PantallaAgendarVisita({
       onComplete(agendarData, clienteId);
     } catch (error) {
       console.error("Error al procesar:", error);
-      alert("Hubo un error al procesar la información. Por favor, inténtelo de nuevo.");
+      alert(
+        "Hubo un error al procesar la información. Por favor, inténtelo de nuevo."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -352,13 +383,25 @@ export default function PantallaAgendarVisita({
   const calcularTotalEntrega = () => {
     if (!clienteActual?.productosProgramados) return "0";
 
-    const total = clienteActual.productosProgramados.reduce((sum: number, producto: any) => {
-      const cantidad = parseFloat(formularioData[producto.nombreProducto] ?? 0);
-      let precio = 0;
-      if (producto.tipoProducto === "CORRIENTE") precio = 7500;
-      if (producto.tipoProducto === "ESPECIAL") precio = 8000;
-      return sum + (isNaN(cantidad) ? 0 : cantidad * precio);
-    }, 0);
+    const total = clienteActual.productosProgramados.reduce(
+      (sum: number, producto: any) => {
+        const cantidad = parseFloat(
+          formularioData[producto.nombreProducto] ?? 0
+        );
+        let precio = 0;
+
+        // Usar precios personalizados del cliente o valores por defecto
+        if (producto.tipoProducto === "CORRIENTE") {
+          precio = clienteActual.cliente.precioCorriente ?? 1200;
+        }
+        if (producto.tipoProducto === "ESPECIAL") {
+          precio = clienteActual.cliente.precioEspecial ?? 1500;
+        }
+
+        return sum + (isNaN(cantidad) ? 0 : cantidad * precio);
+      },
+      0
+    );
 
     return total.toLocaleString();
   };
@@ -366,9 +409,16 @@ export default function PantallaAgendarVisita({
   const calcularTotalProgramado = () => {
     const total = productosAgendados.reduce((sum: number, producto) => {
       let precio = 0;
-      if (producto.tipoProducto === "CORRIENTE") precio = 7500;
-      if (producto.tipoProducto === "ESPECIAL") precio = 8000;
-      return sum + (producto.cantidad_kg * precio);
+
+      // Usar precios personalizados del cliente o valores por defecto
+      if (producto.tipoProducto === "CORRIENTE") {
+        precio = clienteActual?.cliente.precioCorriente ?? 1200;
+      }
+      if (producto.tipoProducto === "ESPECIAL") {
+        precio = clienteActual?.cliente.precioEspecial ?? 1500;
+      }
+
+      return sum + producto.cantidad_kg * precio;
     }, 0);
 
     return total.toLocaleString();
@@ -385,25 +435,33 @@ export default function PantallaAgendarVisita({
   return (
     <div className="p-4">
       <div className="bg-gray-100 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-gray-800 mb-1">Agendar Próxima Visita</h3>
+        <h3 className="font-semibold text-gray-800 mb-1">
+          Agendar Próxima Visita
+        </h3>
         <p className="text-gray-600">{clienteNombre}</p>
       </div>
 
       {/* Resumen de la entrega actual */}
       <div className="bg-blue-50 rounded-lg p-4 mb-6">
-        <h4 className="font-medium text-blue-800 mb-2">Resumen de Entrega Actual</h4>
+        <h4 className="font-medium text-blue-800 mb-2">
+          Resumen de Entrega Actual
+        </h4>
         <div className="text-sm text-blue-700 space-y-1">
-          {clienteActual?.productosProgramados.map((producto: any, idx: number) => {
-            const cantidad = parseFloat(formularioData[producto.nombreProducto] || "0");
-            if (cantidad > 0) {
-              return (
-                <p key={idx}>
-                  {producto.nombreProducto}: {cantidad} KG
-                </p>
+          {clienteActual?.productosProgramados.map(
+            (producto: any, idx: number) => {
+              const cantidad = parseFloat(
+                formularioData[producto.nombreProducto] || "0"
               );
+              if (cantidad > 0) {
+                return (
+                  <p key={idx}>
+                    {producto.nombreProducto}: {cantidad} KG
+                  </p>
+                );
+              }
+              return null;
             }
-            return null;
-          })}
+          )}
           <p className="font-medium pt-2">Total: $ {calcularTotalEntrega()}</p>
         </div>
       </div>
@@ -429,7 +487,9 @@ export default function PantallaAgendarVisita({
           {/* Cantidades programadas por producto */}
           <div className="bg-green-50 rounded-lg p-4">
             <div className="flex justify-between items-center mb-3">
-              <h4 className="font-medium text-green-800">Productos para la Próxima Visita</h4>
+              <h4 className="font-medium text-green-800">
+                Productos para la Próxima Visita
+              </h4>
               <button
                 type="button"
                 onClick={() => setMostrarSelectProducto(!mostrarSelectProducto)}
@@ -441,11 +501,15 @@ export default function PantallaAgendarVisita({
 
             {mostrarSelectProducto && (
               <div className="bg-white rounded-lg p-3 mb-3 border-2 border-green-300">
-                <label className="block text-gray-700 font-medium mb-2">Seleccionar Producto:</label>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Seleccionar Producto:
+                </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-600 mb-2"
                   onChange={(e) => {
-                    const [productoId, loteId] = e.target.value.split('-').map(Number);
+                    const [productoId, loteId] = e.target.value
+                      .split("-")
+                      .map(Number);
                     if (productoId && loteId) {
                       agregarProducto(productoId, loteId);
                     }
@@ -455,24 +519,35 @@ export default function PantallaAgendarVisita({
                   <option value="">-- Seleccione un producto --</option>
                   {productosDisponibles.map((producto) =>
                     producto.lotes.map((lote) => (
-                      <option key={`${producto.id}-${lote.id}`} value={`${producto.id}-${lote.id}`}>
-                        {producto.nombre} - Lote {lote.numeroLote} (Stock: {lote.stockActual} KG)
+                      <option
+                        key={`${producto.id}-${lote.id}`}
+                        value={`${producto.id}-${lote.id}`}
+                      >
+                        {producto.nombre} - Lote {lote.numeroLote} (Stock:{" "}
+                        {lote.stockActual} KG)
                       </option>
                     ))
                   )}
                 </select>
               </div>
             )}
-            
+
             {productosAgendados.map((producto, idx) => (
-              <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 mb-2">
-                <span className="text-gray-700 font-medium flex-1">{producto.nombreProducto}</span>
+              <div
+                key={idx}
+                className="flex items-center justify-between bg-white rounded-lg p-3 mb-2"
+              >
+                <span className="text-gray-700 font-medium flex-1">
+                  {producto.nombreProducto}
+                </span>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     step="0.1"
                     value={producto.cantidad_kg || ""}
-                    onChange={(e) => actualizarCantidad(idx, parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      actualizarCantidad(idx, parseFloat(e.target.value) || 0)
+                    }
                     className="w-24 px-2 py-1 border border-gray-300 rounded text-center text-gray-600"
                     placeholder="0"
                   />
@@ -490,9 +565,19 @@ export default function PantallaAgendarVisita({
             ))}
 
             <div className="text-sm text-green-700 mt-3 pt-3 border-t border-green-200">
-              <p>Corriente = $ 7500</p>
-              <p>Especial = $ 8000</p>
-              <p className="font-medium pt-2">Total programado: $ {calcularTotalProgramado()}</p>
+              <p>
+                Corriente = ${" "}
+                {clienteActual?.cliente.precioCorriente?.toLocaleString() ??
+                  "7,500"}
+              </p>
+              <p>
+                Especial = ${" "}
+                {clienteActual?.cliente.precioEspecial?.toLocaleString() ??
+                  "8,000"}
+              </p>
+              <p className="font-medium pt-2">
+                Total programado: $ {calcularTotalProgramado()}
+              </p>
             </div>
           </div>
         </div>

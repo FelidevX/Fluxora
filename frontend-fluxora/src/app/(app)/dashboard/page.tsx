@@ -47,57 +47,28 @@ interface MateriaPrima {
   fechaVencimiento: string;
 }
 
-export default function DashboardHome() {
+interface EstadisticasDia {
+  fecha: string;
+  dia: string;
+  entregas: number;
+}
 
+interface EstadisticasDashboard {
+  entregasDelDia: {
+    completadas: number;
+    total: number;
+  };
+  entregasSemana: EstadisticasDia[];
+  productosVendidosHoy?: number;
+}
+
+export default function DashboardHome() {
   const [clients, setClients] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [materiaPrima, setMateriaPrima] = useState<MateriaPrima[]>([]);
+  const [estadisticas, setEstadisticas] =
+    useState<EstadisticasDashboard | null>(null);
 
-  // Datos simulados para el gráfico de ventas de la semana (//cambiar)
-  const ventasSemanaLabels = [
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-    "Domingo",
-  ];
-  const ventasSemanaData = [320, 450, 390, 520, 610, 700, 640]; // //cambiar
-  const chartData = {
-    labels: ventasSemanaLabels,
-    datasets: [
-      {
-        label: "Ventas ($)",
-        data: ventasSemanaData,
-        borderColor: "#2563eb",
-        backgroundColor: "rgba(37,99,235,0.1)",
-        tension: 0.4,
-        pointRadius: 4,
-        pointBackgroundColor: "#2563eb",
-        fill: true,
-      },
-    ],
-  };
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      title: { display: false },
-      tooltip: { mode: "index" as const, intersect: false },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { color: "#64748b" },
-        grid: { color: "#e5e7eb" },
-      },
-      x: {
-        ticks: { color: "#64748b" },
-        grid: { display: false },
-      },
-    },
-  };
   // pt-14: deja espacio para el botón flotante del menú en móviles
   const today = new Date();
   const formattedDate = today.toLocaleDateString("es-ES", {
@@ -113,15 +84,18 @@ export default function DashboardHome() {
 
       if (!token) throw new Error("No se encontró el token de autenticación");
 
-      if(token.startsWith("Bearer ")){
+      if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`, {
-        headers : {
-          'Authorization': `Bearer ${token}`
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      })
+      );
       const response = await res.json();
       setClients(response);
       setIsLoading(false);
@@ -129,7 +103,7 @@ export default function DashboardHome() {
       console.error("Error fetching clients:", error);
       setIsLoading(false);
     }
-  }
+  };
 
   const fetchMateriasPrimas = async () => {
     setIsLoading(true);
@@ -138,15 +112,18 @@ export default function DashboardHome() {
 
       if (!token) throw new Error("No se encontró el token de autenticación");
 
-      if(token.startsWith("Bearer ")){
+      if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`, {
-        headers : {
-          'Authorization': `Bearer ${token}`
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      })
+      );
       const response = await res.json();
       setMateriaPrima(response);
       setIsLoading(false);
@@ -154,12 +131,87 @@ export default function DashboardHome() {
       console.error("Error fetching materias primas:", error);
       setIsLoading(false);
     }
-  }
+  };
 
+  const getAuthToken = () => {
+    let token = localStorage.getItem("auth_token");
+    if (!token) {
+      throw new Error("No se encontró el token de autenticación");
+    }
+    if (token.startsWith("Bearer ")) {
+      token = token.substring(7);
+    }
+    return token;
+  };
+
+  const fetchEstadisticas = async () => {
+    try {
+      const token = getAuthToken();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/estadisticas-dashboard`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setEstadisticas(data);
+      } else {
+        throw new Error("Error al obtener las estadísticas del dashboard");
+      }
+    } catch (error) {
+      console.error("Error fetching estadísticas:", error);
+      setEstadisticas(null);
+    }
+  };
   useEffect(() => {
     fetchClients();
     fetchMateriasPrimas();
+    fetchEstadisticas();
   }, []);
+
+  // Datos para el gráfico de entregas de la semana
+  const chartData = {
+    labels: estadisticas?.entregasSemana.map((d) => d.dia) || [],
+    datasets: [
+      {
+        label: "Entregas completadas",
+        data: estadisticas?.entregasSemana.map((d) => d.entregas) || [],
+        borderColor: "#2563eb",
+        backgroundColor: "rgba(37,99,235,0.1)",
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: "#2563eb",
+        fill: true,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+      tooltip: { mode: "index" as const, intersect: false },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: "#64748b",
+          stepSize: 1,
+        },
+        grid: { color: "#e5e7eb" },
+      },
+      x: {
+        ticks: { color: "#64748b" },
+        grid: { display: false },
+      },
+    },
+  };
 
   return (
     <div className="p-6">
@@ -173,23 +225,38 @@ export default function DashboardHome() {
       </div>
       {/* KPIs y estadísticas */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* //cambiar: estos valores deben venir de la API */}
+        {/* Entregas del día */}
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-bold text-gray-500">Entregas del día</p>
           <div className="mt-2 flex items-end justify-between">
-            <span className="text-3xl font-semibold text-gray-900">24</span>{" "}
-            {/* //cambiar */}
-            <span className="text-xs text-emerald-600">+12% vs ayer</span>{" "}
-            {/* //cambiar */}
+            <span className="text-3xl font-semibold text-gray-900">
+              {estadisticas
+                ? `${estadisticas.entregasDelDia.completadas}/${estadisticas.entregasDelDia.total}`
+                : "0/0"}
+            </span>
+            {estadisticas && estadisticas.entregasDelDia.total > 0 && (
+              <span className="text-xs text-emerald-600">
+                {Math.round(
+                  (estadisticas.entregasDelDia.completadas /
+                    estadisticas.entregasDelDia.total) *
+                    100
+                )}
+                % completado
+              </span>
+            )}
           </div>
         </div>
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-bold text-gray-500">Productos vendidos</p>
           <div className="mt-2 flex items-end justify-between">
-            <span className="text-3xl font-semibold text-gray-900">1,240</span>{" "}
-            {/* //cambiar */}
-            <span className="text-xs text-emerald-600">+8% vs ayer</span>{" "}
-            {/* //cambiar */}
+            <span className="text-3xl font-semibold text-gray-900">
+              {estadisticas
+                ? `${Math.round(estadisticas.productosVendidosHoy || 0)} kg`
+                : "0 kg"}
+            </span>
+            <span className="text-xs text-emerald-600">
+              {estadisticas ? "" : ""}
+            </span>
           </div>
         </div>
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
@@ -211,26 +278,30 @@ export default function DashboardHome() {
           </div>
         </div>
       </div>
-      {/* Paneles: ventas de la semana y alertas */}
+      {/* Paneles: entregas de la semana y alertas */}
       <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-sm">
           <div className="flex flex-row items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">
-              Ventas de la semana
+              Entregas de la semana
             </h2>
             <MaterialIcon name="analytics" className="text-green-400" />
           </div>
           <p className="text-sm text-gray-500 mb-2">
-            Resumen de los últimos 7 días
+            Entregas completadas en los últimos 7 días
           </p>
-          {/* Gráfico de ventas de la semana */}
+          {/* Gráfico de entregas de la semana */}
           <div
             className="mt-4 flex justify-center items-center w-full"
             style={{ minHeight: "220px" }}
           >
-            <div style={{ width: "100%", maxWidth: 600 }}>
-              <Line data={chartData} options={chartOptions} />
-            </div>
+            {estadisticas ? (
+              <div style={{ width: "100%", maxWidth: 600 }}>
+                <Line data={chartData} options={chartOptions} />
+              </div>
+            ) : (
+              <p className="text-gray-400">Cargando estadísticas...</p>
+            )}
           </div>
         </div>
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
@@ -302,7 +373,10 @@ export default function DashboardHome() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={3}
+                      className="px-4 py-8 text-center text-sm text-gray-500"
+                    >
                       Cargando clientes...
                     </td>
                   </tr>
@@ -311,21 +385,27 @@ export default function DashboardHome() {
                     .sort((a, b) => b.id - a.id)
                     .slice(0, 5)
                     .map((cliente) => (
-                    <tr key={cliente.email || cliente.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {cliente.nombre}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {cliente.email}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {cliente.contacto}
-                      </td>
-                    </tr>
-                  ))
+                      <tr
+                        key={cliente.email || cliente.id}
+                        className="hover:bg-gray-50"
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {cliente.nombre}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {cliente.email}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                          {cliente.contacto}
+                        </td>
+                      </tr>
+                    ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={3}
+                      className="px-4 py-8 text-center text-sm text-gray-500"
+                    >
                       No hay clientes registrados
                     </td>
                   </tr>
@@ -364,13 +444,16 @@ export default function DashboardHome() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={3}
+                      className="px-4 py-8 text-center text-sm text-gray-500"
+                    >
                       Cargando productos...
                     </td>
                   </tr>
-                ): materiaPrima.length > 0 ? (
+                ) : materiaPrima.length > 0 ? (
                   materiaPrima
-                    .filter(mp => mp.fechaVencimiento)
+                    .filter((mp) => mp.fechaVencimiento)
                     .sort((a, b) => {
                       const dateA = new Date(a.fechaVencimiento);
                       const dateB = new Date(b.fechaVencimiento);
@@ -380,41 +463,60 @@ export default function DashboardHome() {
                     .map((mp) => {
                       const fechaVencimiento = new Date(mp.fechaVencimiento);
                       const hoy = new Date();
-                      const diasRestantes = Math.ceil((fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+                      const diasRestantes = Math.ceil(
+                        (fechaVencimiento.getTime() - hoy.getTime()) /
+                          (1000 * 60 * 60 * 24)
+                      );
 
                       return (
-                      <tr key={mp.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-900 text-center">
-                          {mp.nombre}
-                        </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-600 text-center">
-                          {mp.cantidad} {mp.unidad}
-                        </td>
-                        <td className="px-4 py-1 whitespace-nowrap text-sm text-center">
-                          <div className="flex flex-col items-center">
-                            <span className={`text-sm ${diasRestantes <= 3 ? 'text-red-600 font-semibold' : diasRestantes <= 7 ? 'text-amber-600 font-medium' : 'text-gray-500'      
-                            }`}>
-                              {fechaVencimiento.toLocaleDateString('es-ES')}
-                            </span>
-                            <span className={`text-xs ${
-                              diasRestantes <= 3 ? 'text-red-500' : 
-                              diasRestantes <= 7 ? 'text-amber-500' : 
-                              'text-gray-400'
-                            }`}>
-                              {diasRestantes > 0 ? `${diasRestantes} días`: 'vencido'}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
+                        <tr key={mp.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-900 text-center">
+                            {mp.nombre}
+                          </td>
+                          <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-600 text-center">
+                            {mp.cantidad} {mp.unidad}
+                          </td>
+                          <td className="px-4 py-1 whitespace-nowrap text-sm text-center">
+                            <div className="flex flex-col items-center">
+                              <span
+                                className={`text-sm ${
+                                  diasRestantes <= 3
+                                    ? "text-red-600 font-semibold"
+                                    : diasRestantes <= 7
+                                    ? "text-amber-600 font-medium"
+                                    : "text-gray-500"
+                                }`}
+                              >
+                                {fechaVencimiento.toLocaleDateString("es-ES")}
+                              </span>
+                              <span
+                                className={`text-xs ${
+                                  diasRestantes <= 3
+                                    ? "text-red-500"
+                                    : diasRestantes <= 7
+                                    ? "text-amber-500"
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                {diasRestantes > 0
+                                  ? `${diasRestantes} días`
+                                  : "vencido"}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
                       );
                     })
                 ) : (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={3}
+                      className="px-4 py-8 text-center text-sm text-gray-500"
+                    >
                       No hay productos con fecha de vencimiento registrados
                     </td>
                   </tr>
-                )} 
+                )}
               </tbody>
             </table>
           </div>

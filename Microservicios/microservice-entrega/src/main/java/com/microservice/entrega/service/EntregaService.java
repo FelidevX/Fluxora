@@ -607,11 +607,21 @@ public class EntregaService {
         // Estadísticas del día actual
         Long totalProgramadosHoy = programacionEntregaRepository.countClientesByFechaProgramada(hoy);
         Long totalEntregadosHoy = registroEntregaRepository.countByFecha(hoy);
+        Double totalKilosHoy = 0.0;
+        try {
+            Double suma = registroEntregaRepository.sumKilosByFecha(hoy);
+            totalKilosHoy = (suma != null) ? suma : 0.0;
+        } catch (Exception e) {
+            // En caso de error, dejar en 0 y seguir
+            totalKilosHoy = 0.0;
+        }
         
         Map<String, Object> entregasDelDia = new HashMap<>();
         entregasDelDia.put("completadas", totalEntregadosHoy != null ? totalEntregadosHoy : 0L);
         entregasDelDia.put("total", totalProgramadosHoy != null ? totalProgramadosHoy : 0L);
         estadisticas.put("entregasDelDia", entregasDelDia);
+    // Kilos entregados hoy (suma de corriente + especial de las entregas registradas hoy)
+    estadisticas.put("productosVendidosHoy", totalKilosHoy);
         
         // Entregas de la última semana (7 días incluyendo hoy)
         List<Map<String, Object>> entregasPorDia = new ArrayList<>();

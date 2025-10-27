@@ -34,4 +34,6 @@ public interface RegistroEntregaRepository extends JpaRepository<RegistroEntrega
     @Query(value = "SELECT DATE(hora_entregada) as fecha, COUNT(*) as total FROM registro_entrega WHERE hora_entregada BETWEEN :fechaInicio AND :fechaFin GROUP BY DATE(hora_entregada) ORDER BY DATE(hora_entregada)", nativeQuery = true)
     List<Object[]> countEntregasPorDia(@Param("fechaInicio") LocalDateTime fechaInicio, @Param("fechaFin") LocalDateTime fechaFin);
 
+    @Query(value = "SELECT COALESCE(SUM(re.corriente_entregado + re.especial_entregado),0) FROM registro_entrega re WHERE DATE(re.hora_entregada) = :fecha", nativeQuery = true)
+    Double sumKilosByFecha(@Param("fecha") LocalDate fecha);
 }

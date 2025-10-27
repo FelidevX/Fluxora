@@ -59,6 +59,7 @@ interface EstadisticasDashboard {
     total: number;
   };
   entregasSemana: EstadisticasDia[];
+  productosVendidosHoy?: number;
 }
 
 export default function DashboardHome() {
@@ -248,10 +249,14 @@ export default function DashboardHome() {
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-bold text-gray-500">Productos vendidos</p>
           <div className="mt-2 flex items-end justify-between">
-            <span className="text-3xl font-semibold text-gray-900">1,240</span>{" "}
-            {/* //cambiar */}
-            <span className="text-xs text-emerald-600">+8% vs ayer</span>{" "}
-            {/* //cambiar */}
+            <span className="text-3xl font-semibold text-gray-900">
+              {estadisticas
+                ? `${Math.round(estadisticas.productosVendidosHoy || 0)} kg`
+                : "0 kg"}
+            </span>
+            <span className="text-xs text-emerald-600">
+              {estadisticas ? "" : ""}
+            </span>
           </div>
         </div>
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">

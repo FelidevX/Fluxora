@@ -592,4 +592,73 @@ public class EntregaService {
             throw new RuntimeException("Error al eliminar relaciones del cliente: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Obtener estadísticas para el dashboard
+     * @return Map con datos de entregas de la semana y del día
+     */
+    public Map<String, Object> obtenerEstadisticasDashboard() {
+        Map<String, Object> estadisticas = new HashMap<>();
+        
+        LocalDate hoy = LocalDate.now();
+        LocalDateTime inicioHoy = hoy.atStartOfDay();
+        LocalDateTime finHoy = hoy.plusDays(1).atStartOfDay();
+        
+        // Estadísticas del día actual
+        Long totalProgramadosHoy = programacionEntregaRepository.countClientesByFechaProgramada(hoy);
+        Long totalEntregadosHoy = registroEntregaRepository.countByFecha(hoy);
+        
+        Map<String, Object> entregasDelDia = new HashMap<>();
+        entregasDelDia.put("completadas", totalEntregadosHoy != null ? totalEntregadosHoy : 0L);
+        entregasDelDia.put("total", totalProgramadosHoy != null ? totalProgramadosHoy : 0L);
+        estadisticas.put("entregasDelDia", entregasDelDia);
+        
+        // Entregas de la última semana (7 días incluyendo hoy)
+        List<Map<String, Object>> entregasPorDia = new ArrayList<>();
+        LocalDate inicioSemana = hoy.minusDays(6); // Últimos 7 días
+        LocalDateTime inicioRango = inicioSemana.atStartOfDay();
+        LocalDateTime finRango = finHoy;
+        
+        // Obtener datos de entregas completadas por día
+        List<Object[]> datosEntregas = registroEntregaRepository.countEntregasPorDia(inicioRango, finRango);
+        Map<LocalDate, Long> entregasMap = new HashMap<>();
+        for (Object[] row : datosEntregas) {
+            // PostgreSQL devuelve java.sql.Date, necesitamos convertir a LocalDate
+            java.sql.Date sqlDate = (java.sql.Date) row[0];
+            LocalDate fecha = sqlDate.toLocalDate();
+            // El COUNT puede ser Long o BigInteger dependiendo de la DB
+            Long cantidad = ((Number) row[1]).longValue();
+            entregasMap.put(fecha, cantidad);
+        }
+        
+        // Crear array con todos los días de la semana
+        for (int i = 0; i < 7; i++) {
+            LocalDate fecha = inicioSemana.plusDays(i);
+            Map<String, Object> diaData = new HashMap<>();
+            diaData.put("fecha", fecha.toString());
+            diaData.put("dia", obtenerNombreDia(fecha.getDayOfWeek().getValue()));
+            diaData.put("entregas", entregasMap.getOrDefault(fecha, 0L));
+            entregasPorDia.add(diaData);
+        }
+        
+        estadisticas.put("entregasSemana", entregasPorDia);
+        
+        return estadisticas;
+    }
+    
+    /**
+     * Convierte número de día a nombre en español
+     */
+    private String obtenerNombreDia(int numeroDia) {
+        switch (numeroDia) {
+            case 1: return "Lunes";
+            case 2: return "Martes";
+            case 3: return "Miércoles";
+            case 4: return "Jueves";
+            case 5: return "Viernes";
+            case 6: return "Sábado";
+            case 7: return "Domingo";
+            default: return "";
+        }
+    }
 }

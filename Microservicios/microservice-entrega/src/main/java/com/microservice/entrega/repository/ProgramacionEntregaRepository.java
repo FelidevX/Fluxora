@@ -30,4 +30,7 @@ public interface ProgramacionEntregaRepository extends JpaRepository<Programacio
 
     @Query("SELECT pe FROM ProgramacionEntrega pe WHERE pe.id_ruta = :idRuta")
     List<ProgramacionEntrega> findByIdRuta(@Param("idRuta") Long idRuta);
+
+    @Query("SELECT COUNT(DISTINCT pe.id_cliente) FROM ProgramacionEntrega pe WHERE pe.fecha_programada = :fecha")
+    Long countClientesByFechaProgramada(@Param("fecha") LocalDate fecha);
 }

@@ -171,4 +171,17 @@ public class EntregaController {
             return ResponseEntity.badRequest().body("Error al eliminar relaciones del cliente: " + e.getMessage());
         }
     }
+
+    // Obtener estadísticas para el dashboard
+    @GetMapping("/estadisticas-dashboard")
+    public ResponseEntity<Map<String, Object>> obtenerEstadisticasDashboard() {
+        try {
+            Map<String, Object> estadisticas = entregaService.obtenerEstadisticasDashboard();
+            return ResponseEntity.ok(estadisticas);
+        } catch (Exception e) {
+            System.err.println("Error al obtener estadísticas del dashboard: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
 }

@@ -223,6 +223,17 @@ public class EntregaService {
 
             registroEntregaRepository.save(registroEntrega);
 
+            List<ProgramacionEntrega> programaciones = programacionEntregaRepository
+                    .findByIdRutaAndIdClienteAndFechaProgramada(
+                            dto.getId_ruta(),
+                            dto.getId_cliente(),
+                            dto.getFecha_programada());
+
+            for (ProgramacionEntrega prog : programaciones) {
+                prog.setEstado("ENTREGADO");
+                programacionEntregaRepository.save(prog);
+            }
+
             String emailDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getEmail();
             String nombreDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getNombre();
             Double precioCorriente = clienteServiceClient.getClienteById(dto.getId_cliente()).getPrecioCorriente() ;
@@ -572,6 +583,14 @@ public class EntregaService {
             return "Entrega programada exitosamente";
         } catch (Exception e) {
             throw new RuntimeException("Error al programar entrega diaria: " + e.getMessage(), e);
+        }
+    }
+
+    public List<ProgramacionEntrega> getProgramacionPorRutaYFecha(Long idRuta, LocalDate fecha) {
+        try {
+            return programacionEntregaRepository.findByIdRutaAndFechaProgramada(idRuta, fecha);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener programación por ruta y fecha: " + e.getMessage(), e);
         }
     }
 

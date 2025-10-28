@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,6 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegistroEntregaDTO {
+    private Long id_ruta;
+    private LocalDate fecha_programada;
     private Long id_pedido;
     private Long id_cliente;
     private LocalDateTime hora_entregada;

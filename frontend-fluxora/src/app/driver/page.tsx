@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import PantallaRuta from "@/components/driver/ruta/PantallaRuta";
 import PantallaClientes from "@/components/driver/clientes/PantallaClientes";
 import FormularioContainer from "@/components/driver/formcontainer/FormContainer";
@@ -53,6 +53,7 @@ export default function DriverHomePage() {
   const [iniciandoRuta, setIniciandoRuta] = useState(false);
   const [rutaId, setRutaId] = useState<number | null>(null);
   const [pedidoId, setPedidoId] = useState<number | null>(null);
+  const [programacion, setProgramacion] = useState<any[]>([]);
   
   // Estado para rastrear clientes entregados
   const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(new Set());
@@ -63,6 +64,12 @@ export default function DriverHomePage() {
     
     fetchRutaOptimizada();
   }, []);
+
+  useEffect(() => {
+    if (rutaId) {
+          handleObtenerProgramacion();
+    }
+  }, [rutaId]);
 
   // Cargar entregas realizadas cuando hay pedidoId
   useEffect(() => {
@@ -172,11 +179,54 @@ export default function DriverHomePage() {
       }));
       
       setEntregas(entregasFromRuta);
+      console.log('Entregas iniciales establecidas:', entregasFromRuta);
     } catch (err) {
       console.error('Error al cargar ruta:', err);
       setError('Error al cargar la ruta optimizada');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleObtenerProgramacion = async () => {
+    if (!rutaId) {
+      alert("ID de ruta no disponible");
+      return;
+    }
+
+    try {
+      let token = localStorage.getItem('auth_token');
+
+      if (!token) {
+        alert("No autenticado. Por favor, inicia sesión.");
+        return;
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+      
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programacion/${rutaId}/${today}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al obtener programación: " + response.statusText);
+      }
+
+      const data = await response.json();
+      console.log("Programación obtenida:", data);
+      setProgramacion(data);
+    } catch (error) {
+      console.error("Error al obtener programación:", error);
+      alert("Hubo un error al obtener la programación. Por favor, inténtelo de nuevo.");
     }
   };
 
@@ -306,7 +356,11 @@ export default function DriverHomePage() {
   };
 
   // Calcular entregas pendientes en tiempo real
-  const entregasPendientes = entregas.filter(e => e.estado === 'pendiente').length;
+  const clientesPendientes = Array.from(
+    new Set(
+      programacion.filter(p => p.estado === "PENDIENTE").map(p => p.id_cliente)
+    )
+  ).length;
 
   // Estados de carga
   if (loading) {
@@ -356,7 +410,7 @@ export default function DriverHomePage() {
           <h1 className="text-3xl font-bold mb-2">¡Bienvenido!</h1>
           <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-4">
             <p className="text-sm mb-1">Ruta de hoy</p>
-            <p className="text-2xl font-bold">{entregas.length} entregas</p>
+            <p className="text-2xl font-bold">{clientesPendientes} entregas</p>
           </div>
         </div>
 
@@ -410,7 +464,7 @@ export default function DriverHomePage() {
           {/* Contador dinámico */}
           {rutaData && (
             <div className="bg-white/20 px-2 py-1 rounded text-xs">
-              {entregasPendientes} pendientes
+              {clientesPendientes} pendientes
             </div>
           )}
           <button onClick={handleLogout} className="p-2 bg-white/20 rounded-lg">
@@ -446,7 +500,7 @@ export default function DriverHomePage() {
             <div className="flex items-center justify-center gap-1">
               <MaterialIcon name="box_add" className="mr-1" />
               {/*Contador dinámico */}
-              <span>Entregas ({entregasPendientes})</span>
+              <span>Entregas ({clientesPendientes})</span>
             </div>
           </button>
         </div>

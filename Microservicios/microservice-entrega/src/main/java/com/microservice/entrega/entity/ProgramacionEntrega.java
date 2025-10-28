@@ -33,7 +33,7 @@ public class ProgramacionEntrega {
     private Double kg_corriente_programado;
     private Double kg_especial_programado;
     private Integer orden;
-    private String estado;
+    private String estado = "PENDIENTE";
     
     @CreationTimestamp
     private LocalDateTime fecha_creacion;

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.microservice.entrega.dto.ClienteDTO;
 import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
+import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.service.EntregaService;
@@ -157,6 +158,17 @@ public class EntregaController {
             return ResponseEntity.ok("Entrega programada exitosamente");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al programar entrega: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/programacion/{idRuta}/{fecha}")
+    public ResponseEntity<List<ProgramacionEntrega>> getProgramacionPorRutaYFecha(@PathVariable Long idRuta, @PathVariable String fecha) {
+        try {
+            LocalDate fechaProgramacion = LocalDate.parse(fecha);
+            List<ProgramacionEntrega> programaciones = entregaService.getProgramacionPorRutaYFecha(idRuta, fechaProgramacion);
+            return ResponseEntity.ok(programaciones);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 

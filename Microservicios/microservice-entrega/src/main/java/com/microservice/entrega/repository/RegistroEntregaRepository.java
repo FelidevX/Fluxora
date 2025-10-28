@@ -36,4 +36,31 @@ public interface RegistroEntregaRepository extends JpaRepository<RegistroEntrega
 
     @Query(value = "SELECT COALESCE(SUM(re.corriente_entregado + re.especial_entregado),0) FROM registro_entrega re WHERE DATE(re.hora_entregada) = :fecha", nativeQuery = true)
     Double sumKilosByFecha(@Param("fecha") LocalDate fecha);
+
+    // Queries para reporte de entregas
+    @Query(value = "SELECT DATE(re.hora_entregada) as fecha, " +
+            "COUNT(*) as totalEntregas, " +
+            "COALESCE(SUM(re.corriente_entregado), 0) as kgCorriente, " +
+            "COALESCE(SUM(re.especial_entregado), 0) as kgEspecial " +
+            "FROM registro_entrega re " +
+            "WHERE DATE(re.hora_entregada) BETWEEN :fechaInicio AND :fechaFin " +
+            "GROUP BY DATE(re.hora_entregada) " +
+            "ORDER BY DATE(re.hora_entregada)", nativeQuery = true)
+    List<Object[]> obtenerReporteEntregas(@Param("fechaInicio") LocalDate fechaInicio, 
+                                           @Param("fechaFin") LocalDate fechaFin);
+
+    @Query(value = "SELECT DATE(re.hora_entregada) as fecha, " +
+            "COUNT(*) as totalEntregas, " +
+            "COALESCE(SUM(re.corriente_entregado), 0) as kgCorriente, " +
+            "COALESCE(SUM(re.especial_entregado), 0) as kgEspecial " +
+            "FROM registro_entrega re " +
+            "INNER JOIN programacion_entrega pe ON re.id_cliente = pe.id_cliente " +
+            "INNER JOIN ruta r ON pe.id_ruta = r.id " +
+            "WHERE DATE(re.hora_entregada) BETWEEN :fechaInicio AND :fechaFin " +
+            "AND r.id = :idRuta " +
+            "GROUP BY DATE(re.hora_entregada) " +
+            "ORDER BY DATE(re.hora_entregada)", nativeQuery = true)
+    List<Object[]> obtenerReporteEntregasPorRuta(@Param("fechaInicio") LocalDate fechaInicio, 
+                                                   @Param("fechaFin") LocalDate fechaFin,
+                                                   @Param("idRuta") Long idRuta);
 }

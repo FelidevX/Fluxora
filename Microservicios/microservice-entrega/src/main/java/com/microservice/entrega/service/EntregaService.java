@@ -671,4 +671,88 @@ public class EntregaService {
             default: return "";
         }
     }
+
+    
+     // Generar reporte de entregas por periodo
+     
+    public Map<String, Object> generarReporteEntregas(LocalDate fechaInicio, LocalDate fechaFin, Long idRuta) {
+        Map<String, Object> respuesta = new HashMap<>();
+        
+        try {
+            // Obtener datos de entregas realizadas
+            List<Object[]> datosEntregas;
+            if (idRuta != null) {
+                datosEntregas = registroEntregaRepository.obtenerReporteEntregasPorRuta(fechaInicio, fechaFin, idRuta);
+            } else {
+                datosEntregas = registroEntregaRepository.obtenerReporteEntregas(fechaInicio, fechaFin);
+            }
+            
+            // Obtener entregas programadas por día
+            List<Object[]> entregasProgramadas = programacionEntregaRepository.countEntregasProgramadasPorDia(fechaInicio, fechaFin);
+            Map<LocalDate, Long> programadasMap = new HashMap<>();
+            for (Object[] row : entregasProgramadas) {
+                java.sql.Date sqlDate = (java.sql.Date) row[0];
+                LocalDate fecha = sqlDate.toLocalDate();
+                Long total = ((Number) row[1]).longValue();
+                programadasMap.put(fecha, total);
+            }
+            
+            // Procesar datos
+            List<Map<String, Object>> datos = new ArrayList<>();
+            double totalKgCorriente = 0;
+            double totalKgEspecial = 0;
+            long totalEntregasRealizadas = 0;
+            long totalEntregasProgramadas = 0;
+            
+            for (Object[] row : datosEntregas) {
+                Map<String, Object> fila = new HashMap<>();
+                java.sql.Date sqlDate = (java.sql.Date) row[0];
+                LocalDate fecha = sqlDate.toLocalDate();
+                Long totalEntregas = ((Number) row[1]).longValue();
+                Double kgCorriente = ((Number) row[2]).doubleValue();
+                Double kgEspecial = ((Number) row[3]).doubleValue();
+                
+                Long entregasProgramadasDia = programadasMap.getOrDefault(fecha, 0L);
+                double porcentajeCompletado = entregasProgramadasDia > 0 
+                    ? (totalEntregas.doubleValue() / entregasProgramadasDia.doubleValue() * 100) 
+                    : 0;
+                
+                fila.put("fecha", fecha.toString());
+                fila.put("entregasProgramadas", entregasProgramadasDia);
+                fila.put("totalEntregas", totalEntregas);
+                fila.put("entregasCompletadas", totalEntregas);
+                fila.put("kgCorriente", kgCorriente);
+                fila.put("kgEspecial", kgEspecial);
+                fila.put("kgTotal", kgCorriente + kgEspecial);
+                fila.put("porcentajeCompletado", porcentajeCompletado);
+                
+                datos.add(fila);
+                
+                totalKgCorriente += kgCorriente;
+                totalKgEspecial += kgEspecial;
+                totalEntregasRealizadas += totalEntregas;
+                totalEntregasProgramadas += entregasProgramadasDia;
+            }
+            
+            // Crear resumen
+            Map<String, Object> resumen = new HashMap<>();
+            resumen.put("totalEntregas", totalEntregasRealizadas);
+            resumen.put("totalProgramadas", totalEntregasProgramadas);
+            resumen.put("totalKilos", totalKgCorriente + totalKgEspecial);
+            resumen.put("porcentajeCompletado", totalEntregasProgramadas > 0 
+                ? (totalEntregasRealizadas * 100.0 / totalEntregasProgramadas) 
+                : 0);
+            
+            respuesta.put("datos", datos);
+            respuesta.put("resumen", resumen);
+            respuesta.put("fechaGeneracion", LocalDateTime.now().toString());
+            
+        } catch (Exception e) {
+            System.err.println("Error al generar reporte de entregas: " + e.getMessage());
+            e.printStackTrace();
+            respuesta.put("error", "Error al generar reporte: " + e.getMessage());
+        }
+        
+        return respuesta;
+    }
 }

@@ -33,4 +33,19 @@ public interface ProgramacionEntregaRepository extends JpaRepository<Programacio
 
     @Query("SELECT COUNT(DISTINCT pe.id_cliente) FROM ProgramacionEntrega pe WHERE pe.fecha_programada = :fecha")
     Long countClientesByFechaProgramada(@Param("fecha") LocalDate fecha);
+
+        // Consultas para reportes
+        @Query(value = "SELECT COUNT(DISTINCT pe.id_cliente) " +
+                "FROM programacion_entrega pe " +
+                "WHERE pe.fecha_programada BETWEEN :fechaInicio AND :fechaFin", nativeQuery = true)
+        Long countEntregasProgramadas(@Param("fechaInicio") LocalDate fechaInicio,
+                                    @Param("fechaFin") LocalDate fechaFin);
+
+        @Query(value = "SELECT pe.fecha_programada, COUNT(DISTINCT pe.id_cliente) " +
+                "FROM programacion_entrega pe " +
+                "WHERE pe.fecha_programada BETWEEN :fechaInicio AND :fechaFin " +
+                "GROUP BY pe.fecha_programada " +
+                "ORDER BY pe.fecha_programada", nativeQuery = true)
+        List<Object[]> countEntregasProgramadasPorDia(@Param("fechaInicio") LocalDate fechaInicio,
+                                                        @Param("fechaFin") LocalDate fechaFin);
 }

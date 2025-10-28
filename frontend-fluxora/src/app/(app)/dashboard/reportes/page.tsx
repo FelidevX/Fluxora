@@ -6,7 +6,6 @@ import ReportCard from "@/components/reportes/ReportCard";
 import ReportFilters from "@/components/reportes/ReportFilters";
 import ReportTable from "@/components/reportes/ReportTable";
 import ReportSummary from "@/components/reportes/ReportSummary";
-import { ExcelExportService } from "@/services/exportacion/excelExportService";
 
 export default function ReportesPage() {
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoReporte | null>(
@@ -47,24 +46,45 @@ export default function ReportesPage() {
 
   // Manejar generación de reporte
   const handleGenerarReporte = async (filtros: FiltrosReporte) => {
-    const resultado = await generarReporte(filtros);
-    if (resultado) {
-      setDatosReporte(resultado);
+    console.log("handleGenerarReporte llamado con:", filtros);
+    try {
+      const resultado = await generarReporte(filtros);
+      console.log("Resultado del reporte:", resultado);
+      if (resultado) {
+        setDatosReporte(resultado);
+      }
+    } catch (err) {
+      console.error("Error en handleGenerarReporte:", err);
     }
   };
 
   // Exportar a Excel
   const exportarAExcel = async () => {
-    if (!datosReporte || !datosReporte.datos || !tipoSeleccionado) return;
+    if (!datosReporte || !datosReporte.datos || !tipoSeleccionado) {
+      alert("No hay datos para exportar");
+      return;
+    }
 
-    await ExcelExportService.exportarCompleto({
-      tipo: tipoSeleccionado,
-      datos: datosReporte.datos,
-      resumen: datosReporte.resumen,
-      columnas: getColumnas(),
-      fechaInicio: datosReporte.fechaInicio,
-      fechaFin: datosReporte.fechaFin,
-    });
+    try {
+      console.log("Exportando a Excel...");
+      const { ExcelExportService } = await import(
+        "@/services/exportacion/excelExportService"
+      );
+
+      await ExcelExportService.exportarCompleto({
+        tipo: tipoSeleccionado,
+        datos: datosReporte.datos,
+        resumen: datosReporte.resumen,
+        columnas: getColumnas(),
+        fechaInicio: datosReporte.fechaInicio,
+        fechaFin: datosReporte.fechaFin,
+      });
+
+      console.log("Excel exportado exitosamente");
+    } catch (err) {
+      console.error("Error al exportar:", err);
+      alert("Error al exportar el reporte");
+    }
   };
 
   // Obtener columnas según el tipo de reporte
@@ -111,8 +131,8 @@ export default function ReportesPage() {
           },
           { key: "numeroClientes", label: "Nº Clientes" },
           {
-            key: "ticketPromedio",
-            label: "Ticket Promedio",
+            key: "ventaPromedio",
+            label: "Venta promedio",
             format: (v: number) => `$${v?.toLocaleString()}`,
           },
         ];
@@ -164,7 +184,7 @@ export default function ReportesPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6  mx-auto">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Reportes</h1>

@@ -17,6 +17,8 @@ public class RegistroEntregaDTO {
     private String comentario;
     private Double corriente_entregado;
     private Double especial_entregado;
+    private Double precio_corriente;      // Nuevo: precio por kg corriente para este cliente
+    private Double precio_especial;       // Nuevo: precio por kg especial para este cliente
     
     // Lista de productos entregados para descontar
     private List<ProductoEntregadoDTO> productos;

@@ -50,8 +50,8 @@ export default function ReportSummary({ resumen, tipo }: ReportSummaryProps) {
             icon: "👥",
           },
           {
-            label: "Ticket Promedio",
-            value: `$${(resumen.ticketPromedio || 0).toLocaleString()}`,
+            label: "Venta Promedio",
+            value: `$${(resumen.ventaPromedio || 0).toLocaleString()}`,
             icon: "🎫",
           },
         ];

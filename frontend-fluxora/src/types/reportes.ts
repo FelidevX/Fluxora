@@ -41,7 +41,7 @@ export interface ReporteVentas {
   ventasCorriente: number;
   ventasEspecial: number;
   numeroClientes: number;
-  ticketPromedio: number;
+  ventaPromedio: number;
 }
 
 // Reporte de inventario

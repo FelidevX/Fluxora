@@ -100,7 +100,7 @@ export class ExcelExportService {
         allData.push(["Ventas Totales", resumen.totalVentas || 0]);
         allData.push(["Kg Vendidos", (resumen.totalKilos || 0).toFixed(2)]);
         allData.push(["Clientes Únicos", resumen.totalClientes || 0]);
-        allData.push(["Ticket Promedio", resumen.ticketPromedio || 0]);
+        allData.push(["Venta Promedio", resumen.ventaPromedio || 0]);
         break;
 
       case "inventario":
@@ -226,8 +226,8 @@ export class ExcelExportService {
         ]);
         data.push(["Clientes Únicos", resumen.totalClientes || 0]);
         data.push([
-          "Ticket Promedio",
-          `$${(resumen.ticketPromedio || 0).toLocaleString("es-CL")}`,
+          "Venta Promedio",
+          `$${(resumen.ventaPromedio || 0).toLocaleString("es-CL")}`,
         ]);
         break;
 

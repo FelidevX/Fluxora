@@ -43,7 +43,9 @@ export default function ReportFilters({
     setFechaFin(hoy.toISOString().split("T")[0]);
   }, [periodo]);
 
-  const handleGenerar = () => {
+  const handleGenerar = (e?: React.MouseEvent) => {
+    e?.preventDefault(); // Prevenir recarga de página
+
     if (!tipoSeleccionado) {
       alert("Por favor selecciona un tipo de reporte");
       return;
@@ -112,7 +114,7 @@ export default function ReportFilters({
               value={fechaInicio}
               onChange={(e) => setFechaInicio(e.target.value)}
               disabled={periodo !== "personalizado"}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-700"
             />
           </div>
           <div>
@@ -124,13 +126,14 @@ export default function ReportFilters({
               value={fechaFin}
               onChange={(e) => setFechaFin(e.target.value)}
               disabled={periodo !== "personalizado"}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-700"
             />
           </div>
         </div>
 
         {/* Botón generar */}
         <button
+          type="button"
           onClick={handleGenerar}
           disabled={!tipoSeleccionado || loading}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"

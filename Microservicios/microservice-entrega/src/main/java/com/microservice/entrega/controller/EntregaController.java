@@ -196,4 +196,43 @@ public class EntregaController {
             return ResponseEntity.status(500).build();
         }
     }
+
+    // Generar reporte de entregas
+    @GetMapping("/reporte-entregas")
+    public ResponseEntity<Map<String, Object>> generarReporteEntregas(
+            @org.springframework.web.bind.annotation.RequestParam String fechaInicio,
+            @org.springframework.web.bind.annotation.RequestParam String fechaFin,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Long idRuta) {
+        try {
+            LocalDate inicio = LocalDate.parse(fechaInicio);
+            LocalDate fin = LocalDate.parse(fechaFin);
+            Map<String, Object> reporte = entregaService.generarReporteEntregas(inicio, fin, idRuta);
+            return ResponseEntity.ok(reporte);
+        } catch (Exception e) {
+            System.err.println("Error al generar reporte de entregas: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al generar reporte: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    // Generar reporte de ventas
+    @GetMapping("/reporte-ventas")
+    public ResponseEntity<Map<String, Object>> generarReporteVentas(
+            @org.springframework.web.bind.annotation.RequestParam String fechaInicio,
+            @org.springframework.web.bind.annotation.RequestParam String fechaFin) {
+        try {
+            LocalDate inicio = LocalDate.parse(fechaInicio);
+            LocalDate fin = LocalDate.parse(fechaFin);
+            Map<String, Object> reporte = entregaService.generarReporteVentas(inicio, fin);
+            return ResponseEntity.ok(reporte);
+        } catch (Exception e) {
+            System.err.println("Error al generar reporte de ventas: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al generar reporte: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
 }

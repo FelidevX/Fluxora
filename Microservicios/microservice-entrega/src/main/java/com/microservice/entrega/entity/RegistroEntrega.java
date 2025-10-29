@@ -25,5 +25,8 @@ public class RegistroEntrega {
     private LocalDateTime hora_entregada;
     private Double corriente_entregado;
     private Double especial_entregado;
+    private Double monto_corriente;      // Nuevo: monto por kg corriente
+    private Double monto_especial;       // Nuevo: monto por kg especial
+    private Double monto_total;          // Nuevo: monto total de la entrega
     private String comentario;
 }

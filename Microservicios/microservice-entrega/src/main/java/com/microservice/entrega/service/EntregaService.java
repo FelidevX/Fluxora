@@ -213,6 +213,25 @@ public class EntregaService {
 
     public void registrarEntrega(RegistroEntregaDTO dto) {
         try {
+            // Obtener información del cliente
+            ClienteDTO cliente = clienteServiceClient.getClienteById(dto.getId_cliente());
+            String emailDestinatario = cliente.getEmail();
+            String nombreDestinatario = cliente.getNombre();
+            
+            // Usar precios del DTO si están disponibles, sino usar precios del cliente
+            final Double precioCorriente = dto.getPrecio_corriente() != null 
+                ? dto.getPrecio_corriente() 
+                : cliente.getPrecioCorriente();
+            final Double precioEspecial = dto.getPrecio_especial() != null 
+                ? dto.getPrecio_especial() 
+                : cliente.getPrecioEspecial();
+
+            // Calcular montos
+            Double montoCorriente = (dto.getCorriente_entregado() != null ? dto.getCorriente_entregado() : 0.0) * precioCorriente;
+            Double montoEspecial = (dto.getEspecial_entregado() != null ? dto.getEspecial_entregado() : 0.0) * precioEspecial;
+            Double montoTotal = montoCorriente + montoEspecial;
+
+            // Crear registro de entrega con montos calculados
             RegistroEntrega registroEntrega = new RegistroEntrega();
             registroEntrega.setId_pedido(dto.getId_pedido());
             registroEntrega.setId_cliente(dto.getId_cliente());
@@ -220,8 +239,14 @@ public class EntregaService {
             registroEntrega.setComentario(dto.getComentario());
             registroEntrega.setCorriente_entregado(dto.getCorriente_entregado());
             registroEntrega.setEspecial_entregado(dto.getEspecial_entregado());
+            registroEntrega.setMonto_corriente(montoCorriente);
+            registroEntrega.setMonto_especial(montoEspecial);
+            registroEntrega.setMonto_total(montoTotal);
 
             registroEntregaRepository.save(registroEntrega);
+
+
+            System.out.println("✅ Entrega registrada - Total: $" + montoTotal + " (Corriente: $" + montoCorriente + ", Especial: $" + montoEspecial + ")");
 
             List<ProgramacionEntrega> programaciones = programacionEntregaRepository
                     .findByIdRutaAndIdClienteAndFechaProgramada(
@@ -232,14 +257,7 @@ public class EntregaService {
             for (ProgramacionEntrega prog : programaciones) {
                 prog.setEstado("ENTREGADO");
                 programacionEntregaRepository.save(prog);
-            }
-
-            String emailDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getEmail();
-            String nombreDestinatario = clienteServiceClient.getClienteById(dto.getId_cliente()).getNombre();
-            Double precioCorriente = clienteServiceClient.getClienteById(dto.getId_cliente()).getPrecioCorriente() ;
-            Double precioEspecial = clienteServiceClient.getClienteById(dto.getId_cliente()).getPrecioEspecial();
-
-
+            } 
 
             for (var producto : dto.getProductos()) {
                 if (producto.getCantidad_kg() != null && producto.getCantidad_kg() > 0) {
@@ -689,5 +707,163 @@ public class EntregaService {
             case 7: return "Domingo";
             default: return "";
         }
+    }
+
+    
+     // Generar reporte de entregas por periodo
+     
+    public Map<String, Object> generarReporteEntregas(LocalDate fechaInicio, LocalDate fechaFin, Long idRuta) {
+        Map<String, Object> respuesta = new HashMap<>();
+        
+        try {
+            // Obtener datos de entregas realizadas
+            List<Object[]> datosEntregas;
+            if (idRuta != null) {
+                datosEntregas = registroEntregaRepository.obtenerReporteEntregasPorRuta(fechaInicio, fechaFin, idRuta);
+            } else {
+                datosEntregas = registroEntregaRepository.obtenerReporteEntregas(fechaInicio, fechaFin);
+            }
+            
+            // Obtener entregas programadas por día
+            List<Object[]> entregasProgramadas = programacionEntregaRepository.countEntregasProgramadasPorDia(fechaInicio, fechaFin);
+            Map<LocalDate, Long> programadasMap = new HashMap<>();
+            for (Object[] row : entregasProgramadas) {
+                java.sql.Date sqlDate = (java.sql.Date) row[0];
+                LocalDate fecha = sqlDate.toLocalDate();
+                Long total = ((Number) row[1]).longValue();
+                programadasMap.put(fecha, total);
+            }
+            
+            // Procesar datos
+            List<Map<String, Object>> datos = new ArrayList<>();
+            double totalKgCorriente = 0;
+            double totalKgEspecial = 0;
+            long totalEntregasRealizadas = 0;
+            long totalEntregasProgramadas = 0;
+            
+            for (Object[] row : datosEntregas) {
+                Map<String, Object> fila = new HashMap<>();
+                java.sql.Date sqlDate = (java.sql.Date) row[0];
+                LocalDate fecha = sqlDate.toLocalDate();
+                Long totalEntregas = ((Number) row[1]).longValue();
+                Double kgCorriente = ((Number) row[2]).doubleValue();
+                Double kgEspecial = ((Number) row[3]).doubleValue();
+                
+                Long entregasProgramadasDia = programadasMap.getOrDefault(fecha, 0L);
+                double porcentajeCompletado = entregasProgramadasDia > 0 
+                    ? (totalEntregas.doubleValue() / entregasProgramadasDia.doubleValue() * 100) 
+                    : 0;
+                
+                fila.put("fecha", fecha.toString());
+                fila.put("entregasProgramadas", entregasProgramadasDia);
+                fila.put("totalEntregas", totalEntregas);
+                fila.put("entregasCompletadas", totalEntregas);
+                fila.put("kgCorriente", kgCorriente);
+                fila.put("kgEspecial", kgEspecial);
+                fila.put("kgTotal", kgCorriente + kgEspecial);
+                fila.put("porcentajeCompletado", porcentajeCompletado);
+                
+                datos.add(fila);
+                
+                totalKgCorriente += kgCorriente;
+                totalKgEspecial += kgEspecial;
+                totalEntregasRealizadas += totalEntregas;
+                totalEntregasProgramadas += entregasProgramadasDia;
+            }
+            
+            // Crear resumen
+            Map<String, Object> resumen = new HashMap<>();
+            resumen.put("totalEntregas", totalEntregasRealizadas);
+            resumen.put("totalProgramadas", totalEntregasProgramadas);
+            resumen.put("totalKilos", totalKgCorriente + totalKgEspecial);
+            resumen.put("porcentajeCompletado", totalEntregasProgramadas > 0 
+                ? (totalEntregasRealizadas * 100.0 / totalEntregasProgramadas) 
+                : 0);
+            
+            respuesta.put("datos", datos);
+            respuesta.put("resumen", resumen);
+            respuesta.put("fechaGeneracion", LocalDateTime.now().toString());
+            
+        } catch (Exception e) {
+            System.err.println("Error al generar reporte de entregas: " + e.getMessage());
+            e.printStackTrace();
+            respuesta.put("error", "Error al generar reporte: " + e.getMessage());
+        }
+        
+        return respuesta;
+    }
+
+    /**
+     * Generar reporte de ventas por periodo
+     */
+    public Map<String, Object> generarReporteVentas(LocalDate fechaInicio, LocalDate fechaFin) {
+        Map<String, Object> respuesta = new HashMap<>();
+        
+        try {
+            // Obtener datos de ventas (ahora con montos guardados en BD)
+            List<Object[]> datosVentas = registroEntregaRepository.obtenerReporteVentas(fechaInicio, fechaFin);
+            
+            // Procesar datos
+            List<Map<String, Object>> datos = new ArrayList<>();
+            double totalVentasGeneral = 0;
+            double totalKilosGeneral = 0;
+            double totalVentasCorriente = 0;
+            double totalVentasEspecial = 0;
+            int totalClientesUnicos = 0;
+            
+            for (Object[] row : datosVentas) {
+                Map<String, Object> fila = new HashMap<>();
+                java.sql.Date sqlDate = (java.sql.Date) row[0];
+                LocalDate fecha = sqlDate.toLocalDate();
+                Double totalVentas = ((Number) row[1]).doubleValue();
+                Double totalKilos = ((Number) row[2]).doubleValue();
+                Double ventasCorriente = ((Number) row[3]).doubleValue();
+                Double ventasEspecial = ((Number) row[4]).doubleValue();
+                Long numeroClientes = ((Number) row[5]).longValue();
+                
+                double ventaPromedio = numeroClientes > 0 ? totalVentas / numeroClientes : 0;
+                
+                fila.put("fecha", fecha.toString());
+                fila.put("totalVentas", totalVentas);
+                fila.put("totalKilos", totalKilos);
+                fila.put("ventasCorriente", ventasCorriente);
+                fila.put("ventasEspecial", ventasEspecial);
+                fila.put("numeroClientes", numeroClientes);
+                fila.put("ventaPromedio", ventaPromedio);
+                
+                datos.add(fila);
+                
+                totalVentasGeneral += totalVentas;
+                totalKilosGeneral += totalKilos;
+                totalVentasCorriente += ventasCorriente;
+                totalVentasEspecial += ventasEspecial;
+                totalClientesUnicos += numeroClientes.intValue();
+            }
+            
+            // Crear resumen
+            Map<String, Object> resumen = new HashMap<>();
+            resumen.put("totalVentas", totalVentasGeneral);
+            resumen.put("totalKilos", totalKilosGeneral);
+            resumen.put("ventasCorriente", totalVentasCorriente);
+            resumen.put("ventasEspecial", totalVentasEspecial);
+            resumen.put("totalClientes", totalClientesUnicos);
+            resumen.put("ventaPromedio", totalClientesUnicos > 0
+                ? totalVentasGeneral / totalClientesUnicos 
+                : 0);
+            resumen.put("totalRegistros", datos.size());
+            
+            respuesta.put("datos", datos);
+            respuesta.put("resumen", resumen);
+            respuesta.put("fechaInicio", fechaInicio.toString());
+            respuesta.put("fechaFin", fechaFin.toString());
+            respuesta.put("fechaGeneracion", LocalDateTime.now().toString());
+            
+        } catch (Exception e) {
+            System.err.println("Error al generar reporte de ventas: " + e.getMessage());
+            e.printStackTrace();
+            respuesta.put("error", "Error al generar reporte: " + e.getMessage());
+        }
+        
+        return respuesta;
     }
 }

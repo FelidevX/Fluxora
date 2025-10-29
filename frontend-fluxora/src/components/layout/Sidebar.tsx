@@ -75,11 +75,6 @@ const items: Item[] = [
   },
   { href: "/dashboard/clientes", label: "Clientes", icon: "groups" },
 
-  {
-    href: "/dashboard/facturacion",
-    label: "Facturación",
-    icon: "receipt_long",
-  },
   { href: "/dashboard/reportes", label: "Reportes", icon: "assessment" },
   { href: "/dashboard/admin", label: "Administración", icon: "settings" },
 ];

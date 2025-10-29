@@ -245,7 +245,19 @@ public class EntregaService {
 
             registroEntregaRepository.save(registroEntrega);
 
+
             System.out.println("✅ Entrega registrada - Total: $" + montoTotal + " (Corriente: $" + montoCorriente + ", Especial: $" + montoEspecial + ")");
+
+            List<ProgramacionEntrega> programaciones = programacionEntregaRepository
+                    .findByIdRutaAndIdClienteAndFechaProgramada(
+                            dto.getId_ruta(),
+                            dto.getId_cliente(),
+                            dto.getFecha_programada());
+
+            for (ProgramacionEntrega prog : programaciones) {
+                prog.setEstado("ENTREGADO");
+                programacionEntregaRepository.save(prog);
+            } 
 
             for (var producto : dto.getProductos()) {
                 if (producto.getCantidad_kg() != null && producto.getCantidad_kg() > 0) {
@@ -589,6 +601,14 @@ public class EntregaService {
             return "Entrega programada exitosamente";
         } catch (Exception e) {
             throw new RuntimeException("Error al programar entrega diaria: " + e.getMessage(), e);
+        }
+    }
+
+    public List<ProgramacionEntrega> getProgramacionPorRutaYFecha(Long idRuta, LocalDate fecha) {
+        try {
+            return programacionEntregaRepository.findByIdRutaAndFechaProgramada(idRuta, fecha);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener programación por ruta y fecha: " + e.getMessage(), e);
         }
     }
 

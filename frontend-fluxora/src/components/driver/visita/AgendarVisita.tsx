@@ -318,6 +318,8 @@ export default function PantallaAgendarVisita({
 
       const entregaPayload = {
         id_pedido: pedidoId,
+        id_ruta: rutaId,
+        fecha_programada: new Date().toISOString().slice(0, 10), // "YYYY-MM-DD"
         id_cliente: clienteId,
         comentario: formularioData.comentario || "",
         corriente_entregado: corriente,

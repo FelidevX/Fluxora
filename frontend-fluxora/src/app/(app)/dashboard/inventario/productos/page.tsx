@@ -12,6 +12,7 @@ import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import LoteProductoModal from "@/components/inventario/LoteProductoModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModalText";
+import RegistrarMermaModal from "@/components/inventario/RegistrarMermaModal";
 
 export default function ProductosPage() {
   const {
@@ -40,6 +41,7 @@ export default function ProductosPage() {
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(
     null
   );
+  const [showMermaModal, setShowMermaModal] = useState(false);
 
   const [formulario, setFormulario] = useState<ProductoDTO>({
     nombre: "",
@@ -312,6 +314,10 @@ export default function ProductosPage() {
             icon="search"
           />
         </div>
+        <Button onClick={() => setShowMermaModal(true)} variant="danger">
+          <MaterialIcon name="delete_sweep" className="mr-2" />
+          Registrar Merma
+        </Button>
         <Button
           onClick={() => {
             resetFormulario();
@@ -573,6 +579,16 @@ export default function ProductosPage() {
         message="¿Está seguro de que desea eliminar este producto? Se eliminarán también todos sus lotes de producción. Esta acción no se puede deshacer."
         itemName={productoAEliminar?.nombre}
         requireConfirmation={true}
+      />
+
+      {/* Modal de registro de merma */}
+      <RegistrarMermaModal
+        isOpen={showMermaModal}
+        onClose={() => setShowMermaModal(false)}
+        onSuccess={() => {
+          // Aquí podrías recargar productos si quisieras actualizar el stock
+          console.log("Merma registrada exitosamente");
+        }}
       />
     </div>
   );

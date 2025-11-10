@@ -1,5 +1,6 @@
 package com.microservice.entrega.dto;
 
+import com.microservice.entrega.entity.TipoMovimiento;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegistroEntregaDTO {
+    private TipoMovimiento tipo;
     private Long id_ruta;
     private LocalDate fecha_programada;
     private Long id_pedido;

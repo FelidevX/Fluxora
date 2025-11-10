@@ -1,5 +1,7 @@
 // Interfaces basadas en el backend real
 
+export type TipoMovimiento = "VENTA" | "MERMA" | "AJUSTE";
+
 export interface ClienteDTO {
   id: number;
   nombreNegocio: string;
@@ -29,10 +31,12 @@ export interface RutaDTO {
 
 export interface RegistroEntrega {
   id?: number;
-  id_cliente: number;
+  tipo?: TipoMovimiento;
+  id_cliente?: number;
   hora_entregada?: string;
   corriente_entregado: number;
   especial_entregado: number;
+  comentario?: string;
 }
 
 export interface RutaActiva {

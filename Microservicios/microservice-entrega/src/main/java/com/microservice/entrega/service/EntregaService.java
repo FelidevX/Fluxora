@@ -20,6 +20,7 @@ import com.microservice.entrega.dto.ClienteDTO;
 import com.microservice.entrega.dto.ProductoEntregadoDTO;
 import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
+import com.microservice.entrega.entity.TipoMovimiento;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
@@ -213,18 +214,33 @@ public class EntregaService {
 
     public void registrarEntrega(RegistroEntregaDTO dto) {
         try {
-            // Obtener información del cliente
-            ClienteDTO cliente = clienteServiceClient.getClienteById(dto.getId_cliente());
-            String emailDestinatario = cliente.getEmail();
-            String nombreDestinatario = cliente.getNombre();
+            // Establecer tipo por defecto si no viene especificado
+            TipoMovimiento tipo = dto.getTipo() != null ? dto.getTipo() : TipoMovimiento.VENTA;
             
-            // Usar precios del DTO si están disponibles, sino usar precios del cliente
-            final Double precioCorriente = dto.getPrecio_corriente() != null 
-                ? dto.getPrecio_corriente() 
-                : cliente.getPrecioCorriente();
-            final Double precioEspecial = dto.getPrecio_especial() != null 
-                ? dto.getPrecio_especial() 
-                : cliente.getPrecioEspecial();
+            // Obtener información del cliente (solo si es una VENTA)
+            ClienteDTO cliente = null;
+            String emailDestinatario = null;
+            String nombreDestinatario = null;
+            final Double precioCorriente;
+            final Double precioEspecial;
+            
+            if (tipo == TipoMovimiento.VENTA && dto.getId_cliente() != null) {
+                cliente = clienteServiceClient.getClienteById(dto.getId_cliente());
+                emailDestinatario = cliente.getEmail();
+                nombreDestinatario = cliente.getNombre();
+                
+                // Usar precios del DTO si están disponibles, sino usar precios del cliente
+                precioCorriente = dto.getPrecio_corriente() != null 
+                    ? dto.getPrecio_corriente() 
+                    : cliente.getPrecioCorriente();
+                precioEspecial = dto.getPrecio_especial() != null 
+                    ? dto.getPrecio_especial() 
+                    : cliente.getPrecioEspecial();
+            } else {
+                // Para MERMA y AJUSTE, precios en 0
+                precioCorriente = 0.0;
+                precioEspecial = 0.0;
+            }
 
             // Calcular montos
             Double montoCorriente = (dto.getCorriente_entregado() != null ? dto.getCorriente_entregado() : 0.0) * precioCorriente;
@@ -233,6 +249,7 @@ public class EntregaService {
 
             // Crear registro de entrega con montos calculados
             RegistroEntrega registroEntrega = new RegistroEntrega();
+            registroEntrega.setTipo(tipo);
             registroEntrega.setId_pedido(dto.getId_pedido());
             registroEntrega.setId_cliente(dto.getId_cliente());
             registroEntrega.setHora_entregada(dto.getHora_entregada());
@@ -246,80 +263,89 @@ public class EntregaService {
             registroEntregaRepository.save(registroEntrega);
 
 
-            System.out.println("✅ Entrega registrada - Total: $" + montoTotal + " (Corriente: $" + montoCorriente + ", Especial: $" + montoEspecial + ")");
+            System.out.println("✅ Entrega registrada - Tipo: " + tipo + " Total: $" + montoTotal + " (Corriente: $" + montoCorriente + ", Especial: $" + montoEspecial + ")");
 
-            List<ProgramacionEntrega> programaciones = programacionEntregaRepository
-                    .findByIdRutaAndIdClienteAndFechaProgramada(
-                            dto.getId_ruta(),
-                            dto.getId_cliente(),
-                            dto.getFecha_programada());
+            // Solo actualizar programación si es una VENTA con ruta
+            if (tipo == TipoMovimiento.VENTA && dto.getId_ruta() != null && dto.getFecha_programada() != null) {
+                List<ProgramacionEntrega> programaciones = programacionEntregaRepository
+                        .findByIdRutaAndIdClienteAndFechaProgramada(
+                                dto.getId_ruta(),
+                                dto.getId_cliente(),
+                                dto.getFecha_programada());
 
-            for (ProgramacionEntrega prog : programaciones) {
-                prog.setEstado("ENTREGADO");
-                programacionEntregaRepository.save(prog);
-            } 
-
-            for (var producto : dto.getProductos()) {
-                if (producto.getCantidad_kg() != null && producto.getCantidad_kg() > 0) {
-                    try {
-                        Map<String, Object> datosDescuento = new HashMap<>();
-                        datosDescuento.put("descontarCantidad", producto.getCantidad_kg().intValue());
-                        
-                        System.out.println("Descontando " + producto.getCantidad_kg() + " kg del producto ID: " + producto.getId_producto());
-
-                        ResponseEntity<?> response = inventarioServiceClient.descontarInventario(
-                            producto.getId_producto(), 
-                            datosDescuento
-                        );
-
-                        if (!response.getStatusCode().is2xxSuccessful()) {
-                            throw new RuntimeException("Error al descontar inventario para producto ID: " + producto.getId_producto());
-                        }
-
-                        System.out.println("Inventario descontado correctamente para: " + producto.getNombreProducto());
-
-                    } catch (Exception e) {
-                        System.err.println("Error al descontar inventario del producto " + producto.getNombreProducto() + ": " + e.getMessage());
-                        throw new RuntimeException("Error al descontar inventario: " + e.getMessage());
-                    }
+                for (ProgramacionEntrega prog : programaciones) {
+                    prog.setEstado("ENTREGADO");
+                    programacionEntregaRepository.save(prog);
                 }
             }
 
-            try {
-                // Filtrar productos con cantidad mayor a cero
-                List<ProductoEntregadoDTO> productosEntregados = dto.getProductos().stream()
-                        .filter(p -> p.getCantidad_kg() != null && p.getCantidad_kg() > 0)
-                        .toList();
+            // Solo descontar inventario y enviar email si es una VENTA
+            if (tipo == TipoMovimiento.VENTA && dto.getProductos() != null) {
+                for (var producto : dto.getProductos()) {
+                    if (producto.getCantidad_kg() != null && producto.getCantidad_kg() > 0) {
+                        try {
+                            Map<String, Object> datosDescuento = new HashMap<>();
+                            datosDescuento.put("descontarCantidad", producto.getCantidad_kg().intValue());
+                            
+                            System.out.println("Descontando " + producto.getCantidad_kg() + " kg del producto ID: " + producto.getId_producto());
 
-                if (!productosEntregados.isEmpty()) {
-                    // Calcular total del pedido
-                    double totalPedido = productosEntregados.stream()
-                            .mapToDouble(p -> {
-                                double precio = p.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? precioCorriente : precioEspecial;
-                                return p.getCantidad_kg() * precio;
-                            })
-                            .sum();
+                            ResponseEntity<?> response = inventarioServiceClient.descontarInventario(
+                                producto.getId_producto(), 
+                                datosDescuento
+                            );
 
-                    // Genera HTML del correo
-                    String cuerpoHTML = emailTemplateGenerator.generarEmailEntregaPedido(
-                        nombreDestinatario,
-                        dto.getId_pedido(),
-                        productosEntregados,
-                        totalPedido,
-                        dto.getComentario(),
-                        dto.getHora_entregada(),
-                        precioCorriente,
-                        precioEspecial
-                    );
+                            if (!response.getStatusCode().is2xxSuccessful()) {
+                                throw new RuntimeException("Error al descontar inventario para producto ID: " + producto.getId_producto());
+                            }
 
-                    // Asunto del correo
-                    String asunto = "✅ Tu pedido #" + dto.getId_pedido() + " ha sido entregado";
+                            System.out.println("Inventario descontado correctamente para: " + producto.getNombreProducto());
 
-                    emailService.enviarEmailSimple(emailDestinatario, asunto, cuerpoHTML);
-                    
+                        } catch (Exception e) {
+                            System.err.println("Error al descontar inventario del producto " + producto.getNombreProducto() + ": " + e.getMessage());
+                            throw new RuntimeException("Error al descontar inventario: " + e.getMessage());
+                        }
+                    }
                 }
-            } catch (Exception e) {
-                System.err.println("⚠️ Error al enviar correo (la entrega fue registrada correctamente): " + e.getMessage());
+
+                // Enviar email solo si es VENTA y hay cliente
+                if (emailDestinatario != null && nombreDestinatario != null) {
+                    try {
+                        // Filtrar productos con cantidad mayor a cero
+                        List<ProductoEntregadoDTO> productosEntregados = dto.getProductos().stream()
+                                .filter(p -> p.getCantidad_kg() != null && p.getCantidad_kg() > 0)
+                                .toList();
+
+                        if (!productosEntregados.isEmpty()) {
+                            // Calcular total del pedido
+                            double totalPedido = productosEntregados.stream()
+                                    .mapToDouble(p -> {
+                                        double precio = p.getTipoProducto().equalsIgnoreCase("CORRIENTE") ? precioCorriente : precioEspecial;
+                                        return p.getCantidad_kg() * precio;
+                                    })
+                                    .sum();
+
+                            // Genera HTML del correo
+                            String cuerpoHTML = emailTemplateGenerator.generarEmailEntregaPedido(
+                                nombreDestinatario,
+                                dto.getId_pedido(),
+                                productosEntregados,
+                                totalPedido,
+                                dto.getComentario(),
+                                dto.getHora_entregada(),
+                                precioCorriente,
+                                precioEspecial
+                            );
+
+                            // Asunto del correo
+                            String asunto = "✅ Tu pedido #" + dto.getId_pedido() + " ha sido entregado";
+
+                            emailService.enviarEmailSimple(emailDestinatario, asunto, cuerpoHTML);
+                            
+                        }
+                    } catch (Exception e) {
+                        System.err.println("⚠️ Error al enviar correo (la entrega fue registrada correctamente): " + e.getMessage());
+                    }
+                }
             }
 
         } catch (Exception e) {

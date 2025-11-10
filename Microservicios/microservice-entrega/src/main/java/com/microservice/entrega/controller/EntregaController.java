@@ -20,6 +20,7 @@ import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
+import com.microservice.entrega.entity.TipoMovimiento;
 import com.microservice.entrega.service.EntregaService;
 
 @RestController
@@ -39,18 +40,24 @@ public class EntregaController {
     @PostMapping("/registrar")
     public ResponseEntity<Map<String, Object>> registrarEntrega(@RequestBody RegistroEntregaDTO registroEntregaDTO) {
         try {
-            if (registroEntregaDTO.getId_pedido() == null) {
-                System.err.println("ERROR: id_pedido es NULL");
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "El id_pedido es obligatorio");
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
+            // Determinar tipo (por defecto VENTA si no viene especificado)
+            TipoMovimiento tipo = registroEntregaDTO.getTipo() != null ? registroEntregaDTO.getTipo() : TipoMovimiento.VENTA;
+            
+            // Validaciones específicas para VENTA
+            if (tipo == TipoMovimiento.VENTA) {
+                if (registroEntregaDTO.getId_pedido() == null) {
+                    System.err.println("ERROR: id_pedido es NULL para una VENTA");
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "El id_pedido es obligatorio para ventas");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
 
-            if (registroEntregaDTO.getProductos() == null || registroEntregaDTO.getProductos().isEmpty()) {
-                System.err.println("ERROR: No se enviaron productos");
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Debe incluir al menos un producto");
-                return ResponseEntity.badRequest().body(errorResponse);
+                if (registroEntregaDTO.getProductos() == null || registroEntregaDTO.getProductos().isEmpty()) {
+                    System.err.println("ERROR: No se enviaron productos para una VENTA");
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Debe incluir al menos un producto para ventas");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
             }
 
             entregaService.registrarEntrega(registroEntregaDTO);

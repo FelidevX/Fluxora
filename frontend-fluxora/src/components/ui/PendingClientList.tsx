@@ -50,7 +50,7 @@ export default function PendingClientList({
         }
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/clientes-sin-ruta`,
+          `${API_BASE_URL}/api/entregas/rutas/clientes-sin-ruta`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -90,7 +90,7 @@ export default function PendingClientList({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas`,
+        `${API_BASE_URL}/api/entregas/rutas`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -167,7 +167,7 @@ export default function PendingClientList({
 
       for (const clientId of selectedClientIds) {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/asignar-cliente`,
+          `${API_BASE_URL}/api/entregas/rutas/asignar-cliente`,
           {
             method: "POST",
             headers: {

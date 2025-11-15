@@ -28,7 +28,7 @@ export default function GestionEntregas() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-activas`,
+        `${API_BASE_URL}/api/entregas/entrega/rutas-activas`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

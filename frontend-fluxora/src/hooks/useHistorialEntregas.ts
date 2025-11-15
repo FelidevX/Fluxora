@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/config/api";
 
 interface Ruta {
   id: number;
@@ -57,7 +58,7 @@ export function useHistorialEntregas() {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios?rol=DRIVER`,
+        `${API_BASE_URL}/api/usuarios/usuarios?rol=DRIVER`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -79,7 +80,7 @@ export function useHistorialEntregas() {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
+        `${API_BASE_URL}/api/clientes/clientes`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -101,7 +102,7 @@ export function useHistorialEntregas() {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedidos`,
+        `${API_BASE_URL}/api/entregas/entrega/pedidos`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -126,7 +127,7 @@ export function useHistorialEntregas() {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${idPedido}`,
+        `${API_BASE_URL}/api/entregas/entrega/pedido/${idPedido}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

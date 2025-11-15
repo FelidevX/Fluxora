@@ -94,7 +94,7 @@ export default function PantallaFormulario({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fechaFormateada}`,
+        `${API_BASE_URL}/api/entregas/entrega/rutas-por-fecha/${fechaFormateada}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

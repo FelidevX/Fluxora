@@ -90,7 +90,7 @@ export default function PantallaAgendarVisita({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fechaFormateada}`,
+        `${API_BASE_URL}/api/entregas/entrega/rutas-por-fecha/${fechaFormateada}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -123,7 +123,7 @@ export default function PantallaAgendarVisita({
       }
 
       const productosResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos`,
+        `${API_BASE_URL}/api/inventario/productos`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -144,7 +144,7 @@ export default function PantallaAgendarVisita({
         productos.map(async (producto: any) => {
           try {
             const lotesResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos/${producto.id}/lotes`,
+              `${API_BASE_URL}/api/inventario/productos/${producto.id}/lotes`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -329,7 +329,7 @@ export default function PantallaAgendarVisita({
       };
 
       const entregaResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/registrar`,
+        `${API_BASE_URL}/api/entregas/entrega/registrar`,
         {
           method: "POST",
           headers: {
@@ -355,7 +355,7 @@ export default function PantallaAgendarVisita({
       console.log("Agendando entrega:", programacionPayload);
 
       const programarResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programar-entrega`,
+        `${API_BASE_URL}/api/entregas/entrega/programar-entrega`,
         {
           method: "POST",
           headers: {

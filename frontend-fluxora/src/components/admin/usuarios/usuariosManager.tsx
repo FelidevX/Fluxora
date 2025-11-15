@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Usuario } from "@/types/usuario";
 import { Rol } from "@/types/rol";
+import { API_BASE_URL } from "@/config/api";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Badge from "@/components/ui/Badge";
 import Button from "../../ui/Button";
@@ -61,7 +62,7 @@ const UsuariosManager: React.FC = () => {
         token = token.substring(7);
       }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios`,
+        `${API_BASE_URL}/api/usuarios/usuarios`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -84,7 +85,7 @@ const UsuariosManager: React.FC = () => {
         token = token.substring(7);
       }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/roles`,
+        `${API_BASE_URL}/api/usuarios/roles`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -113,7 +114,7 @@ const UsuariosManager: React.FC = () => {
         token = token.substring(7);
       }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios`,
+        `${API_BASE_URL}/api/usuarios/usuarios`,
         {
           method: "POST",
           headers: {
@@ -164,7 +165,7 @@ const UsuariosManager: React.FC = () => {
         token = token.substring(7);
       }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios/${deleteUserId}`,
+        `${API_BASE_URL}/api/usuarios/usuarios/${deleteUserId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -206,7 +207,7 @@ const UsuariosManager: React.FC = () => {
         token = token.substring(7);
       }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios/${usuarioAEditar.id}`,
+        `${API_BASE_URL}/api/usuarios/usuarios/${usuarioAEditar.id}`,
         {
           method: "PUT",
           headers: {

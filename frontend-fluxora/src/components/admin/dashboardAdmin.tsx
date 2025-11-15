@@ -26,7 +26,7 @@ const UsuariosManager: React.FC = () => {
         token = token.substring(7);
       }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios`,
+        `${API_BASE_URL}/api/usuarios/usuarios`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

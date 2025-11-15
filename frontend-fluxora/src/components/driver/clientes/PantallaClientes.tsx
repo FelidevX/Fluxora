@@ -49,7 +49,7 @@ export default function PantallaClientes({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedidoId}`,
+        `${API_BASE_URL}/api/entregas/entrega/pedido/${pedidoId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -121,7 +121,7 @@ export default function PantallaClientes({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/finalizar/${pedidoId}`,
+        `${API_BASE_URL}/api/entregas/rutas/finalizar/${pedidoId}`,
         {
           method: "POST",
           headers: {

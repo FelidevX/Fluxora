@@ -6,37 +6,37 @@
 erDiagram
     %% MÓDULO: USUARIOS
     rol ||--o{ usuario : "tiene"
-    
+
     %% MÓDULO: CLIENTES
     cliente ||--o{ ruta_cliente : "está en"
     cliente ||--o{ programacion_entrega : "recibe"
     cliente ||--o{ registro_entrega : "recibe"
-    
+
     %% MÓDULO: RUTAS Y ENTREGAS
     usuario ||--o{ ruta : "conduce"
     ruta ||--o{ ruta_cliente : "contiene"
     ruta ||--o{ programacion_entrega : "tiene"
     usuario ||--o{ sesion_reparto : "realiza"
-    
+
     %% MÓDULO: MATERIAS PRIMAS
     materias_primas ||--o{ lotes_materia_prima : "tiene"
     materias_primas ||--o{ receta_ingredientes : "usa"
     materias_primas ||--o{ insumos_produccion : "consume"
     compras_materia_prima ||--o{ lotes_materia_prima : "genera"
-    
+
     %% MÓDULO: PRODUCTOS Y RECETAS
     recetas_maestras ||--o{ receta_ingredientes : "contiene"
     recetas_maestras ||--o{ productos : "produce"
     productos ||--o{ lotes_producto : "tiene"
     lotes_producto ||--o{ programacion_entrega : "entrega"
-    
+
     %% DEFINICIÓN DE TABLAS
-    
+
     rol {
         bigint id PK
         varchar rol UK
     }
-    
+
     usuario {
         bigint id PK
         varchar nombre
@@ -44,7 +44,7 @@ erDiagram
         varchar password
         bigint rol_id FK
     }
-    
+
     cliente {
         bigint id PK
         varchar nombre_negocio
@@ -57,13 +57,13 @@ erDiagram
         double precio_corriente
         double precio_especial
     }
-    
+
     materias_primas {
         bigint id PK
         varchar nombre
         varchar unidad
     }
-    
+
     compras_materia_prima {
         bigint id PK
         varchar num_doc
@@ -73,7 +73,7 @@ erDiagram
         date fecha_pago
         date created_at
     }
-    
+
     lotes_materia_prima {
         bigint id PK
         bigint materia_prima_id FK
@@ -85,7 +85,7 @@ erDiagram
         date fecha_compra
         date fecha_vencimiento
     }
-    
+
     recetas_maestras {
         bigint id PK
         varchar nombre
@@ -99,7 +99,7 @@ erDiagram
         date fecha_creacion
         boolean activa
     }
-    
+
     receta_ingredientes {
         bigint id PK
         bigint receta_maestra_id FK
@@ -110,7 +110,7 @@ erDiagram
         boolean es_opcional
         text notas
     }
-    
+
     productos {
         bigint id PK
         varchar nombre
@@ -120,7 +120,7 @@ erDiagram
         varchar estado
         bigint receta_maestra_id FK
     }
-    
+
     lotes_producto {
         bigint id PK
         bigint producto_id FK
@@ -132,14 +132,14 @@ erDiagram
         date fecha_vencimiento
         varchar estado
     }
-    
+
     insumos_produccion {
         bigint id PK
         bigint materia_prima_id FK
         double cantidad_usada
         date fecha
     }
-    
+
     ruta {
         bigint id PK
         varchar nombre
@@ -147,7 +147,7 @@ erDiagram
         double longitud
         bigint id_driver FK
     }
-    
+
     ruta_cliente {
         bigint id PK
         bigint id_ruta FK
@@ -159,7 +159,7 @@ erDiagram
         double kg_especial_programado
         timestamp fecha_actualizacion
     }
-    
+
     programacion_entrega {
         bigint id PK
         bigint id_ruta FK
@@ -175,7 +175,7 @@ erDiagram
         timestamp fecha_creacion
         timestamp fecha_actualizacion
     }
-    
+
     sesion_reparto {
         bigint id PK
         bigint id_driver FK
@@ -186,7 +186,7 @@ erDiagram
         double especial_devuelto
         timestamp hora_retorno
     }
-    
+
     registro_entrega {
         bigint id PK
         bigint id_pedido
@@ -199,7 +199,7 @@ erDiagram
         double monto_total
         text comentario
     }
-    
+
     resumen_entrega {
         bigint id PK
         double total_corriente_vendido
@@ -257,30 +257,31 @@ graph TD
 
 ## Cardinalidad de Relaciones
 
-| Tabla Origen | Relación | Tabla Destino | Cardinalidad |
-|--------------|----------|---------------|--------------|
-| **rol** | tiene | usuario | 1:N |
-| **usuario** | conduce | ruta | 1:N |
-| **usuario** | realiza | sesion_reparto | 1:N |
-| **cliente** | está en | ruta_cliente | 1:N |
-| **cliente** | recibe | programacion_entrega | 1:N |
-| **cliente** | recibe | registro_entrega | 1:N |
-| **ruta** | contiene | ruta_cliente | 1:N |
-| **ruta** | tiene | programacion_entrega | 1:N |
-| **materias_primas** | tiene | lotes_materia_prima | 1:N |
-| **materias_primas** | usa en | receta_ingredientes | 1:N |
-| **materias_primas** | consume | insumos_produccion | 1:N |
-| **compras_materia_prima** | genera | lotes_materia_prima | 1:N |
-| **recetas_maestras** | contiene | receta_ingredientes | 1:N |
-| **recetas_maestras** | produce | productos | 1:N |
-| **productos** | tiene | lotes_producto | 1:N |
-| **lotes_producto** | entrega en | programacion_entrega | 1:N |
+| Tabla Origen              | Relación   | Tabla Destino        | Cardinalidad |
+| ------------------------- | ---------- | -------------------- | ------------ |
+| **rol**                   | tiene      | usuario              | 1:N          |
+| **usuario**               | conduce    | ruta                 | 1:N          |
+| **usuario**               | realiza    | sesion_reparto       | 1:N          |
+| **cliente**               | está en    | ruta_cliente         | 1:N          |
+| **cliente**               | recibe     | programacion_entrega | 1:N          |
+| **cliente**               | recibe     | registro_entrega     | 1:N          |
+| **ruta**                  | contiene   | ruta_cliente         | 1:N          |
+| **ruta**                  | tiene      | programacion_entrega | 1:N          |
+| **materias_primas**       | tiene      | lotes_materia_prima  | 1:N          |
+| **materias_primas**       | usa en     | receta_ingredientes  | 1:N          |
+| **materias_primas**       | consume    | insumos_produccion   | 1:N          |
+| **compras_materia_prima** | genera     | lotes_materia_prima  | 1:N          |
+| **recetas_maestras**      | contiene   | receta_ingredientes  | 1:N          |
+| **recetas_maestras**      | produce    | productos            | 1:N          |
+| **productos**             | tiene      | lotes_producto       | 1:N          |
+| **lotes_producto**        | entrega en | programacion_entrega | 1:N          |
 
 ---
 
 ## Relaciones Clave
 
 ### Relaciones Obligatorias (NOT NULL)
+
 - `usuario.rol_id` → `rol.id`
 - `lotes_materia_prima.materia_prima_id` → `materias_primas.id`
 - `lotes_producto.producto_id` → `productos.id`
@@ -288,6 +289,7 @@ graph TD
 - `ruta_cliente.id_cliente` → `cliente.id`
 
 ### Relaciones Opcionales (NULL permitido)
+
 - `ruta.id_driver` → `usuario.id` (puede no tener driver asignado)
 - `productos.receta_maestra_id` → `recetas_maestras.id` (productos sin receta)
 - `lotes_materia_prima.compra_id` → `compras_materia_prima.id` (lotes legacy)
@@ -342,22 +344,22 @@ Resumen Entrega (consolidado financiero)
 
 ## Índices por Tabla
 
-| Tabla | Índices |
-|-------|---------|
-| **usuario** | email, rol_id |
-| **cliente** | email, (latitud, longitud) |
-| **materias_primas** | nombre |
-| **lotes_materia_prima** | materia_prima_id, compra_id, fecha_vencimiento, stock_actual |
-| **compras_materia_prima** | fecha_compra, proveedor, num_doc |
-| **recetas_maestras** | nombre, activa |
-| **receta_ingredientes** | receta_maestra_id, materia_prima_id |
-| **productos** | nombre, tipo_producto, categoria, receta_maestra_id |
-| **lotes_producto** | producto_id, fecha_produccion, fecha_vencimiento, stock_actual |
-| **ruta** | id_driver |
-| **ruta_cliente** | id_ruta, id_cliente, fecha_programada, estado |
-| **programacion_entrega** | id_ruta, id_cliente, fecha_programada, estado |
-| **sesion_reparto** | id_driver, fecha |
-| **registro_entrega** | id_pedido, id_cliente, hora_entregada |
+| Tabla                     | Índices                                                        |
+| ------------------------- | -------------------------------------------------------------- |
+| **usuario**               | email, rol_id                                                  |
+| **cliente**               | email, (latitud, longitud)                                     |
+| **materias_primas**       | nombre                                                         |
+| **lotes_materia_prima**   | materia_prima_id, compra_id, fecha_vencimiento, stock_actual   |
+| **compras_materia_prima** | fecha_compra, proveedor, num_doc                               |
+| **recetas_maestras**      | nombre, activa                                                 |
+| **receta_ingredientes**   | receta_maestra_id, materia_prima_id                            |
+| **productos**             | nombre, tipo_producto, categoria, receta_maestra_id            |
+| **lotes_producto**        | producto_id, fecha_produccion, fecha_vencimiento, stock_actual |
+| **ruta**                  | id_driver                                                      |
+| **ruta_cliente**          | id_ruta, id_cliente, fecha_programada, estado                  |
+| **programacion_entrega**  | id_ruta, id_cliente, fecha_programada, estado                  |
+| **sesion_reparto**        | id_driver, fecha                                               |
+| **registro_entrega**      | id_pedido, id_cliente, hora_entregada                          |
 
 ---
 

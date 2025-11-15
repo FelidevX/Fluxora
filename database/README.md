@@ -18,18 +18,22 @@ Este directorio contiene el esquema completo de la base de datos para el sistema
 ### Módulos Principales
 
 #### 1. **Usuarios y Autenticación**
+
 - `rol` - Catálogo de roles (ADMIN, DRIVER, PRODUCTION, SALES)
 - `usuario` - Usuarios del sistema
 
 #### 2. **Clientes**
+
 - `cliente` - Información de clientes con geolocalización
 
 #### 3. **Inventario - Materias Primas**
+
 - `materias_primas` - Catálogo de materias primas
 - `compras_materia_prima` - Registro de compras
 - `lotes_materia_prima` - Lotes con control de stock (FIFO/PPP)
 
 #### 4. **Inventario - Productos**
+
 - `productos` - Catálogo de productos terminados
 - `lotes_producto` - Lotes de producción con costos
 - `recetas_maestras` - Recetas base
@@ -37,6 +41,7 @@ Este directorio contiene el esquema completo de la base de datos para el sistema
 - `insumos_produccion` - Consumo de materias primas
 
 #### 5. **Entregas y Rutas**
+
 - `ruta` - Rutas de entrega
 - `ruta_cliente` - Asignación de clientes a rutas
 - `programacion_entrega` - Programación detallada
@@ -51,19 +56,23 @@ Este directorio contiene el esquema completo de la base de datos para el sistema
 ### Opción 1: SQL Editor (Recomendado)
 
 1. **Accede a tu proyecto en Supabase**
+
    - Ve a https://supabase.com
    - Selecciona tu proyecto
 
 2. **Abre el SQL Editor**
+
    - Click en "SQL Editor" en el menú lateral
    - Click en "+ New query"
 
 3. **Copia y pega el contenido**
+
    - Abre el archivo `fluxora_schema.sql`
    - Copia TODO el contenido
    - Pégalo en el editor de Supabase
 
 4. **Ejecuta el script**
+
    - Click en "Run" o presiona `Ctrl + Enter`
    - Espera a que termine (puede tomar 30-60 segundos)
 
@@ -93,7 +102,7 @@ supabase db push --file fluxora_schema.sql
 Ejecuta esta consulta en SQL Editor:
 
 ```sql
-SELECT 
+SELECT
     schemaname,
     tablename,
     tableowner
@@ -103,6 +112,7 @@ ORDER BY tablename;
 ```
 
 Deberías ver **18 tablas**:
+
 - cliente
 - compras_materia_prima
 - insumos_produccion
@@ -132,6 +142,7 @@ SELECT id, nombre, email FROM usuario;
 ```
 
 Deberías ver:
+
 - 4 roles: ADMIN, DRIVER, PRODUCTION, SALES
 - 1 usuario: admin@fluxora.com
 
@@ -140,6 +151,7 @@ Deberías ver:
 ## 🔑 Credenciales por Defecto
 
 **Usuario Administrador:**
+
 - Email: `admin@fluxora.com`
 - Contraseña: `admin123`
 
@@ -152,6 +164,7 @@ Deberías ver:
 El script crea 3 vistas útiles para reportes:
 
 ### 1. `v_stock_materias_primas`
+
 Stock actual de todas las materias primas
 
 ```sql
@@ -159,6 +172,7 @@ SELECT * FROM v_stock_materias_primas;
 ```
 
 ### 2. `v_stock_productos`
+
 Stock actual de todos los productos
 
 ```sql
@@ -166,6 +180,7 @@ SELECT * FROM v_stock_productos;
 ```
 
 ### 3. `v_clientes_rutas`
+
 Clientes con sus rutas asignadas
 
 ```sql
@@ -185,7 +200,7 @@ SELECT fn_calcular_ppp_materia_prima(1); -- ID de materia prima
 ### 2. Verificar Stock Disponible
 
 ```sql
-SELECT fn_verificar_stock_materia_prima(1, 100.5); 
+SELECT fn_verificar_stock_materia_prima(1, 100.5);
 -- Retorna TRUE si hay stock suficiente
 ```
 
@@ -232,6 +247,7 @@ ALTER TABLE cliente ADD COLUMN telefono VARCHAR(20);
 ### Índices
 
 El esquema incluye índices en:
+
 - Claves foráneas (FK)
 - Campos de búsqueda frecuente
 - Campos de fecha
@@ -269,7 +285,7 @@ usuario ──────────┐
                   │         └─► programacion_entrega
                   │
                   └─► sesion_reparto
-                  
+
 materias_primas ──┬─► lotes_materia_prima ◄── compras_materia_prima
                   │
                   └─► receta_ingredientes ◄── recetas_maestras
@@ -286,6 +302,7 @@ productos ───────────────────────�
 ### Error: "relation already exists"
 
 Las tablas ya existen. Opciones:
+
 1. Usa `DROP TABLE` para eliminarlas
 2. O usa `CREATE TABLE IF NOT EXISTS` (ya incluido)
 
@@ -298,7 +315,7 @@ Tu usuario no tiene permisos. Contacta al administrador de Supabase.
 Refresca la página o ejecuta:
 
 ```sql
-SELECT * FROM information_schema.views 
+SELECT * FROM information_schema.views
 WHERE table_schema = 'public';
 ```
 
@@ -307,6 +324,7 @@ WHERE table_schema = 'public';
 ## 📞 Soporte
 
 Para más información sobre el proyecto Fluxora:
+
 - Repositorio: https://github.com/FelidevX/Fluxora
 - Branch: feature/deploy
 

@@ -25,7 +25,9 @@ export default function PantallaClientes({
   onFinalizarRuta,
 }: PantallaClientesProps) {
   const [isFinalizando, setIsFinalizando] = useState(false);
-  const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(new Set());
+  const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(
+    new Set()
+  );
   const [loading, setLoading] = useState(true);
 
   // Cargar entregas realizadas al montar el componente
@@ -43,7 +45,7 @@ export default function PantallaClientes({
         setLoading(false);
         return;
       }
-      
+
       if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
@@ -77,7 +79,7 @@ export default function PantallaClientes({
 
   // Marcar cliente como entregado localmente
   const marcarComoEntregado = (clienteId: number) => {
-    setClientesEntregados(prev => new Set([...prev, clienteId]));
+    setClientesEntregados((prev) => new Set([...prev, clienteId]));
   };
 
   // Exponer función para que el padre pueda actualizar el estado
@@ -86,7 +88,7 @@ export default function PantallaClientes({
   }, []);
 
   const clientesPendientes = orderedClients.filter(
-    c => !clientesEntregados.has(c.id)
+    (c) => !clientesEntregados.has(c.id)
   ).length;
 
   const handleFinalizarRuta = async () => {
@@ -143,7 +145,9 @@ export default function PantallaClientes({
       }
     } catch (error) {
       console.error("Error al finalizar ruta:", error);
-      alert("Hubo un error al finalizar la ruta. Por favor, inténtelo de nuevo.");
+      alert(
+        "Hubo un error al finalizar la ruta. Por favor, inténtelo de nuevo."
+      );
     } finally {
       setIsFinalizando(false);
     }
@@ -168,7 +172,9 @@ export default function PantallaClientes({
           <div className="flex items-center justify-between">
             <p className="text-sm sm:text-base text-gray-600">
               {clientesPendientes} de {orderedClients.length}{" "}
-              {orderedClients.length === 1 ? "entrega pendiente" : "entregas pendientes"}
+              {orderedClients.length === 1
+                ? "entrega pendiente"
+                : "entregas pendientes"}
             </p>
             <div className="flex items-center gap-2">
               <div className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
@@ -198,14 +204,14 @@ export default function PantallaClientes({
             <div className="space-y-2 sm:space-y-3">
               {orderedClients.map((cliente, index) => {
                 const estaEntregado = clientesEntregados.has(cliente.id);
-                
+
                 return (
                   <div
                     key={cliente.id}
                     className={`rounded-lg border transition-all duration-300 ${
-                      estaEntregado 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-gray-50 hover:bg-gray-100 active:bg-gray-200'
+                      estaEntregado
+                        ? "bg-green-50 border-green-200"
+                        : "bg-gray-50 hover:bg-gray-100 active:bg-gray-200"
                     } p-3 sm:p-4`}
                   >
                     <div className="flex items-center justify-between">
@@ -215,13 +221,14 @@ export default function PantallaClientes({
                         <div
                           className={`
                             flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-sm sm:text-base font-bold transition-all duration-300
-                            ${estaEntregado 
-                              ? 'bg-green-500' 
-                              : index === 0
-                              ? "bg-blue-500"
-                              : index === orderedClients.length - 1
-                              ? "bg-red-500"
-                              : "bg-gray-400"
+                            ${
+                              estaEntregado
+                                ? "bg-green-500"
+                                : index === 0
+                                ? "bg-blue-500"
+                                : index === orderedClients.length - 1
+                                ? "bg-red-500"
+                                : "bg-gray-400"
                             }
                           `}
                         >
@@ -233,14 +240,18 @@ export default function PantallaClientes({
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium text-sm sm:text-base truncate ${
-                            estaEntregado ? 'text-green-900' : 'text-gray-900'
-                          }`}>
+                          <p
+                            className={`font-medium text-sm sm:text-base truncate ${
+                              estaEntregado ? "text-green-900" : "text-gray-900"
+                            }`}
+                          >
                             {cliente.nombre}
                           </p>
-                          <p className={`text-xs sm:text-sm mt-1 line-clamp-2 ${
-                            estaEntregado ? 'text-green-600' : 'text-gray-500'
-                          }`}>
+                          <p
+                            className={`text-xs sm:text-sm mt-1 line-clamp-2 ${
+                              estaEntregado ? "text-green-600" : "text-gray-500"
+                            }`}
+                          >
                             {cliente.direccion}
                           </p>
 
@@ -248,22 +259,32 @@ export default function PantallaClientes({
                           <div className="flex gap-2 mt-2">
                             {estaEntregado && (
                               <span className="inline-flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-                                <MaterialIcon name="check_circle" className="mr-1" />
+                                <MaterialIcon
+                                  name="check_circle"
+                                  className="mr-1"
+                                />
                                 Entregado
                               </span>
                             )}
                             {!estaEntregado && index === 0 && (
                               <span className="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
-                                <MaterialIcon name="rocket_launch" className="mr-1" />
+                                <MaterialIcon
+                                  name="rocket_launch"
+                                  className="mr-1"
+                                />
                                 Primera parada
                               </span>
                             )}
-                            {!estaEntregado && index === orderedClients.length - 1 && (
-                              <span className="inline-flex items-center text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
-                                <MaterialIcon name="sports_score" className="mr-1" />
-                                Última parada
-                              </span>
-                            )}
+                            {!estaEntregado &&
+                              index === orderedClients.length - 1 && (
+                                <span className="inline-flex items-center text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
+                                  <MaterialIcon
+                                    name="sports_score"
+                                    className="mr-1"
+                                  />
+                                  Última parada
+                                </span>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -271,17 +292,25 @@ export default function PantallaClientes({
                       {/* Botón de entrega */}
                       <div className="flex flex-col gap-2 ml-3">
                         <button
-                          onClick={() => !estaEntregado && onEntregarClick?.(cliente)}
+                          onClick={() =>
+                            !estaEntregado && onEntregarClick?.(cliente)
+                          }
                           disabled={estaEntregado}
                           className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 shadow-sm ${
                             estaEntregado
-                              ? 'bg-green-100 text-green-800 cursor-not-allowed opacity-75'
-                              : 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white cursor-pointer'
+                              ? "bg-green-100 text-green-800 cursor-not-allowed opacity-75"
+                              : "bg-green-600 hover:bg-green-700 active:bg-green-800 text-white cursor-pointer"
                           }`}
                         >
                           <div className="flex items-center justify-center gap-1">
-                            <MaterialIcon name={estaEntregado ? "check_circle" : "package_2"} />
-                            <span>{estaEntregado ? "Entregado" : "Entregar"}</span>
+                            <MaterialIcon
+                              name={
+                                estaEntregado ? "check_circle" : "package_2"
+                              }
+                            />
+                            <span>
+                              {estaEntregado ? "Entregado" : "Entregar"}
+                            </span>
                           </div>
                         </button>
                       </div>
@@ -318,7 +347,10 @@ export default function PantallaClientes({
           </button>
           {clientesPendientes > 0 && (
             <p className="text-center text-xs text-gray-500 mt-2">
-              {clientesPendientes} {clientesPendientes === 1 ? 'entrega pendiente' : 'entregas pendientes'}
+              {clientesPendientes}{" "}
+              {clientesPendientes === 1
+                ? "entrega pendiente"
+                : "entregas pendientes"}
             </p>
           )}
         </div>

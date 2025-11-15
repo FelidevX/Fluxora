@@ -89,15 +89,12 @@ export default function PendingClientList({
         token = token.substring(7);
       }
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/entregas/rutas`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/entregas/rutas`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);

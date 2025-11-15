@@ -61,12 +61,9 @@ const UsuariosManager: React.FC = () => {
       if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
-      const res = await fetch(
-        `${API_BASE_URL}/api/usuarios/usuarios`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/usuarios/usuarios`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Error al cargar usuarios");
       const data = await res.json();
       setUsuarios(data);
@@ -84,12 +81,9 @@ const UsuariosManager: React.FC = () => {
       if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
-      const res = await fetch(
-        `${API_BASE_URL}/api/usuarios/roles`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/usuarios/roles`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Error al cargar roles");
       const data = await res.json();
       setRoles(data);
@@ -113,22 +107,19 @@ const UsuariosManager: React.FC = () => {
       if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
-      const res = await fetch(
-        `${API_BASE_URL}/api/usuarios/usuarios`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            nombre: formulario.nombre,
-            email: formulario.email,
-            password: formulario.password,
-            rolId: Number(formulario.rolId),
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/usuarios/usuarios`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nombre: formulario.nombre,
+          email: formulario.email,
+          password: formulario.password,
+          rolId: Number(formulario.rolId),
+        }),
+      });
       if (!res.ok) {
         let errorMsg = "Error al crear usuario";
         if (res.status === 401 || res.status === 403) {

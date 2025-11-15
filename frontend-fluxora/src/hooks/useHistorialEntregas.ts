@@ -79,15 +79,12 @@ export function useHistorialEntregas() {
   const fetchClientes = async () => {
     try {
       const token = getAuthToken();
-      const response = await fetch(
-        `${API_BASE_URL}/api/clientes/clientes`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/clientes/clientes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();

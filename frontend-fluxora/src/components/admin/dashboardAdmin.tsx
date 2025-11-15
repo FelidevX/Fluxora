@@ -25,12 +25,9 @@ const UsuariosManager: React.FC = () => {
       if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
-      const res = await fetch(
-        `${API_BASE_URL}/api/usuarios/usuarios`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/usuarios/usuarios`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Error al cargar usuarios");
       const data = await res.json();
       setUsuarios(data);

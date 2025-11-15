@@ -4,8 +4,11 @@
  */
 
 // URL base del API Gateway
+// Soporta NEXT_PUBLIC_API_URL (recomendado) o NEXT_PUBLIC_API_BASE (legacy)
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE ||
+  "http://localhost:8080";
 
 // Endpoints por microservicio
 export const API_ENDPOINTS = {

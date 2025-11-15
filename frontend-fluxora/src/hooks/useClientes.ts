@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { ClienteDTO, ClienteResponse } from "@/types/Clientes";
+import { API_ENDPOINTS } from "@/config/api";
 
 interface UseClientesResult {
   clientes: ClienteResponse[];
@@ -29,10 +30,9 @@ export function useClientes(): UseClientesResult {
         token = token.substring(7);
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await fetch(API_ENDPOINTS.clientes.base, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -63,17 +63,14 @@ export function useClientes(): UseClientesResult {
         token = token.substring(7);
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(cliente),
-        }
-      );
+      const response = await fetch(API_ENDPOINTS.clientes.base, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(cliente),
+      });
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error("Error al crear el cliente");
@@ -103,13 +100,10 @@ export function useClientes(): UseClientesResult {
         token = token.substring(7);
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${API_ENDPOINTS.clientes.base}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Error al eliminar el cliente");

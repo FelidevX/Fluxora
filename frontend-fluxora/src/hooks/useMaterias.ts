@@ -4,6 +4,7 @@ import {
   MateriaPrimaDTO,
   LoteMateriaPrima,
 } from "@/types/inventario";
+import { API_ENDPOINTS } from "@/config/api";
 
 interface UseMateriasResult {
   materias: MateriaPrima[];
@@ -34,9 +35,7 @@ export function useMaterias(): UseMateriasResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        "http://localhost:8080/api/inventario/materias-primas"
-      );
+      const response = await fetch(API_ENDPOINTS.inventario.materiasPrimas);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -69,14 +68,11 @@ export function useMaterias(): UseMateriasResult {
         unidad: materia.unidad,
       };
 
-      const response = await fetch(
-        "http://localhost:8080/api/inventario/materias-primas",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(API_ENDPOINTS.inventario.materiasPrimas, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -104,7 +100,7 @@ export function useMaterias(): UseMateriasResult {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${id}`,
+        `${API_ENDPOINTS.inventario.materiasPrimas}/${id}`,
         { method: "DELETE" }
       );
 
@@ -129,7 +125,7 @@ export function useMaterias(): UseMateriasResult {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${id}`,
+        `${API_ENDPOINTS.inventario.materiasPrimas}/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -164,7 +160,7 @@ export function useMaterias(): UseMateriasResult {
       };
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${id}/lotes`,
+        `${API_ENDPOINTS.inventario.materiasPrimas}/${id}/lotes`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -3,6 +3,7 @@ import {
   CompraMateriaPrimaDTO,
   CompraMateriaPrimaResponse,
 } from "@/types/inventario";
+import { API_ENDPOINTS } from "@/config/api";
 
 interface UseComprasResult {
   compras: CompraMateriaPrimaResponse[];
@@ -29,9 +30,7 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        "http://localhost:8080/api/inventario/compras"
-      );
+      const response = await fetch(API_ENDPOINTS.inventario.compras);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,14 +54,11 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        "http://localhost:8080/api/inventario/compras",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(compra),
-        }
-      );
+      const response = await fetch(API_ENDPOINTS.inventario.compras, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(compra),
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -88,9 +84,7 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/${id}`
-      );
+      const response = await fetch(`${API_ENDPOINTS.inventario.compras}/${id}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -113,7 +107,7 @@ export function useCompras(): UseComprasResult {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/proveedor/${encodeURIComponent(
+        `${API_ENDPOINTS.inventario.compras}/proveedor/${encodeURIComponent(
           proveedor
         )}`
       );
@@ -139,7 +133,7 @@ export function useCompras(): UseComprasResult {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/recientes?dias=${dias}`
+        `${API_ENDPOINTS.inventario.compras}/recientes?dias=${dias}`
       );
 
       if (!response.ok) {
@@ -163,7 +157,7 @@ export function useCompras(): UseComprasResult {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/${id}`,
+        `${API_ENDPOINTS.inventario.compras}/${id}`,
         { method: "DELETE" }
       );
 

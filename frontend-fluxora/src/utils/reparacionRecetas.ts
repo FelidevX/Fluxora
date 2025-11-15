@@ -1,5 +1,6 @@
 // Utilitario para reparar recetas con ingredientes rotos
 import { MateriaPrima } from "@/types/inventario";
+import { API_ENDPOINTS } from "@/config/api";
 
 export interface RecetaRota {
   recetaId: number;
@@ -30,7 +31,7 @@ export async function buscarMateriaPorNombre(
 ): Promise<MateriaPrima[]> {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/inventario/materias-primas/buscar/${encodeURIComponent(
+      `${API_ENDPOINTS.inventario.materiasPrimas}/buscar/${encodeURIComponent(
         nombre
       )}`
     );
@@ -265,9 +266,7 @@ export async function repararTodasLasRecetasAutomaticamente(
 }> {
   try {
     // Obtener todas las recetas de la API
-    const response = await fetch(
-      "http://localhost:8080/api/inventario/recetas-maestras"
-    );
+    const response = await fetch(API_ENDPOINTS.inventario.recetas);
 
     if (!response.ok) {
       throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -302,7 +301,7 @@ export async function repararTodasLasRecetasAutomaticamente(
 
         // Actualizar la receta en la base de datos
         const updateResponse = await fetch(
-          `http://localhost:8080/api/inventario/recetas-maestras/${receta.id}`,
+          `${API_ENDPOINTS.inventario.recetas}/${receta.id}`,
           {
             method: "PUT",
             headers: {

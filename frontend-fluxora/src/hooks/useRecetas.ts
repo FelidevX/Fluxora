@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RecetaMaestra, RecetaMaestraDTO } from "@/types/produccion";
+import { API_ENDPOINTS } from "@/config/api";
 
 export function useRecetas() {
   const [recetas, setRecetas] = useState<RecetaMaestra[]>([]);
@@ -18,9 +19,7 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        "http://localhost:8080/api/inventario/recetas-maestras"
-      );
+      const response = await fetch(API_ENDPOINTS.inventario.recetas);
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -44,16 +43,13 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        "http://localhost:8080/api/inventario/recetas-maestras",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(nuevaReceta),
-        }
-      );
+      const response = await fetch(API_ENDPOINTS.inventario.recetas, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(nuevaReceta),
+      });
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -81,7 +77,7 @@ export function useRecetas() {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        `${API_ENDPOINTS.inventario.recetas}/${id}`,
         {
           method: "DELETE",
         }
@@ -111,7 +107,7 @@ export function useRecetas() {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        `${API_ENDPOINTS.inventario.recetas}/${id}`,
         {
           method: "PUT",
           headers: {
@@ -150,7 +146,7 @@ export function useRecetas() {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}/toggle-activa`,
+        `${API_ENDPOINTS.inventario.recetas}/${id}/toggle-activa`,
         {
           method: "PATCH",
         }

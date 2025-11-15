@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Producto, ProductoDTO, LoteProducto } from "@/types/inventario";
+import { API_ENDPOINTS } from "@/config/api";
 
 interface UseProductosResult {
   productos: Producto[];
@@ -30,9 +31,8 @@ interface UseProductosResult {
   clearError: () => void;
 }
 
-const API_BASE = "http://localhost:8080/api/inventario/productos";
-
 export function useProductos(): UseProductosResult {
+  const API_BASE = API_ENDPOINTS.inventario.productos;
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

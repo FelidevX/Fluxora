@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { MateriaPrimaDTO, MateriaPrima } from "@/types/inventario";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useCurrentDate } from "@/hooks/useDate";
+import { API_ENDPOINTS } from "@/config/api";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -126,7 +127,7 @@ export default function GestionMateriasPrimas() {
   const fetchLotes = async (materiaId: number) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${materiaId}/lotes`
+        `${API_ENDPOINTS.inventario.materiasPrimas}/${materiaId}/lotes`
       );
       if (!res.ok) throw new Error("Error al obtener lotes");
       const data = await res.json();

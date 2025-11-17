@@ -18,8 +18,12 @@ export default function LoginPage() {
     setError(null);
     try {
       console.log("API URL:", API_BASE_URL);
+      console.log(
+        ">>> API URL EXACTA:",
+        JSON.stringify(process.env.NEXT_PUBLIC_API_URL)
+      );
       const res = await fetch(
-        `${API_BASE_URL}/api/usuarios/auth/login`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

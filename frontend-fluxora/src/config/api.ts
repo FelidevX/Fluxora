@@ -4,11 +4,25 @@
  */
 
 // URL base del API Gateway
-// Soporta NEXT_PUBLIC_API_URL (recomendado) o NEXT_PUBLIC_API_BASE (legacy)
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_API_BASE ||
-  "http://localhost:8080";
+// En producción, usa la URL hardcodeada; en desarrollo, usa localhost
+const getApiBaseUrl = () => {
+  // Si estamos en el cliente (browser)
+  if (typeof window !== 'undefined') {
+    // En producción, usa la URL de Render
+    if (window.location.hostname.includes('onrender.com')) {
+      return 'https://fluxora-i000.onrender.com';
+    }
+    // En desarrollo local
+    return 'http://localhost:8080';
+  }
+  
+  // En el servidor durante el build
+  return process.env.NEXT_PUBLIC_API_URL || 
+         process.env.NEXT_PUBLIC_API_BASE || 
+         'http://localhost:8080';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 // Endpoints por microservicio
 export const API_ENDPOINTS = {

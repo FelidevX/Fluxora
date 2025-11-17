@@ -300,7 +300,7 @@ export default function DashboardHome() {
                 <Line data={chartData} options={chartOptions} />
               </div>
             ) : (
-              <p className="text-gray-400">Cargando estadísticas...</p>
+              <p className="text-gray-400">No se encontraron estadisticas</p>
             )}
           </div>
         </div>

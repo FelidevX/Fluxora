@@ -2,7 +2,6 @@ package com.microservice.usuario.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,11 +24,11 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                // Deshabilitar CORS en el microservicio - el Gateway lo maneja
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/auth/login").permitAll()
+            .requestMatchers("/auth/login", "/api/usuarios/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/usuarios/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/usuarios/*").authenticated()

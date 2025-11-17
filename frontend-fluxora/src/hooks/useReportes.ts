@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE_URL } from "@/config/api";
 import {
   FiltrosReporte,
   ReporteEntregas,
@@ -42,9 +43,7 @@ export const useReportes = () => {
       });
 
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE
-        }/api/entregas/entrega/reporte-entregas?${params.toString()}`,
+        `${API_BASE_URL}/api/entregas/entrega/reporte-entregas?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -81,9 +80,7 @@ export const useReportes = () => {
       });
 
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE
-        }/api/entregas/entrega/reporte-ventas?${params.toString()}`,
+        `${API_BASE_URL}/api/entregas/entrega/reporte-ventas?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -123,9 +120,7 @@ export const useReportes = () => {
       });
 
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE
-        }/api/inventario/reporte-inventario?${params.toString()}`,
+        `${API_BASE_URL}/api/inventario/reporte-inventario?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -157,7 +152,7 @@ export const useReportes = () => {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/reporte-clientes?` +
+        `${API_BASE_URL}/api/entregas/entrega/reporte-clientes?` +
           new URLSearchParams({
             fechaInicio: filtros.fechaInicio,
             fechaFin: filtros.fechaFin,

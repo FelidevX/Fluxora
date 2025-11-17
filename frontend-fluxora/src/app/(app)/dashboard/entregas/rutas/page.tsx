@@ -6,6 +6,7 @@ import GestionRutas from "@/components/admin/entregas/gestion/GestionRutas";
 import { RutasActivas } from "@/components/admin/entregas/rutas/RutasActivas";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { AsignarClientes } from "@/components/admin/entregas/asignar/AsignarClientes";
+import { API_BASE_URL } from "@/config/api";
 
 export default function GestionRutasPage() {
   const [rutas, setRutas] = useState<RutaActiva[]>([]);
@@ -27,7 +28,7 @@ export default function GestionRutasPage() {
       if (token.startsWith("Bearer ")) token = token.substring(7);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-activas`,
+        `${API_BASE_URL}/api/entregas/entrega/rutas-activas`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

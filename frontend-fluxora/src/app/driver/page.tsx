@@ -6,6 +6,7 @@ import PantallaClientes from "@/components/driver/clientes/PantallaClientes";
 import FormularioContainer from "@/components/driver/formcontainer/FormContainer";
 import { Entrega } from "@/interfaces/entregas/driver";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import { API_BASE_URL } from "@/config/api";
 
 interface Cliente {
   id: number;
@@ -42,10 +43,13 @@ function getUserFromToken() {
 
 export default function DriverHomePage() {
   const [user, setUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"ruta" | "clientes" | "formulario">("ruta");
+  const [activeTab, setActiveTab] = useState<
+    "ruta" | "clientes" | "formulario"
+  >("ruta");
   const [entregas, setEntregas] = useState<Entrega[]>([]);
-  const [entregaSeleccionada, setEntregaSeleccionada] = useState<Entrega | null>(null);
-  
+  const [entregaSeleccionada, setEntregaSeleccionada] =
+    useState<Entrega | null>(null);
+
   const [rutaData, setRutaData] = useState<RutaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,20 +58,22 @@ export default function DriverHomePage() {
   const [rutaId, setRutaId] = useState<number | null>(null);
   const [pedidoId, setPedidoId] = useState<number | null>(null);
   const [programacion, setProgramacion] = useState<any[]>([]);
-  
+
   // Estado para rastrear clientes entregados
-  const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(new Set());
+  const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(
+    new Set()
+  );
 
   useEffect(() => {
     const userData = getUserFromToken();
     setUser(userData);
-    
+
     fetchRutaOptimizada();
   }, []);
 
   useEffect(() => {
     if (rutaId) {
-          handleObtenerProgramacion();
+      handleObtenerProgramacion();
     }
   }, [rutaId]);
 
@@ -83,13 +89,13 @@ export default function DriverHomePage() {
     try {
       let token = localStorage.getItem("auth_token");
       if (!token) return;
-      
+
       if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedidoId}`,
+        `${API_BASE_URL}/api/entregas/entrega/pedido/${pedidoId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -105,7 +111,7 @@ export default function DriverHomePage() {
             .map((e: any) => e.id_cliente)
         );
         setClientesEntregados(entregadosSet);
-        
+
         // Actualizar estado de entregas
         setEntregas((prev) =>
           prev.map((e) => ({
@@ -121,68 +127,77 @@ export default function DriverHomePage() {
 
   const fetchRutaOptimizada = async () => {
     try {
-      let token = localStorage.getItem('auth_token');
+      let token = localStorage.getItem("auth_token");
 
-      if(!token) {
-        setError('No autenticado. Por favor, inicia sesión.');
+      if (!token) {
+        setError("No autenticado. Por favor, inicia sesión.");
         return;
       }
 
-      if (token.startsWith('Bearer ')) {
+      if (token.startsWith("Bearer ")) {
         token = token.substring(7);
       }
 
       const userData = getUserFromToken();
-      console.log('Datos del usuario desde el token:', userData);
-      
-      if(!userData) {
-        setError('Token inválido. Por favor, inicia sesión de nuevo.');
+      console.log("Datos del usuario desde el token:", userData);
+
+      if (!userData) {
+        setError("Token inválido. Por favor, inicia sesión de nuevo.");
         return;
       }
 
-      const rutaResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/driver/${userData.sub}` , {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const rutaResponse = await fetch(
+        `${API_BASE_URL}/api/entregas/rutas/driver/${userData.sub}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
-      if (!rutaResponse.ok) throw new Error('Error al obtener la ruta del conductor');
+      if (!rutaResponse.ok)
+        throw new Error("Error al obtener la ruta del conductor");
 
       const rutaData = await rutaResponse.json();
       const rutaId = rutaData.rutaId;
       setRutaId(rutaId);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await fetch(
+        `${API_BASE_URL}/api/entregas/rutas/optimized-ortools/${rutaId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
-      
-      if (!response.ok) throw new Error('Error al cargar la ruta');
-      
+      );
+
+      if (!response.ok) throw new Error("Error al cargar la ruta");
+
       const data = await response.json();
-      console.log('Datos de ruta recibidos:', data);
+      console.log("Datos de ruta recibidos:", data);
       setRutaData(data);
 
       // Convertir los clientes de la ruta a entregas
-      const entregasFromRuta: Entrega[] = data.orderedClients.map((cliente: Cliente, index: number) => ({
-        id: cliente.id,
-        direccion: cliente.direccion,
-        cliente: cliente.nombre,
-        estado: "pendiente" as const,
-        orden: index + 1,
-        latitud: cliente.latitud,
-        longitud: cliente.longitud,
-        id_cliente: cliente.id,
-        id_ruta: rutaId,
-        id_pedido: pedidoId
-      }));
-      
+      const entregasFromRuta: Entrega[] = data.orderedClients.map(
+        (cliente: Cliente, index: number) => ({
+          id: cliente.id,
+          direccion: cliente.direccion,
+          cliente: cliente.nombre,
+          estado: "pendiente" as const,
+          orden: index + 1,
+          latitud: cliente.latitud,
+          longitud: cliente.longitud,
+          id_cliente: cliente.id,
+          id_ruta: rutaId,
+          id_pedido: pedidoId,
+        })
+      );
+
       setEntregas(entregasFromRuta);
-      console.log('Entregas iniciales establecidas:', entregasFromRuta);
+      console.log("Entregas iniciales establecidas:", entregasFromRuta);
     } catch (err) {
-      console.error('Error al cargar ruta:', err);
-      setError('Error al cargar la ruta optimizada');
+      console.error("Error al cargar ruta:", err);
+      setError("Error al cargar la ruta optimizada");
     } finally {
       setLoading(false);
     }
@@ -195,7 +210,7 @@ export default function DriverHomePage() {
     }
 
     try {
-      let token = localStorage.getItem('auth_token');
+      let token = localStorage.getItem("auth_token");
 
       if (!token) {
         alert("No autenticado. Por favor, inicia sesión.");
@@ -207,9 +222,9 @@ export default function DriverHomePage() {
       }
 
       const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
-      
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programacion/${rutaId}/${today}`,
+        `${API_BASE_URL}/api/entregas/entrega/programacion/${rutaId}/${today}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -218,7 +233,9 @@ export default function DriverHomePage() {
       );
 
       if (!response.ok) {
-        throw new Error("Error al obtener programación: " + response.statusText);
+        throw new Error(
+          "Error al obtener programación: " + response.statusText
+        );
       }
 
       const data = await response.json();
@@ -226,14 +243,16 @@ export default function DriverHomePage() {
       setProgramacion(data);
     } catch (error) {
       console.error("Error al obtener programación:", error);
-      alert("Hubo un error al obtener la programación. Por favor, inténtelo de nuevo.");
+      alert(
+        "Hubo un error al obtener la programación. Por favor, inténtelo de nuevo."
+      );
     }
   };
 
   const handleIniciarRuta = async () => {
     setIniciandoRuta(true);
     try {
-      let token = localStorage.getItem('auth_token');
+      let token = localStorage.getItem("auth_token");
 
       if (!token) {
         throw new Error("No se encontró el token de autenticación.");
@@ -244,7 +263,7 @@ export default function DriverHomePage() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/iniciar/${rutaId}`,
+        `${API_BASE_URL}/api/entregas/rutas/iniciar/${rutaId}`,
         {
           method: "POST",
           headers: {
@@ -263,21 +282,21 @@ export default function DriverHomePage() {
 
       const data = await response.json();
       console.log("Ruta iniciada correctamente", data);
-      
+
       const pedidoIdObtenido = data.id_pedido;
       setPedidoId(pedidoIdObtenido);
-      
+
       setEntregas((prevEntregas) => {
         console.log("Actualizando entregas con id_pedido:", pedidoIdObtenido);
         const entregasActualizadas = prevEntregas.map((entrega) => ({
           ...entrega,
           id_pedido: pedidoIdObtenido,
         }));
-        
+
         console.log("Entregas después:", entregasActualizadas);
         return entregasActualizadas;
       });
-      
+
       setRutaIniciada(true);
     } catch (error) {
       console.error("Error al iniciar ruta:", error);
@@ -301,24 +320,33 @@ export default function DriverHomePage() {
     console.log("=== CLIENTE SELECCIONADO PARA ENTREGA ===");
     console.log("Cliente:", cliente);
     console.log("pedidoId en estado:", pedidoId);
-    
+
     const entregaCorrespondiente = entregas.find(
       (e) => e.id_cliente === cliente.id
     );
-    
+
     console.log("Entrega encontrada:", entregaCorrespondiente);
-    
+
     if (entregaCorrespondiente) {
       if (!entregaCorrespondiente.id_pedido && pedidoId) {
-        console.log("⚠️ Entrega sin id_pedido, agregando desde estado:", pedidoId);
+        console.log(
+          "⚠️ Entrega sin id_pedido, agregando desde estado:",
+          pedidoId
+        );
         entregaCorrespondiente.id_pedido = pedidoId;
       }
-      
-      console.log("Entrega final con id_pedido:", entregaCorrespondiente.id_pedido);
+
+      console.log(
+        "Entrega final con id_pedido:",
+        entregaCorrespondiente.id_pedido
+      );
       setEntregaSeleccionada(entregaCorrespondiente);
       setActiveTab("formulario");
     } else {
-      console.error("❌ No se encontró la entrega para el cliente:", cliente.id);
+      console.error(
+        "❌ No se encontró la entrega para el cliente:",
+        cliente.id
+      );
       alert("No se encontró información de entrega para este cliente.");
     }
   };
@@ -326,19 +354,17 @@ export default function DriverHomePage() {
   // Manejar la finalización de entrega
   const handleFormularioComplete = (clienteId: number) => {
     console.log("Entrega completada para cliente:", clienteId);
-    
+
     // Actualizar estado de entregas
     setEntregas((prev) =>
       prev.map((e) =>
-        e.id_cliente === clienteId
-          ? { ...e, estado: "entregado" as const }
-          : e
+        e.id_cliente === clienteId ? { ...e, estado: "entregado" as const } : e
       )
     );
-    
+
     // Actualizar conjunto de clientes entregados
     setClientesEntregados((prev) => new Set([...prev, clienteId]));
-    
+
     // Limpiar selección y volver a lista
     setEntregaSeleccionada(null);
     setActiveTab("clientes");
@@ -358,7 +384,9 @@ export default function DriverHomePage() {
   // Calcular entregas pendientes en tiempo real
   const clientesPendientes = Array.from(
     new Set(
-      programacion.filter(p => p.estado === "PENDIENTE").map(p => p.id_cliente)
+      programacion
+        .filter((p) => p.estado === "PENDIENTE")
+        .map((p) => p.id_cliente)
     )
   ).length;
 
@@ -380,9 +408,11 @@ export default function DriverHomePage() {
         <div className="max-w-md w-full">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
             <p className="font-medium">Error</p>
-            <p className="text-sm mt-1">{error || 'Error al cargar los datos'}</p>
+            <p className="text-sm mt-1">
+              {error || "Error al cargar los datos"}
+            </p>
           </div>
-          <button 
+          <button
             onClick={() => {
               setError(null);
               setLoading(true);
@@ -508,9 +538,7 @@ export default function DriverHomePage() {
 
       {/* Contenido de las pantallas */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === "ruta" && (
-          <PantallaRuta rutaData={rutaData} />
-        )}
+        {activeTab === "ruta" && <PantallaRuta rutaData={rutaData} />}
         {activeTab === "clientes" && rutaData && (
           <PantallaClientes
             orderedClients={rutaData.orderedClients}

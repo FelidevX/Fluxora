@@ -1,6 +1,7 @@
 "use client";
 import { Line } from "react-chartjs-2";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import { API_BASE_URL } from "@/config/api";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -88,14 +89,11 @@ export default function DashboardHome() {
         token = token.substring(7);
       }
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/clientes/clientes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const response = await res.json();
       setClients(response);
       setIsLoading(false);
@@ -117,7 +115,7 @@ export default function DashboardHome() {
       }
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`,
+        `${API_BASE_URL}/api/inventario/materias-primas`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -148,7 +146,7 @@ export default function DashboardHome() {
     try {
       const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/estadisticas-dashboard`,
+        `${API_BASE_URL}/api/entregas/entrega/estadisticas-dashboard`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

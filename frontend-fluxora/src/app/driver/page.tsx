@@ -6,6 +6,8 @@ import PantallaClientes from "@/components/driver/clientes/PantallaClientes";
 import FormularioContainer from "@/components/driver/formcontainer/FormContainer";
 import { Entrega } from "@/interfaces/entregas/driver";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface Cliente {
   id: number;
@@ -57,6 +59,9 @@ export default function DriverHomePage() {
   
   // Estado para rastrear clientes entregados
   const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(new Set());
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError, warning, info } = useToast();
 
   useEffect(() => {
     const userData = getUserFromToken();
@@ -190,7 +195,7 @@ export default function DriverHomePage() {
 
   const handleObtenerProgramacion = async () => {
     if (!rutaId) {
-      alert("ID de ruta no disponible");
+      warning("ID de ruta no disponible", "Advertencia");
       return;
     }
 
@@ -198,7 +203,7 @@ export default function DriverHomePage() {
       let token = localStorage.getItem('auth_token');
 
       if (!token) {
-        alert("No autenticado. Por favor, inicia sesión.");
+        warning("No autenticado. Por favor, inicia sesión.", "Sesión Requerida");
         return;
       }
 
@@ -224,9 +229,12 @@ export default function DriverHomePage() {
       const data = await response.json();
       console.log("Programación obtenida:", data);
       setProgramacion(data);
-    } catch (error) {
-      console.error("Error al obtener programación:", error);
-      alert("Hubo un error al obtener la programación. Por favor, inténtelo de nuevo.");
+    } catch (err) {
+      console.error("Error al obtener programación:", err);
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al obtener la programación",
+        "Error al Obtener Programación"
+      );
     }
   };
 
@@ -279,9 +287,13 @@ export default function DriverHomePage() {
       });
       
       setRutaIniciada(true);
-    } catch (error) {
-      console.error("Error al iniciar ruta:", error);
-      alert("Hubo un error al iniciar la ruta. Por favor, inténtelo de nuevo.");
+      success("La ruta ha sido iniciada exitosamente", "¡Ruta Iniciada!");
+    } catch (err) {
+      console.error("Error al iniciar ruta:", err);
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al iniciar la ruta",
+        "Error al Iniciar Ruta"
+      );
     } finally {
       setIniciandoRuta(false);
     }
@@ -319,7 +331,7 @@ export default function DriverHomePage() {
       setActiveTab("formulario");
     } else {
       console.error("❌ No se encontró la entrega para el cliente:", cliente.id);
-      alert("No se encontró información de entrega para este cliente.");
+      warning("No se encontró información de entrega para este cliente", "Cliente No Encontrado");
     }
   };
 
@@ -351,8 +363,10 @@ export default function DriverHomePage() {
 
   const handleFinalizarRuta = () => {
     // Redirigir al home o mostrar resumen
-    alert("Ruta finalizada exitosamente");
-    window.location.href = "/driver"; // O la ruta que prefieras
+    success("La ruta ha sido finalizada exitosamente", "¡Ruta Finalizada!");
+    setTimeout(() => {
+      window.location.href = "/driver";
+    }, 2000);
   };
 
   // Calcular entregas pendientes en tiempo real
@@ -527,6 +541,13 @@ export default function DriverHomePage() {
           />
         )}
       </div>
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

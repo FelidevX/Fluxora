@@ -1,5 +1,7 @@
 import { FiltrosReporte, PeriodoReporte, TipoReporte } from "@/types/reportes";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface ReportFiltersProps {
   onGenerar: (filtros: FiltrosReporte) => void;
@@ -15,6 +17,9 @@ export default function ReportFilters({
   const [periodo, setPeriodo] = useState<PeriodoReporte>("diario");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
+
+  // Hook para notificaciones
+  const { toasts, removeToast, warning } = useToast();
 
   // Calcular fechas según el periodo seleccionado
   useEffect(() => {
@@ -47,12 +52,12 @@ export default function ReportFilters({
     e?.preventDefault(); // Prevenir recarga de página
 
     if (!tipoSeleccionado) {
-      alert("Por favor selecciona un tipo de reporte");
+      warning("Por favor selecciona un tipo de reporte", "Tipo de Reporte Requerido");
       return;
     }
 
     if (!fechaInicio || !fechaFin) {
-      alert("Por favor selecciona un rango de fechas");
+      warning("Por favor selecciona un rango de fechas", "Fechas Requeridas");
       return;
     }
 
@@ -151,6 +156,12 @@ export default function ReportFilters({
           )}
         </button>
       </div>
+
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

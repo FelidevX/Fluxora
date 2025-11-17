@@ -2,6 +2,8 @@
 
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface Cliente {
   id: number;
@@ -27,6 +29,9 @@ export default function PantallaClientes({
   const [isFinalizando, setIsFinalizando] = useState(false);
   const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
+
+  // Hook para notificaciones
+  const { toasts, removeToast, success, error: showError, warning } = useToast();
 
   // Cargar entregas realizadas al montar el componente
   useEffect(() => {
@@ -68,8 +73,9 @@ export default function PantallaClientes({
         setClientesEntregados(entregadosSet);
         console.log("Clientes entregados HOY:", Array.from(entregadosSet));
       }
-    } catch (error) {
-      console.error("Error al cargar entregas realizadas:", error);
+    } catch (err) {
+      console.error("Error al cargar entregas realizadas:", err);
+      showError("Error al cargar las entregas realizadas", "Error de Carga");
     } finally {
       setLoading(false);
     }
@@ -91,7 +97,7 @@ export default function PantallaClientes({
 
   const handleFinalizarRuta = async () => {
     if (!pedidoId) {
-      alert("No se encontró el ID del pedido");
+      showError("No se encontró el ID del pedido", "Error");
       return;
     }
 
@@ -136,14 +142,17 @@ export default function PantallaClientes({
       }
 
       const data = await response.json();
-      alert(data.message || "Ruta finalizada correctamente");
+      success(data.message || "Ruta finalizada correctamente", "¡Ruta Finalizada!");
 
       if (onFinalizarRuta) {
         onFinalizarRuta();
       }
-    } catch (error) {
-      console.error("Error al finalizar ruta:", error);
-      alert("Hubo un error al finalizar la ruta. Por favor, inténtelo de nuevo.");
+    } catch (err) {
+      console.error("Error al finalizar ruta:", err);
+      showError(
+        "Hubo un error al finalizar la ruta. Por favor, inténtelo de nuevo.",
+        "Error al Finalizar"
+      );
     } finally {
       setIsFinalizando(false);
     }
@@ -323,6 +332,12 @@ export default function PantallaClientes({
           )}
         </div>
       </div>
+
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

@@ -9,6 +9,8 @@ import {
 import { useCompras } from "@/hooks/useCompras";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useCurrentDate } from "@/hooks/useDate";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -38,21 +40,24 @@ export default function RegistrarCompra() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
+  // Hook para notificaciones
+  const { toasts, removeToast, success, warning } = useToast();
+
   useEffect(() => {
     cargarMaterias();
   }, [cargarMaterias]);
 
   const handleAgregarLote = () => {
     if (loteActual.materiaPrimaId === 0) {
-      alert("Debe seleccionar una materia prima");
+      warning("Debe seleccionar una materia prima", "Materia Prima Requerida");
       return;
     }
     if (loteActual.cantidad <= 0) {
-      alert("La cantidad debe ser mayor a 0");
+      warning("La cantidad debe ser mayor a 0", "Cantidad Inválida");
       return;
     }
     if (loteActual.costoUnitario <= 0) {
-      alert("El costo unitario debe ser mayor a 0");
+      warning("El costo unitario debe ser mayor a 0", "Costo Inválido");
       return;
     }
 
@@ -96,7 +101,7 @@ export default function RegistrarCompra() {
     e.preventDefault();
 
     if (formulario.lotes.length === 0) {
-      alert("Debe agregar al menos un lote");
+      warning("Debe agregar al menos un lote", "Lotes Requeridos");
       return;
     }
 
@@ -108,6 +113,7 @@ export default function RegistrarCompra() {
       await crearCompra(formulario);
       setShowConfirmModal(false);
       setShowSuccessMessage(true);
+      success("¡Compra registrada exitosamente!", "Compra Registrada");
 
       // Resetear formulario
       setFormulario({
@@ -528,6 +534,12 @@ export default function RegistrarCompra() {
           </div>
         </div>
       )}
+      
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

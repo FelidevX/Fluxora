@@ -17,6 +17,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
+      console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/auth/login`,
         {

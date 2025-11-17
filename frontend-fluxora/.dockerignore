@@ -6,3 +6,5 @@ Dockerfile
 .dockerignore
 README.md
 .gitignore
+.env.production
+.env

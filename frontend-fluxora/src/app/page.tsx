@@ -18,18 +18,19 @@ export default function LoginPage() {
     setError(null);
     try {
       console.log("API URL:", API_BASE_URL);
-      const res = await fetch(
-        `${API_BASE_URL}/api/usuarios/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      console.log("Login data:", { email, password });
+      const res = await fetch(`${API_BASE_URL}/api/usuarios/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || "Credenciales inválidas");
+        const errorData = await res
+          .json()
+          .catch(() => ({ message: "Error desconocido" }));
+        console.error("Error response:", errorData);
+        throw new Error(JSON.stringify(errorData, null, 2));
       }
 
       const data: { accessToken: string; tokenType: string } = await res.json();

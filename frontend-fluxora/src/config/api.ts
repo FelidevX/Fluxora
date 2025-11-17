@@ -7,19 +7,21 @@
 // En producción, usa la URL hardcodeada; en desarrollo, usa localhost
 const getApiBaseUrl = () => {
   // Si estamos en el cliente (browser)
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // En producción, usa la URL de Render
-    if (window.location.hostname.includes('onrender.com')) {
-      return 'https://fluxora-i000.onrender.com';
+    if (window.location.hostname.includes("onrender.com")) {
+      return "https://fluxora-i000.onrender.com";
     }
     // En desarrollo local
-    return 'http://localhost:8080';
+    return "http://localhost:8080";
   }
-  
+
   // En el servidor durante el build
-  return process.env.NEXT_PUBLIC_API_URL || 
-         process.env.NEXT_PUBLIC_API_BASE || 
-         'http://localhost:8080';
+  return (
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_BASE ||
+    "http://localhost:8080"
+  );
 };
 
 export const API_BASE_URL = getApiBaseUrl();

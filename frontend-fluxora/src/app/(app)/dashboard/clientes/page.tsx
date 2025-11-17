@@ -9,6 +9,8 @@ import Badge from "@/components/ui/Badge";
 import { useRouter } from "next/navigation";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 const ClientesPage = () => {
   const {
@@ -20,8 +22,10 @@ const ClientesPage = () => {
     clearError,
     eliminarCliente,
   } = useClientes();
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError, warning, info } = useToast();
+  
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const router = useRouter();
@@ -67,17 +71,18 @@ const ClientesPage = () => {
       };
       
       await crearCliente(clientData);
-      setSuccessMessage("¡Cliente registrado exitosamente!");
-      setErrorMessage("");
-      setTimeout(() => setSuccessMessage(""), 5000);
+      success("El cliente ha sido registrado exitosamente", "¡Cliente Registrado!");
     } catch (err) {
-      setErrorMessage("Error al registrar el cliente");
-      setTimeout(() => setErrorMessage(""), 5000);
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al registrar el cliente",
+        "Error al Registrar Cliente"
+      );
     }
   };
 
   const handleEdit = (id: number) => {
-    alert(`Editar cliente ${id}`);
+    info("Función de edición en desarrollo", "Editar Cliente");
+    // TODO: Implementar la funcionalidad de edición
   };
 
   const handleDelete = (cliente: ClienteResponse) => {
@@ -89,11 +94,15 @@ const ClientesPage = () => {
     if (!clienteAEliminar) return;
     try {
       await eliminarCliente(clienteAEliminar.id);
+      success("El cliente ha sido eliminado correctamente", "Cliente Eliminado");
       setShowDeleteModal(false);
       setClienteAEliminar(null);
     } catch (err) {
-      console.log("Error al eliminar cliente:", err);
-    } finally {
+      console.error("Error al eliminar cliente:", err);
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al eliminar el cliente",
+        "Error al Eliminar Cliente"
+      );
       setShowDeleteModal(false);
       setClienteAEliminar(null);
     }
@@ -153,19 +162,6 @@ const ClientesPage = () => {
           </button>
         </div>
       </div>
-
-      {/* Mensajes de feedback */}
-      {successMessage && (
-        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
-          {successMessage}
-        </div>
-      )}
-
-      {errorMessage && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
-          {errorMessage}
-        </div>
-      )}
 
       {/* Panel de formulario similar a Materias: aparece al hacer click en Nuevo Cliente */}
       {showForm && (
@@ -267,6 +263,13 @@ const ClientesPage = () => {
         title="Eliminar Cliente"
         message={"¿Está seguro que desea eliminar este cliente?"}
         itemName={clienteAEliminar?.nombre || ""}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

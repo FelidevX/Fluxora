@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import AddressAutocomplete from "../ui/AddressAutoComplete";
 import Badge from "@/components/ui/Badge";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 // Importación dinámica del mapa para evitar problemas de SSR
 const MapSelector = dynamic(() => import("../ui/MapSelector"), {
@@ -58,6 +60,9 @@ const ClientForm: React.FC<ClientFormProps> = ({
   const [isGeolocating, setIsGeolocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Hook para notificaciones
+  const { toasts, removeToast, warning, error: showError } = useToast();
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -95,14 +100,14 @@ const ClientForm: React.FC<ClientFormProps> = ({
           handleLocationSelect(latitude, longitude);
           setIsGeolocating(false);
         },
-        (error) => {
-          console.error("Error obteniendo ubicación:", error);
-          alert("No se pudo obtener la ubicación actual");
+        (err) => {
+          console.error("Error obteniendo ubicación:", err);
+          showError("No se pudo obtener la ubicación actual", "Error de Geolocalización");
           setIsGeolocating(false);
         }
       );
     } else {
-      alert("La geolocalización no está soportada en este navegador");
+      warning("La geolocalización no está soportada en este navegador", "Geolocalización No Disponible");
       setIsGeolocating(false);
     }
   };
@@ -116,11 +121,11 @@ const ClientForm: React.FC<ClientFormProps> = ({
       // El componente padre (page.tsx) se encarga de transformarlos y enviarlos
       onSubmit(formData);
       resetForm();
-    } catch (error) {
-      alert(
-        `Error al procesar el formulario: ${
-          error instanceof Error ? error.message : "Error desconocido"
-        }`
+    } catch (err) {
+      console.error("Error al procesar el formulario:", err);
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al procesar el formulario",
+        "Error en el Formulario"
       );
     } finally {
       setIsSubmitting(false);
@@ -361,6 +366,12 @@ const ClientForm: React.FC<ClientFormProps> = ({
           </button>
         </div>
       </form>
+
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 };

@@ -12,6 +12,8 @@ import Badge from "@/components/ui/Badge";
 import DataTable from "@/components/ui/DataTable";
 import LoteProductoModal from "@/components/inventario/LoteProductoModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModalText";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 export default function ProductosPage() {
   const {
@@ -25,6 +27,9 @@ export default function ProductosPage() {
   } = useProductos();
 
   const { recetas, loading: loadingRecetas } = useRecetas();
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError, warning } = useToast();
 
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -87,18 +92,18 @@ export default function ProductosPage() {
     e.preventDefault();
 
     if (!formulario.nombre) {
-      alert("El nombre del producto es requerido");
+      warning("El nombre del producto es requerido", "Campo Requerido");
       return;
     }
 
     if (formulario.precioVenta <= 0) {
-      alert("El precio de venta debe ser mayor a 0");
+      warning("El precio de venta debe ser mayor a 0", "Precio Inválido");
       return;
     }
 
     // Validar que se haya seleccionado una receta cuando se crea
     if (!productoEnEdicion && !recetaSeleccionada) {
-      alert("Debe seleccionar una receta para crear el producto");
+      warning("Debe seleccionar una receta para crear el producto", "Receta Requerida");
       return;
     }
 
@@ -111,11 +116,12 @@ export default function ProductosPage() {
 
       if (productoEnEdicion) {
         await actualizarProducto(productoEnEdicion.id, productoDTO);
-        alert("Producto actualizado exitosamente");
+        success("El producto ha sido actualizado correctamente", "Producto Actualizado");
       } else {
         await crearProducto(productoDTO);
-        alert(
-          "Producto creado exitosamente. Ahora puede registrar lotes de producción."
+        success(
+          "Producto creado exitosamente. Ahora puede registrar lotes de producción.",
+          "¡Producto Creado!"
         );
       }
 
@@ -123,10 +129,9 @@ export default function ProductosPage() {
       setShowForm(false);
     } catch (err) {
       console.error("Error al guardar producto:", err);
-      alert(
-        `Error al guardar el producto: ${
-          err instanceof Error ? err.message : "Error desconocido"
-        }`
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al guardar el producto",
+        "Error al Guardar Producto"
       );
     }
   };
@@ -153,11 +158,17 @@ export default function ProductosPage() {
 
     try {
       await eliminarProducto(productoAEliminar.id);
+      success("El producto y sus lotes han sido eliminados correctamente", "Producto Eliminado");
       setShowDeleteModal(false);
       setProductoAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar producto:", err);
-      // El error ya está en el estado global del hook
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al eliminar el producto",
+        "Error al Eliminar Producto"
+      );
+      setShowDeleteModal(false);
+      setProductoAEliminar(null);
     }
   };
 
@@ -290,16 +301,6 @@ export default function ProductosPage() {
           Administre el catálogo de productos y sus lotes de producción
         </p>
       </div>
-
-      {/* Alertas */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded flex justify-between items-center">
-          <span>{error}</span>
-          <button onClick={clearError} className="text-red-700 font-bold">
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* Barra de búsqueda y acciones */}
       <div className="mb-6 flex flex-col md:flex-row gap-4">
@@ -573,6 +574,13 @@ export default function ProductosPage() {
         message="¿Está seguro de que desea eliminar este producto? Se eliminarán también todos sus lotes de producción. Esta acción no se puede deshacer."
         itemName={productoAEliminar?.nombre}
         requireConfirmation={true}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

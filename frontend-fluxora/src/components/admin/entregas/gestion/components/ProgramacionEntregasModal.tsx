@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 // Interfaces
 interface Lote {
@@ -215,6 +217,9 @@ function EditProductsModal({
     clienteData.productosProgramados || []
   );
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Hook para notificaciones
+  const { toasts, removeToast, warning } = useToast();
 
   if (!isOpen) return null;
 
@@ -287,7 +292,7 @@ function EditProductsModal({
   const handleGuardar = () => {
     const productosValidos = productosProgramados.filter((p) => p.cantidad_kg > 0);
     if (productosValidos.length === 0) {
-      alert("Debes agregar al menos un producto con cantidad mayor a 0");
+      warning("Debes agregar al menos un producto con cantidad mayor a 0", "Productos Requeridos");
       return;
     }
     onGuardar(productosValidos);
@@ -524,6 +529,12 @@ function EditProductsModal({
           </button>
         </div>
       </div>
+
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

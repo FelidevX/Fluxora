@@ -6,6 +6,8 @@ import {
   ClienteConEntrega,
   RegistroEntrega,
 } from "@/interfaces/entregas/entregas";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface DetalleRutaProps {
   ruta: RutaActiva;
@@ -25,6 +27,9 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
     corriente_entregado: 0,
     especial_entregado: 0,
   });
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError } = useToast();
 
   const fetchClientesRuta = async () => {
     setLoading(true);
@@ -101,15 +106,15 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
         setFormData({ corriente_entregado: 0, especial_entregado: 0 });
         fetchClientesRuta();
         onRefresh();
-        alert("Entrega registrada exitosamente");
+        success("La entrega ha sido registrada exitosamente", "¡Entrega Registrada!");
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error("Error al registrar entrega:", error);
-      alert(
-        "Error al registrar la entrega: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+    } catch (err) {
+      console.error("Error al registrar entrega:", err);
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al registrar la entrega",
+        "Error al Registrar Entrega"
       );
     }
   };
@@ -374,6 +379,13 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
           </div>
         </div>
       )}
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

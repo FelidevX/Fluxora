@@ -157,7 +157,7 @@ export default function DashboardEstadisticas() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {["Panadería", "Pastelería", "Bebidas", "Snacks"].map(
+              {["Panadería", "Pastelería"].map(
                 (categoria) => {
                   const productosCategoria = productos.filter(
                     (p) => p.categoria === categoria

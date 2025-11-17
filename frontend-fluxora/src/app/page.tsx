@@ -26,9 +26,18 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res
-          .json()
-          .catch(() => ({ message: "Error desconocido" }));
+        const contentType = res.headers.get("content-type");
+        console.log("Response status:", res.status);
+        console.log("Response content-type:", contentType);
+        
+        let errorData;
+        if (contentType && contentType.includes("application/json")) {
+          errorData = await res.json();
+        } else {
+          const text = await res.text();
+          errorData = { message: text || "Error desconocido", status: res.status };
+        }
+        
         console.error("Error response:", errorData);
         throw new Error(JSON.stringify(errorData, null, 2));
       }

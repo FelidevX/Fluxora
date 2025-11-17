@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/config/api";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { Driver } from "@/interfaces/entregas/driver";
 import { TarjetaRuta } from "@/components/admin/entregas/gestion/components/TarjetaRuta";
@@ -81,7 +82,9 @@ export function GestionRutas({
   );
 
   // Estados para productos con lotes
-  const [productosConLotes, setProductosConLotes] = useState<ProductoConLotes[]>([]);
+  const [productosConLotes, setProductosConLotes] = useState<
+    ProductoConLotes[]
+  >([]);
   const [loadingProductos, setLoadingProductos] = useState(false);
 
   // Función para obtener todos los drivers
@@ -98,7 +101,7 @@ export function GestionRutas({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios?rol=DRIVER`,
+        `${API_BASE_URL}/api/usuarios/usuarios?rol=DRIVER`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +139,7 @@ export function GestionRutas({
 
       // Primero obtenemos todos los productos
       const productosResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos`,
+        `${API_BASE_URL}/api/inventario/productos`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -146,7 +149,9 @@ export function GestionRutas({
       );
 
       if (!productosResponse.ok) {
-        throw new Error(`Error al obtener productos: ${productosResponse.status}`);
+        throw new Error(
+          `Error al obtener productos: ${productosResponse.status}`
+        );
       }
 
       const productos = await productosResponse.json();
@@ -157,7 +162,7 @@ export function GestionRutas({
         productos.map(async (producto: any) => {
           try {
             const lotesResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos/${producto.id}/lotes`,
+              `${API_BASE_URL}/api/inventario/productos/${producto.id}/lotes`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -171,13 +176,17 @@ export function GestionRutas({
               const lotesData = await lotesResponse.json();
               // Filtrar solo lotes disponibles con stock
               lotes = lotesData.filter(
-                (lote: Lote) => lote.estado === "disponible" && lote.stockActual > 0
+                (lote: Lote) =>
+                  lote.estado === "disponible" && lote.stockActual > 0
               );
             }
 
             console.log(`Lotes del producto ${producto.id}:`, lotes);
 
-            const stockTotal = lotes.reduce((sum, lote) => sum + lote.stockActual, 0);
+            const stockTotal = lotes.reduce(
+              (sum, lote) => sum + lote.stockActual,
+              0
+            );
 
             return {
               id: producto.id,
@@ -189,7 +198,10 @@ export function GestionRutas({
               stockTotal: stockTotal,
             };
           } catch (error) {
-            console.error(`Error al obtener lotes del producto ${producto.id}:`, error);
+            console.error(
+              `Error al obtener lotes del producto ${producto.id}:`,
+              error
+            );
             return {
               id: producto.id,
               nombre: producto.nombre,
@@ -256,7 +268,7 @@ export function GestionRutas({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/crear-ruta`,
+        `${API_BASE_URL}/api/entregas/entrega/crear-ruta`,
         {
           method: "POST",
           headers: {
@@ -319,7 +331,7 @@ export function GestionRutas({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/asignar-driver`,
+        `${API_BASE_URL}/api/entregas/entrega/asignar-driver`,
         {
           method: "POST",
           headers: {
@@ -376,7 +388,7 @@ export function GestionRutas({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fecha}`,
+        `${API_BASE_URL}/api/entregas/entrega/rutas-por-fecha/${fecha}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -418,16 +430,15 @@ export function GestionRutas({
         token = token.substring(7);
       }
 
-
       console.log("Actualizando productos para cliente:", {
         idRuta,
         idCliente,
         productos,
-        fechaProgramacion
+        fechaProgramacion,
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programar-entrega`,
+        `${API_BASE_URL}/api/entregas/entrega/programar-entrega`,
         {
           method: "POST",
           headers: {

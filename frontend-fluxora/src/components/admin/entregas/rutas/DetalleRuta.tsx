@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/config/api";
 import {
   RutaActiva,
   ClienteConEntrega,
@@ -39,7 +40,7 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/ruta/${ruta.id}/clientes`,
+        `${API_BASE_URL}/api/entregas/entrega/ruta/${ruta.id}/clientes`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -84,7 +85,7 @@ export function DetalleRuta({ ruta, onBack, onRefresh }: DetalleRutaProps) {
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/registrar`,
+        `${API_BASE_URL}/api/entregas/entrega/registrar`,
         {
           method: "POST",
           headers: {

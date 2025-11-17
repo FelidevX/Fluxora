@@ -30,7 +30,7 @@ services:
     envVars:
       - key: PORT
         value: 8761
-    
+
   # 3. Microservicios de Backend (Internos)
   - type: web
     name: cliente-service
@@ -73,7 +73,7 @@ services:
     envVars:
       - key: PORT
         value: 8082
-    
+
   # 4. API Gateway (Punto de acceso público al Backend)
   - type: web
     name: api-gateway
@@ -90,10 +90,12 @@ services:
     name: frontend-fluxora
     rootDir: ./frontend-fluxora
     plan: starter
-    # Para Node.js/Next.js, el puerto por defecto es 10000, 
+    # Para Node.js/Next.js, el puerto por defecto es 10000,
     # pero puedes forzarlo si tu app lo necesita
     envVars:
       - key: PORT
         value: 3000
+      - key: NEXT_PUBLIC_API_URL
+        value: https://fluxora-i000.onrender.com
     buildCommand: npm install && npm run build
     startCommand: npm start

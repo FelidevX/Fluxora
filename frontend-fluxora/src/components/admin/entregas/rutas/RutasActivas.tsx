@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/config/api";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 
 // Nuevas interfaces para el sistema de programación por fecha
@@ -84,7 +85,7 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fecha}`,
+        `${API_BASE_URL}/api/entregas/entrega/rutas-por-fecha/${fecha}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

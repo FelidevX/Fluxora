@@ -35,7 +35,8 @@ public class SecurityConfig {
             .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                // TEMPORALMENTE DESHABILITADO - para probar que el login funciona
+                // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

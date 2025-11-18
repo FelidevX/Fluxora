@@ -122,3 +122,29 @@ export interface InsumoProduccionDTO {
   fecha: string;
   materiaPrimaId: number;
 }
+
+// ============== MERMA DE PRODUCTOS ==============
+
+export type TipoMerma = "MANUAL" | "AUTOMATICA";
+
+export interface MermaProducto {
+  id: number;
+  productoId: number;
+  productoNombre: string;
+  loteProductoId?: number | null;
+  cantidadMermada: number;
+  motivo: string;
+  tipoMerma: TipoMerma;
+  fechaRegistro: string;
+}
+
+export interface MermaProductoDTO {
+  productoId: number;
+  loteProductoId?: number | null;
+  cantidadMermada: number;
+  motivo: string;
+}
+
+export interface MermaAutomaticaDTO {
+  motivo: string;
+}

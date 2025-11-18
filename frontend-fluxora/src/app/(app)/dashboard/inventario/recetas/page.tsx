@@ -598,7 +598,7 @@ export default function RecetasManager() {
                           </label>
                           <input
                             type="text"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
                             value={ingrediente.unidad}
                             readOnly
                           />
@@ -633,7 +633,7 @@ export default function RecetasManager() {
                             onClick={() => eliminarIngrediente(index)}
                             className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg"
                           >
-                            <MaterialIcon name="delete" className="w-4 h-4" />
+                            <MaterialIcon name="delete" className="w-8 h-4" />
                           </button>
                         </div>
                       </div>

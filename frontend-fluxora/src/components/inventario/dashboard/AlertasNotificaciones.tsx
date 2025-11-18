@@ -37,13 +37,14 @@ export default function AlertasNotificaciones() {
 
     // Alertas de stock bajo en materias primas
     materias.forEach((materia) => {
-      if (materia.cantidad < 5) {
+      const cantidad = materia.cantidad ?? 0;
+      if (cantidad > 0 && cantidad < 5) {
         nuevasAlertas.push({
           id: `stock-materia-${materia.id}`,
           tipo: "stock_bajo",
           titulo: "Stock Bajo - Materia Prima",
-          mensaje: `${materia.nombre}: solo quedan ${materia.cantidad} ${materia.unidad}`,
-          prioridad: materia.cantidad < 2 ? "alta" : "media",
+          mensaje: `${materia.nombre}: solo quedan ${cantidad} ${materia.unidad}`,
+          prioridad: cantidad < 2 ? "alta" : "media",
           timestamp: new Date(),
         });
       }
@@ -51,13 +52,14 @@ export default function AlertasNotificaciones() {
 
     // Alertas de stock bajo en productos
     productos.forEach((producto) => {
-      if (producto.cantidad < 5) {
+      const stockTotal = producto.stockTotal ?? 0;
+      if (stockTotal > 0 && stockTotal < 5) {
         nuevasAlertas.push({
           id: `stock-producto-${producto.id}`,
           tipo: "stock_bajo",
           titulo: "Stock Bajo - Producto",
-          mensaje: `${producto.nombre}: solo quedan ${producto.cantidad} unidades`,
-          prioridad: producto.cantidad < 2 ? "alta" : "media",
+          mensaje: `${producto.nombre}: solo quedan ${stockTotal} unidades`,
+          prioridad: stockTotal < 2 ? "alta" : "media",
           timestamp: new Date(),
         });
       }
@@ -81,7 +83,8 @@ export default function AlertasNotificaciones() {
     recetas.forEach((receta) => {
       const faltantes = receta.ingredientes.filter((ing) => {
         const materia = materias.find((m) => m.id === ing.materiaPrimaId);
-        return !materia || materia.cantidad < ing.cantidadNecesaria;
+        const cantidad = materia?.cantidad ?? 0;
+        return !materia || cantidad < ing.cantidadNecesaria;
       });
 
       if (faltantes.length > 0) {

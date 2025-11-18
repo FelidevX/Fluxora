@@ -293,7 +293,7 @@ export default function RegistrarCompra() {
             <Input
               label="Cantidad:"
               type="number"
-              value={loteActual.cantidad}
+              value={loteActual.cantidad || ''}
               onChange={(e) =>
                 setLoteActual({
                   ...loteActual,
@@ -301,14 +301,14 @@ export default function RegistrarCompra() {
                 })
               }
               min="0"
-              step="0.01"
+              step="1"
               placeholder="0"
             />
 
             <Input
               label="Costo Unitario (CLP):"
               type="number"
-              value={loteActual.costoUnitario}
+              value={loteActual.costoUnitario || ''}
               onChange={(e) =>
                 setLoteActual({
                   ...loteActual,

@@ -442,7 +442,7 @@ export default function LoteProductoModal({
                 {recetaSeleccionada && (
                   <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">
-                      ¿Cuántas veces desea preparar la receta? *
+                      ¿Cuántas veces desea preparar la receta?
                     </label>
                     <div className="flex items-center gap-2">
                       <Input

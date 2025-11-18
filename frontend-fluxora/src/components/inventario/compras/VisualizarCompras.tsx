@@ -7,6 +7,7 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import DataTable from "@/components/ui/DataTable";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import ModalPagoCompra from "@/components/ui/ModalPagoCompra";
 
 export default function VisualizarCompras() {
   const {
@@ -16,6 +17,7 @@ export default function VisualizarCompras() {
     cargarCompras,
     obtenerComprasRecientes,
     eliminarCompra,
+    marcarComoPagado,
     clearError,
   } = useCompras();
 
@@ -26,6 +28,9 @@ export default function VisualizarCompras() {
   const [filtroReciente, setFiltroReciente] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [compraAEliminar, setCompraAEliminar] =
+    useState<CompraMateriaPrimaResponse | null>(null);
+  const [showModalPago, setShowModalPago] = useState(false);
+  const [compraAPagar, setCompraAPagar] =
     useState<CompraMateriaPrimaResponse | null>(null);
 
   useEffect(() => {
@@ -60,6 +65,28 @@ export default function VisualizarCompras() {
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
     setCompraAEliminar(null);
+  };
+
+  const handleMarcarPago = (compra: CompraMateriaPrimaResponse) => {
+    setCompraAPagar(compra);
+    setShowModalPago(true);
+  };
+
+  const handleConfirmarPago = async () => {
+    if (!compraAPagar) return;
+
+    try {
+      await marcarComoPagado(compraAPagar.id);
+      setShowModalPago(false);
+      setCompraAPagar(null);
+    } catch (error) {
+      console.error("Error al marcar como pagado:", error);
+    }
+  };
+
+  const handleCancelPago = () => {
+    setShowModalPago(false);
+    setCompraAPagar(null);
   };
 
   const handleFiltrarRecientes = async (dias: number | null) => {
@@ -135,10 +162,22 @@ export default function VisualizarCompras() {
       label: "Monto Total",
       render: (compra: CompraMateriaPrimaResponse) => (
         <span className="text-sm text-gray-900 font-semibold">
-          {compra.montoTotal.toLocaleString("es-CL", {
-            style: "currency",
-            currency: "CLP",
-          })}
+          ${compra.montoTotal.toLocaleString("es-CL")}
+        </span>
+      ),
+    },
+    {
+      key: "estadoPago",
+      label: "Estado Pago",
+      render: (compra: CompraMateriaPrimaResponse) => (
+        <span
+          className={`text-xs px-2 py-1 rounded-full font-medium ${
+            compra.estadoPago === "PAGADO"
+              ? "bg-green-100 text-green-700"
+              : "bg-orange-100 text-orange-700"
+          }`}
+        >
+          {compra.estadoPago}
         </span>
       ),
     },
@@ -151,6 +190,14 @@ export default function VisualizarCompras() {
       icon: "visibility",
       variant: "primary" as const,
       onClick: (compra: CompraMateriaPrimaResponse) => handleVerDetalle(compra),
+    },
+    {
+      label: "Marcar como Pagado",
+      icon: "payments",
+      variant: "success" as const,
+      onClick: (compra: CompraMateriaPrimaResponse) => handleMarcarPago(compra),
+      disabled: (compra: CompraMateriaPrimaResponse) =>
+        compra.estadoPago === "PAGADO",
     },
     {
       label: "Eliminar",
@@ -309,10 +356,7 @@ export default function VisualizarCompras() {
                     Monto Total
                   </label>
                   <p className="text-lg text-gray-900 font-bold">
-                    {compraSeleccionada.montoTotal.toLocaleString("es-CL", {
-                      style: "currency",
-                      currency: "CLP",
-                    })}
+                    ${compraSeleccionada.montoTotal.toLocaleString("es-CL")}
                   </p>
                 </div>
               </div>
@@ -371,18 +415,13 @@ export default function VisualizarCompras() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-gray-900">
-                            {lote.costoUnitario.toLocaleString("es-CL", {
-                              style: "currency",
-                              currency: "CLP",
-                            })}
+                            ${lote.costoUnitario.toLocaleString("es-CL")}
                           </td>
                           <td className="px-4 py-3 text-gray-900 font-semibold">
+                            $
                             {(
                               lote.cantidad * lote.costoUnitario
-                            ).toLocaleString("es-CL", {
-                              style: "currency",
-                              currency: "CLP",
-                            })}
+                            ).toLocaleString("es-CL")}
                           </td>
                           <td className="px-4 py-3 text-gray-900">
                             {lote.numeroLote || "-"}
@@ -424,6 +463,15 @@ export default function VisualizarCompras() {
         title="Eliminar Compra"
         message="¿Está seguro de que desea eliminar esta compra? Solo podrás eliminarlo si es que no has utilizado los lotes asociados."
         itemName={compraAEliminar?.numDoc}
+      />
+
+      {/** Modal de confirmación para marcar como pagado */}
+      <ModalPagoCompra
+        isOpen={showModalPago}
+        onClose={handleCancelPago}
+        onConfirm={handleConfirmarPago}
+        compra={compraAPagar}
+        loading={loading}
       />
     </div>
   );

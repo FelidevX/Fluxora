@@ -83,6 +83,7 @@ export default function DashboardHome() {
   const [alertasInventario, setAlertasInventario] = useState<
     AlertaInventario[]
   >([]);
+  const [productosProximosVencer, setProductosProximosVencer] = useState(0);
 
   // Hooks para obtener datos reales
   const { materias } = useMaterias();
@@ -187,6 +188,7 @@ export default function DashboardHome() {
       setEstadisticas(null);
     }
   };
+
   useEffect(() => {
     fetchClients();
     fetchMateriasPrimas();
@@ -231,6 +233,29 @@ export default function DashboardHome() {
 
     setAlertasInventario(nuevasAlertas);
   }, [materias, productos]);
+
+  // Calcular productos próximos a vencer (próximos 10 días)
+  useEffect(() => {
+    const hoy = new Date();
+    const proximosDias = 10;
+
+    // Extraer todos los lotes de todas las compras
+    const todosLosLotes = compras.flatMap((compra) => compra.lotes || []);
+
+    // Filtrar lotes que tienen fecha de vencimiento y están próximos a vencer
+    const lotesProximosVencer = todosLosLotes.filter((lote) => {
+      if (!lote.fechaVencimiento) return false;
+
+      const fechaVencimiento = new Date(lote.fechaVencimiento);
+      const diasRestantes = Math.ceil(
+        (fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      return diasRestantes >= 0 && diasRestantes < proximosDias;
+    });
+
+    setProductosProximosVencer(lotesProximosVencer.length);
+  }, [compras]);
 
   // Datos para el gráfico de entregas de la semana
   const chartData = {
@@ -330,12 +355,16 @@ export default function DashboardHome() {
           </div>
         </div>
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold text-gray-500">Discrepancia</p>
+          <p className="text-xs font-bold text-gray-500">
+            Productos próximos a vencer
+          </p>
           <div className="mt-2 flex items-end justify-between">
-            <span className="text-3xl font-semibold text-gray-900">3.2 %</span>{" "}
-            {/* //cambiar */}
-            <span className="text-xs text-rose-600">-1.5% vs ayer</span>{" "}
-            {/* //cambiar */}
+            <span className="text-3xl font-semibold text-gray-900">
+              {productosProximosVencer}
+            </span>
+            {productosProximosVencer > 0 && (
+              <span className="text-xs text-amber-600">Próximos 10 días</span>
+            )}
           </div>
         </div>
       </div>
@@ -525,7 +554,10 @@ export default function DashboardHome() {
                   </tr>
                 ) : compras.length > 0 ? (
                   compras
-                    .filter((compra) => compra.fechaPago) // Solo las que tienen fecha de pago
+                    .filter(
+                      (compra) =>
+                        compra.fechaPago && compra.estadoPago === "PENDIENTE"
+                    ) // Solo pendientes con fecha de pago
                     .sort((a, b) => {
                       const dateA = new Date(a.fechaPago!);
                       const dateB = new Date(b.fechaPago!);
@@ -549,7 +581,7 @@ export default function DashboardHome() {
                             {compra.proveedor}
                           </td>
                           <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-600 text-center">
-                            S/. {compra.montoTotal.toFixed(2)}
+                            ${compra.montoTotal.toLocaleString("es-CL")}
                           </td>
                           <td className="px-4 py-1 whitespace-nowrap text-sm text-center">
                             <div className="flex flex-col items-center">

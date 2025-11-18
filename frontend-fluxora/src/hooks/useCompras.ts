@@ -16,6 +16,7 @@ interface UseComprasResult {
   buscarPorProveedor: (proveedor: string) => Promise<void>;
   obtenerComprasRecientes: (dias?: number) => Promise<void>;
   eliminarCompra: (id: number) => Promise<void>;
+  marcarComoPagado: (id: number) => Promise<void>;
   clearError: () => void;
 }
 
@@ -182,6 +183,37 @@ export function useCompras(): UseComprasResult {
     }
   };
 
+  const marcarComoPagado = async (id: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `http://localhost:8080/api/inventario/compras/${id}/estado-pago?estadoPago=PAGADO`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al actualizar estado de pago: ${response.status}`
+        );
+      }
+
+      await cargarCompras();
+    } catch (err) {
+      console.error("Error al marcar compra como pagada:", err);
+      setError("Error al actualizar el estado de pago");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -196,6 +228,7 @@ export function useCompras(): UseComprasResult {
     buscarPorProveedor,
     obtenerComprasRecientes,
     eliminarCompra,
+    marcarComoPagado,
     clearError,
   };
 }

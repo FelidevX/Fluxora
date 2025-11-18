@@ -144,6 +144,28 @@ public class CompraMateriaPrimaService {
         compraRepository.delete(compra);
     }
 
+    @Transactional
+    public CompraMateriaPrimaResponseDTO actualizarEstadoPago(Long id, String estadoPagoStr) {
+        CompraMateriaPrima compra = compraRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Compra no encontrada con ID: " + id));
+
+        try {
+            CompraMateriaPrima.EstadoPago estadoPago = CompraMateriaPrima.EstadoPago.valueOf(estadoPagoStr.toUpperCase());
+            compra.setEstadoPago(estadoPago);
+            
+            // Si se marca como pagado y no tiene fecha de pago, establecer la fecha actual
+            if (estadoPago == CompraMateriaPrima.EstadoPago.PAGADO && compra.getFechaPago() == null) {
+                compra.setFechaPago(LocalDate.now());
+            }
+            
+            CompraMateriaPrima compraActualizada = compraRepository.save(compra);
+            List<LoteMateriaPrima> lotes = loteRepository.findLotesByCompraId(compraActualizada.getId());
+            return buildResponseDTO(compraActualizada, lotes);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Estado de pago inválido: " + estadoPagoStr);
+        }
+    }
+
     private CompraMateriaPrimaResponseDTO buildResponseDTO(
             CompraMateriaPrima compra, 
             List<LoteMateriaPrima> lotes) {
@@ -182,6 +204,7 @@ public class CompraMateriaPrimaService {
                 .proveedor(compra.getProveedor())
                 .fechaCompra(compra.getFechaCompra())
                 .fechaPago(compra.getFechaPago())
+                .estadoPago(compra.getEstadoPago())
                 .createdAt(compra.getCreatedAt())
                 .totalLotes(lotes.size())
                 .montoTotal(montoTotal)

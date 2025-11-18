@@ -73,4 +73,16 @@ public class CompraMateriaPrimaController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PutMapping("/{id}/estado-pago")
+    public ResponseEntity<CompraMateriaPrimaResponseDTO> actualizarEstadoPago(
+            @PathVariable Long id,
+            @RequestParam String estadoPago) {
+        try {
+            CompraMateriaPrimaResponseDTO compra = compraService.actualizarEstadoPago(id, estadoPago);
+            return ResponseEntity.ok(compra);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

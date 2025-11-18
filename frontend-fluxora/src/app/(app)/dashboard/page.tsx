@@ -12,6 +12,9 @@ import {
   Legend,
 } from "chart.js";
 import { useEffect, useState } from "react";
+import { useMaterias } from "@/hooks/useMaterias";
+import { useProductos } from "@/hooks/useProductos";
+import { useCompras } from "@/hooks/useCompras";
 
 ChartJS.register(
   CategoryScale,
@@ -62,12 +65,29 @@ interface EstadisticasDashboard {
   productosVendidosHoy?: number;
 }
 
+interface AlertaInventario {
+  id: number;
+  nombre: string;
+  cantidadActual: number;
+  stockMinimo: number;
+  unidad: string;
+  tipo: "materia" | "producto";
+}
+
 export default function DashboardHome() {
   const [clients, setClients] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [materiaPrima, setMateriaPrima] = useState<MateriaPrima[]>([]);
   const [estadisticas, setEstadisticas] =
     useState<EstadisticasDashboard | null>(null);
+  const [alertasInventario, setAlertasInventario] = useState<
+    AlertaInventario[]
+  >([]);
+
+  // Hooks para obtener datos reales
+  const { materias } = useMaterias();
+  const { productos } = useProductos();
+  const { compras, cargarCompras } = useCompras();
 
   // pt-14: deja espacio para el botón flotante del menú en móviles
   const today = new Date();
@@ -171,7 +191,46 @@ export default function DashboardHome() {
     fetchClients();
     fetchMateriasPrimas();
     fetchEstadisticas();
+    cargarCompras();
   }, []);
+
+  // Generar alertas de inventario bajo
+  useEffect(() => {
+    const nuevasAlertas: AlertaInventario[] = [];
+
+    // Alertas de materias primas con stock bajo
+    materias.forEach((materia) => {
+      if (materia.cantidad !== undefined && materia.cantidad < 10) {
+        nuevasAlertas.push({
+          id: materia.id,
+          nombre: materia.nombre,
+          cantidadActual: materia.cantidad,
+          stockMinimo: 10,
+          unidad: materia.unidad,
+          tipo: "materia",
+        });
+      }
+    });
+
+    // Alertas de productos con stock bajo
+    productos.forEach((producto) => {
+      if (producto.stockTotal !== undefined && producto.stockTotal < 10) {
+        nuevasAlertas.push({
+          id: producto.id,
+          nombre: producto.nombre,
+          cantidadActual: producto.stockTotal,
+          stockMinimo: 10,
+          unidad: "kg",
+          tipo: "producto",
+        });
+      }
+    });
+
+    // Ordenar por cantidad actual (menor a mayor)
+    nuevasAlertas.sort((a, b) => a.cantidadActual - b.cantidadActual);
+
+    setAlertasInventario(nuevasAlertas);
+  }, [materias, productos]);
 
   // Datos para el gráfico de entregas de la semana
   const chartData = {
@@ -262,10 +321,12 @@ export default function DashboardHome() {
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-bold text-gray-500">Inventario bajo</p>
           <div className="mt-2 flex items-end justify-between">
-            <span className="text-3xl font-semibold text-gray-900">5</span>{" "}
-            {/* //cambiar */}
-            <span className="text-xs text-rose-600">-8% vs ayer</span>{" "}
-            {/* //cambiar */}
+            <span className="text-3xl font-semibold text-gray-900">
+              {alertasInventario.length}
+            </span>
+            {alertasInventario.length > 0 && (
+              <span className="text-xs text-rose-600">Requiere atención</span>
+            )}
           </div>
         </div>
         <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
@@ -310,36 +371,44 @@ export default function DashboardHome() {
               Alerta de inventario bajo
             </h2>
             <span className="text-xs rounded-full bg-rose-50 px-2 py-1 text-rose-700">
-              5 productos
-            </span>{" "}
-            {/* //cambiar */}
+              {alertasInventario.length} producto
+              {alertasInventario.length !== 1 ? "s" : ""}
+            </span>
           </div>
           <p className="text-sm text-gray-500">
             Productos que requieren reabastecimiento
           </p>
           <div className="mt-3 divide-y divide-gray-100">
-            {/* //cambiar: estos datos deben venir de la API */}
-            {[
-              { p: "Harina de trigo", a: "15 Kg", m: "50 Kg", e: "30%" },
-              { p: "Azúcar", a: "8 Kg", m: "25 Kg", e: "32%" },
-              { p: "Levadura", a: "2 Kg", m: "10 Kg", e: "20%" },
-              { p: "Mantequilla", a: "5 Kg", m: "20 Kg", e: "25%" },
-              { p: "Huevos", a: "24 U", m: "100 U", e: "24%" },
-            ].map((row) => (
-              <div
-                key={row.p}
-                className="flex items-center justify-between py-2 text-sm"
-              >
-                <span className="text-gray-700">{row.p}</span>
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-500">A: {row.a}</span>
-                  <span className="text-gray-500">M: {row.m}</span>
-                  <span className="rounded-full bg-rose-50 px-2 py-0.5 text-rose-700">
-                    {row.e}
-                  </span>
-                </div>
+            {alertasInventario.length === 0 ? (
+              <div className="py-8 text-center text-sm text-gray-500">
+                No hay productos con inventario bajo
               </div>
-            ))}
+            ) : (
+              alertasInventario.slice(0, 5).map((alerta) => {
+                const porcentaje = Math.round(
+                  (alerta.cantidadActual / alerta.stockMinimo) * 100
+                );
+                return (
+                  <div
+                    key={`${alerta.tipo}-${alerta.id}`}
+                    className="flex items-center justify-between py-2 text-sm"
+                  >
+                    <span className="text-gray-700">{alerta.nombre}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-gray-500">
+                        A: {alerta.cantidadActual.toFixed(1)} {alerta.unidad}
+                      </span>
+                      <span className="text-gray-500">
+                        M: {alerta.stockMinimo} {alerta.unidad}
+                      </span>
+                      <span className="rounded-full bg-rose-50 px-2 py-0.5 text-rose-700">
+                        {porcentaje}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -414,30 +483,33 @@ export default function DashboardHome() {
             </table>
           </div>
         </div>
-        {/* Materias Primas por vencer */}
+        {/* Próximas facturas a pagar */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <div className="flex flex-row items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">
-              Materias primas registradas
+              Próximas facturas a pagar
             </h2>
-            <MaterialIcon name="auto_delete" className="text-amber-400" />
+            <MaterialIcon name="receipt_long" className="text-amber-400" />
           </div>
 
           <p className="text-sm text-gray-500 mb-4">
-            Materias primas próximas a vencer
+            Facturas pendientes de pago próximas a vencer
           </p>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Producto
+                    N° Documento
                   </th>
                   <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cantidad
+                    Proveedor
                   </th>
                   <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha de vencimiento
+                    Monto
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fecha de pago
                   </th>
                 </tr>
               </thead>
@@ -445,36 +517,39 @@ export default function DashboardHome() {
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={4}
                       className="px-4 py-8 text-center text-sm text-gray-500"
                     >
-                      Cargando productos...
+                      Cargando facturas...
                     </td>
                   </tr>
-                ) : materiaPrima.length > 0 ? (
-                  materiaPrima
-                    .filter((mp) => mp.fechaVencimiento)
+                ) : compras.length > 0 ? (
+                  compras
+                    .filter((compra) => compra.fechaPago) // Solo las que tienen fecha de pago
                     .sort((a, b) => {
-                      const dateA = new Date(a.fechaVencimiento);
-                      const dateB = new Date(b.fechaVencimiento);
+                      const dateA = new Date(a.fechaPago!);
+                      const dateB = new Date(b.fechaPago!);
                       return dateA.getTime() - dateB.getTime();
                     })
                     .slice(0, 5)
-                    .map((mp) => {
-                      const fechaVencimiento = new Date(mp.fechaVencimiento);
+                    .map((compra) => {
+                      const fechaPago = new Date(compra.fechaPago!);
                       const hoy = new Date();
                       const diasRestantes = Math.ceil(
-                        (fechaVencimiento.getTime() - hoy.getTime()) /
+                        (fechaPago.getTime() - hoy.getTime()) /
                           (1000 * 60 * 60 * 24)
                       );
 
                       return (
-                        <tr key={mp.id} className="hover:bg-gray-50">
+                        <tr key={compra.id} className="hover:bg-gray-50">
                           <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-900 text-center">
-                            {mp.nombre}
+                            {compra.numDoc}
                           </td>
                           <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-600 text-center">
-                            {mp.cantidad} {mp.unidad}
+                            {compra.proveedor}
+                          </td>
+                          <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-600 text-center">
+                            S/. {compra.montoTotal.toFixed(2)}
                           </td>
                           <td className="px-4 py-1 whitespace-nowrap text-sm text-center">
                             <div className="flex flex-col items-center">
@@ -487,20 +562,24 @@ export default function DashboardHome() {
                                     : "text-gray-500"
                                 }`}
                               >
-                                {fechaVencimiento.toLocaleDateString("es-ES")}
+                                {fechaPago.toLocaleDateString("es-ES")}
                               </span>
                               <span
                                 className={`text-xs ${
-                                  diasRestantes <= 3
+                                  diasRestantes <= 0
+                                    ? "text-red-500 font-semibold"
+                                    : diasRestantes <= 3
                                     ? "text-red-500"
                                     : diasRestantes <= 7
                                     ? "text-amber-500"
                                     : "text-gray-400"
                                 }`}
                               >
-                                {diasRestantes > 0
-                                  ? `${diasRestantes} días`
-                                  : "vencido"}
+                                {diasRestantes < 0
+                                  ? `Vencida (${Math.abs(diasRestantes)} días)`
+                                  : diasRestantes === 0
+                                  ? "Vence hoy"
+                                  : `${diasRestantes} días`}
                               </span>
                             </div>
                           </td>
@@ -510,10 +589,10 @@ export default function DashboardHome() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={4}
                       className="px-4 py-8 text-center text-sm text-gray-500"
                     >
-                      No hay productos con fecha de vencimiento registrados
+                      No hay facturas pendientes de pago
                     </td>
                   </tr>
                 )}

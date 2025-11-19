@@ -6,6 +6,8 @@ import { RecetaMaestra } from "@/types/produccion";
 import { useProductos } from "@/hooks/useProductos";
 import { useRecetas } from "@/hooks/useRecetas";
 import { useCurrentDate } from "@/hooks/useDate";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import MaterialIcon from "@/components/ui/MaterialIcon";
@@ -41,6 +43,9 @@ export default function LoteProductoModal({
   const [multiplicador, setMultiplicador] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loteAEliminar, setLoteAEliminar] = useState<LoteProducto | null>(null);
+
+  // Hook para notificaciones
+  const { toasts, removeToast, success, error: showError, warning } = useToast();
 
   // Formulario para nuevo lote
   const [formulario, setFormulario] = useState({
@@ -155,17 +160,17 @@ export default function LoteProductoModal({
     e.preventDefault();
 
     if (!recetaSeleccionada) {
-      alert("Debe seleccionar una receta");
+      warning("Debe seleccionar una receta", "Receta Requerida");
       return;
     }
 
     if (formulario.cantidadProducida <= 0) {
-      alert("La cantidad producida debe ser mayor a 0");
+      warning("La cantidad producida debe ser mayor a 0", "Cantidad Inválida");
       return;
     }
 
     if (formulario.costoProduccionTotal <= 0) {
-      alert("El costo de producción debe ser mayor a 0");
+      warning("El costo de producción debe ser mayor a 0", "Costo Inválido");
       return;
     }
 
@@ -186,6 +191,8 @@ export default function LoteProductoModal({
       await crearLote(producto.id, nuevoLote);
       await loadLotes();
 
+      success("Producción registrada exitosamente", "¡Lote Creado!");
+
       // Reset formulario
       setFormulario({
         cantidadProducida: 0,
@@ -198,9 +205,9 @@ export default function LoteProductoModal({
       setRecetaSeleccionada(null);
       setMultiplicador(1);
       setShowForm(false);
-    } catch (error) {
-      console.error("Error al crear lote:", error);
-      alert("Error al crear el lote");
+    } catch (err) {
+      console.error("Error al crear lote:", err);
+      showError("Error al crear el lote. Por favor, inténtelo de nuevo.", "Error al Crear");
     } finally {
       setLoading(false);
     }
@@ -220,9 +227,13 @@ export default function LoteProductoModal({
       setShowDeleteModal(false);
       setLoteAEliminar(null);
       await loadLotes();
+      success("Lote eliminado exitosamente", "¡Lote Eliminado!");
     } catch (err) {
       console.error("Error al eliminar lote:", err);
-      // El error ya está en el estado global del hook
+      showError(
+        error || "Error al eliminar el lote. Por favor, inténtelo de nuevo.",
+        "Error al Eliminar"
+      );
     } finally {
       setLoading(false);
     }
@@ -653,7 +664,7 @@ export default function LoteProductoModal({
           )}
         </div>
 
-        {/* Mensaje de error */}
+        {/* Mensaje de error (mantenerlo para errores del hook) */}
         {error && (
           <div className="px-6 pb-4">
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
@@ -696,6 +707,12 @@ export default function LoteProductoModal({
             : false
         }
         isLoading={loading}
+      />
+
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

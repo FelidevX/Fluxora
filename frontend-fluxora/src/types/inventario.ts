@@ -30,6 +30,9 @@ export interface LoteMateriaPrima {
 // Enum de tipo de documento
 export type TipoDocumento = "BOLETA" | "FACTURA";
 
+// Enum de estado de pago
+export type EstadoPago = "PENDIENTE" | "PAGADO";
+
 // DTO para crear lote dentro de una compra
 export interface LoteCompraDTO {
   materiaPrimaId: number;
@@ -47,6 +50,7 @@ export interface CompraMateriaPrimaDTO {
   proveedor: string;
   fechaCompra: string;
   fechaPago?: string | null; // Fecha de pago (opcional)
+  estadoPago?: EstadoPago; // Estado de pago (opcional, por defecto PENDIENTE)
   lotes: LoteCompraDTO[];
 }
 
@@ -58,6 +62,7 @@ export interface CompraMateriaPrimaResponse {
   proveedor: string;
   fechaCompra: string;
   fechaPago?: string | null; // Fecha de pago (opcional)
+  estadoPago: EstadoPago; // Estado de pago
   createdAt: string;
   totalLotes: number;
   montoTotal: number;

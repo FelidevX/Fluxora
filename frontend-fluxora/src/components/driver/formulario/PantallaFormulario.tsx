@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Entrega, FormularioEntrega } from "@/interfaces/entregas/driver";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface PantallaFormularioProps {
   entrega: Entrega;
@@ -22,6 +24,9 @@ export default function PantallaFormulario({
 
   const [datosFormulario, setDatosFormulario] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Hook para notificaciones
+  const { toasts, removeToast, warning, error: showError } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +57,7 @@ export default function PantallaFormulario({
     );
 
     if (!productoConCantidad) {
-      alert("Por favor, ingrese al menos una cantidad para algún producto.");
+      warning("Por favor, ingrese al menos una cantidad para algún producto.", "Cantidades Requeridas");
       return;
     }
 
@@ -108,8 +113,9 @@ export default function PantallaFormulario({
 
       const data = await response.json();
       setDatosFormulario(data);
-    } catch (error) {
-      console.error("Error al obtener datos:", error);
+    } catch (err) {
+      console.error("Error al obtener datos:", err);
+      showError("Error al obtener los datos de las entregas del día", "Error de Carga");
     } finally {
       setLoading(false);
     }
@@ -283,6 +289,12 @@ export default function PantallaFormulario({
           </button>
         </div>
       </form>
+
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

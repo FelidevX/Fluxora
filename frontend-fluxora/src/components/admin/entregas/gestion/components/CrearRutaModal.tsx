@@ -31,10 +31,7 @@ export function CrearRutaModal({
   });
 
   const handleCrear = () => {
-    if (!nuevaRuta.nombre.trim()) {
-      alert("El nombre de la ruta es obligatorio");
-      return;
-    }
+    // La validación y notificación se maneja en el componente padre
     onCrear(nuevaRuta);
   };
 

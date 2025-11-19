@@ -7,7 +7,11 @@ import { TarjetaRuta } from "@/components/admin/entregas/gestion/components/Tarj
 import { CrearRutaModal } from "@/components/admin/entregas/gestion/components/CrearRutaModal";
 import { AsignarDriverModal } from "@/components/admin/entregas/gestion/components/AsignarDriverModal";
 import { ProgramacionEntregasModal } from "@/components/admin/entregas/gestion/components/ProgramacionEntregasModal";
+
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
+import Alert from "@/components/ui/alert";
 
 // Interfaces para productos y lotes
 interface Lote {
@@ -53,6 +57,9 @@ export function GestionRutas({
   onRefresh,
   onVerDetalle,
 }: GestionRutasProps) {
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error, warning, info } = useToast();
+
   // Estados para el modal de creación
   const [showCrearModal, setShowCrearModal] = useState(false);
   const [loadingCreate, setLoadingCreate] = useState(false);
@@ -121,8 +128,9 @@ export function GestionRutas({
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error("Error al obtener drivers:", error);
+    } catch (err) {
+      console.error("Error al obtener drivers:", err);
+      error("No se pudieron cargar los conductores", "Error de Conexión");
       setDrivers([]);
     } finally {
       setLoadingDrivers(false);
@@ -226,8 +234,9 @@ export function GestionRutas({
       );
 
       setProductosConLotes(productosDisponibles);
-    } catch (error) {
-      console.error("Error al obtener productos con lotes:", error);
+    } catch (err) {
+      console.error("Error al obtener productos con lotes:", err);
+      error("No se pudieron cargar los productos disponibles", "Error al Cargar Productos");
       setProductosConLotes([]);
     } finally {
       setLoadingProductos(false);
@@ -247,7 +256,7 @@ export function GestionRutas({
     id_driver: string;
   }) => {
     if (!rutaData.nombre.trim()) {
-      alert("El nombre de la ruta es obligatorio");
+      warning("El nombre de la ruta es obligatorio", "Campo Requerido");
       return;
     }
 
@@ -290,7 +299,7 @@ export function GestionRutas({
       );
 
       if (response.ok) {
-        alert("Ruta creada exitosamente");
+        success("La ruta ha sido creada exitosamente", "¡Ruta Creada!");
         setShowCrearModal(false);
         setNuevaRuta({
           nombre: "",
@@ -303,11 +312,11 @@ export function GestionRutas({
         const errorData = await response.text();
         throw new Error(`Error ${response.status}: ${errorData}`);
       }
-    } catch (error) {
-      console.error("Error al crear ruta:", error);
-      alert(
-        "Error al crear ruta: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+    } catch (err) {
+      console.error("Error al crear ruta:", err);
+      error(
+        err instanceof Error ? err.message : "Error desconocido al crear la ruta",
+        "Error al Crear Ruta"
       );
     } finally {
       setLoadingCreate(false);
@@ -351,19 +360,19 @@ export function GestionRutas({
       );
 
       if (response.ok) {
+        success("El conductor ha sido asignado a la ruta correctamente", "¡Conductor Asignado!");
         setShowAsignarModal(false);
         setRutaSeleccionada(null);
         setDriverId("");
         onRefresh();
-        alert("Driver asignado exitosamente");
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error("Error al asignar driver:", error);
-      alert(
-        "Error al asignar driver: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+    } catch (err) {
+      console.error("Error al asignar driver:", err);
+      error(
+        err instanceof Error ? err.message : "Error desconocido al asignar conductor",
+        "Error al Asignar Conductor"
       );
     }
   };
@@ -408,11 +417,11 @@ export function GestionRutas({
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error("Error al obtener rutas programadas:", error);
-      alert(
-        "Error al obtener rutas programadas: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+    } catch (err) {
+      console.error("Error al obtener rutas programadas:", err);
+      error(
+        err instanceof Error ? err.message : "Error desconocido al cargar las rutas",
+        "Error al Cargar Rutas Programadas"
       );
     } finally {
       setLoadingProgramacion(false);
@@ -463,15 +472,15 @@ export function GestionRutas({
         // Refrescar los datos
         await fetchRutasProgramadas(fechaProgramacion);
         await fetchProductosConLotes(); // Actualizar stock disponible
-        alert("Productos actualizados exitosamente");
+        success("Los productos han sido actualizados correctamente", "Productos Actualizados");
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error("Error al actualizar productos:", error);
-      alert(
-        "Error al actualizar productos: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+    } catch (err) {
+      console.error("Error al actualizar productos:", err);
+      error(
+        err instanceof Error ? err.message : "Error desconocido al actualizar productos",
+        "Error al Actualizar Productos"
       );
     }
   };
@@ -695,6 +704,13 @@ export function GestionRutas({
         message="¿Estás seguro de que deseas eliminar esta ruta? Se eliminarán todos los clientes asociados y las entregas programadas."
         itemName={rutaAEliminar?.nombre}
         isLoading={loadingDelete}
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+
       />
     </div>
   );

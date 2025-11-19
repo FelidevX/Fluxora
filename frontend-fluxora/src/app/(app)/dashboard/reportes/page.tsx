@@ -6,6 +6,8 @@ import ReportCard from "@/components/reportes/ReportCard";
 import ReportFilters from "@/components/reportes/ReportFilters";
 import ReportTable from "@/components/reportes/ReportTable";
 import ReportSummary from "@/components/reportes/ReportSummary";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 export default function ReportesPage() {
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoReporte | null>(
@@ -13,6 +15,9 @@ export default function ReportesPage() {
   );
   const [datosReporte, setDatosReporte] = useState<any | null>(null);
   const { loading, error, generarReporte } = useReportes();
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError, warning, info } = useToast();
 
   // Tipos de reportes disponibles
   const tiposReportes = [
@@ -52,21 +57,28 @@ export default function ReportesPage() {
       console.log("Resultado del reporte:", resultado);
       if (resultado) {
         setDatosReporte(resultado);
+        success("El reporte se ha generado correctamente", "Reporte Generado");
       }
     } catch (err) {
       console.error("Error en handleGenerarReporte:", err);
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al generar el reporte",
+        "Error al Generar Reporte"
+      );
     }
   };
 
   // Exportar a Excel
   const exportarAExcel = async () => {
     if (!datosReporte || !datosReporte.datos || !tipoSeleccionado) {
-      alert("No hay datos para exportar");
+      warning("No hay datos disponibles para exportar", "Sin Datos");
       return;
     }
 
     try {
       console.log("Exportando a Excel...");
+      info("Preparando exportación del reporte...", "Exportando");
+      
       const { ExcelExportService } = await import(
         "@/services/exportacion/excelExportService"
       );
@@ -81,9 +93,13 @@ export default function ReportesPage() {
       });
 
       console.log("Excel exportado exitosamente");
+      success("El reporte se ha exportado a Excel correctamente", "Exportación Exitosa");
     } catch (err) {
       console.error("Error al exportar:", err);
-      alert("Error al exportar el reporte");
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al exportar el reporte",
+        "Error al Exportar"
+      );
     }
   };
 
@@ -260,6 +276,13 @@ export default function ReportesPage() {
             </p>
           </div>
         )}
+      
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { FormularioEntrega } from "@/interfaces/entregas/driver";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface AgendarVisitaData {
   fecha: string;
@@ -67,6 +69,9 @@ export default function PantallaAgendarVisita({
   const [isLoading, setIsLoading] = useState(false);
   const [mostrarSelectProducto, setMostrarSelectProducto] = useState(false);
 
+  // Hook para notificaciones
+  const { toasts, removeToast, success, error: showError, warning } = useToast();
+
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split("T")[0];
@@ -104,8 +109,9 @@ export default function PantallaAgendarVisita({
 
       const data = await response.json();
       setDatosFormulario(data);
-    } catch (error) {
-      console.error("Error al obtener datos:", error);
+    } catch (err) {
+      console.error("Error al obtener datos:", err);
+      showError("Error al obtener las entregas del día", "Error de Carga");
     } finally {
       setLoading(false);
     }
@@ -197,8 +203,9 @@ export default function PantallaAgendarVisita({
       setProductosDisponibles(
         productosConLotesData.filter((p) => p.stockTotal > 0)
       );
-    } catch (error) {
-      console.error("Error al obtener productos disponibles:", error);
+    } catch (err) {
+      console.error("Error al obtener productos disponibles:", err);
+      showError("Error al cargar productos disponibles", "Error de Carga");
     }
   };
 
@@ -240,7 +247,7 @@ export default function PantallaAgendarVisita({
     );
 
     if (yaExiste) {
-      alert("Este producto con este lote ya está en la lista.");
+      warning("Este producto con este lote ya está en la lista.", "Producto Duplicado");
       return;
     }
 
@@ -270,7 +277,7 @@ export default function PantallaAgendarVisita({
     e.preventDefault();
 
     if (!agendarData.fecha) {
-      alert("Por favor, complete la fecha para la próxima visita.");
+      warning("Por favor, complete la fecha para la próxima visita.", "Fecha Requerida");
       return;
     }
 
@@ -279,8 +286,9 @@ export default function PantallaAgendarVisita({
     );
 
     if (!productoConCantidad) {
-      alert(
-        "Por favor, ingrese al menos una cantidad para algún producto de la próxima visita."
+      warning(
+        "Por favor, ingrese al menos una cantidad para algún producto de la próxima visita.",
+        "Cantidades Requeridas"
       );
       return;
     }
@@ -370,12 +378,13 @@ export default function PantallaAgendarVisita({
         throw new Error("Error al agendar la entrega.");
       }
 
-      alert("Entrega registrada y próxima visita agendada correctamente.");
+      success("Entrega registrada y próxima visita agendada correctamente.", "¡Operación Exitosa!");
       onComplete(agendarData, clienteId);
-    } catch (error) {
-      console.error("Error al procesar:", error);
-      alert(
-        "Hubo un error al procesar la información. Por favor, inténtelo de nuevo."
+    } catch (err) {
+      console.error("Error al procesar:", err);
+      showError(
+        "Hubo un error al procesar la información. Por favor, inténtelo de nuevo.",
+        "Error al Procesar"
       );
     } finally {
       setIsLoading(false);
@@ -602,6 +611,12 @@ export default function PantallaAgendarVisita({
           </button>
         </div>
       </form>
+
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

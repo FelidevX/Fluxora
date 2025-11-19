@@ -324,28 +324,7 @@ export default function ProductosPage() {
           >
             Gestión de Productos
           </button>
-      {/* Barra de búsqueda y acciones */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            type="text"
-            placeholder="Buscar productos..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            icon="search"
-          />
-        </div>
-        <Button
-          onClick={() => {
-            resetFormulario();
-            setShowForm(true);
-          }}
-          variant="primary"
-        >
-          <MaterialIcon name="add" className="mr-2" />
-          Nuevo Producto
-        </Button>
-      </div>
+    
 
           <button
             className={`px-4 py-2 rounded-r-md border text-sm font-medium focus:outline-none transition-colors ${

@@ -6,43 +6,7 @@ import { Driver } from "@/interfaces/entregas/driver";
 import { TarjetaRuta } from "@/components/admin/entregas/gestion/components/TarjetaRuta";
 import { CrearRutaModal } from "@/components/admin/entregas/gestion/components/CrearRutaModal";
 import { AsignarDriverModal } from "@/components/admin/entregas/gestion/components/AsignarDriverModal";
-import { ProgramacionEntregasModal } from "@/components/admin/entregas/gestion/components/ProgramacionEntregasModal";
-
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
-import { useToast } from "@/hooks/useToast";
-import ToastContainer from "@/components/ui/ToastContainer";
-import Alert from "@/components/ui/alert";
-
-// Interfaces para productos y lotes
-interface Lote {
-  id: number;
-  productoId: number;
-  cantidadProducida: number;
-  stockActual: number;
-  costoProduccionTotal: number;
-  costoUnitario: number;
-  fechaProduccion: string;
-  fechaVencimiento: string;
-  estado: string;
-}
-
-interface ProductoConLotes {
-  id: number;
-  nombre: string;
-  categoria: string;
-  tipoProducto: string;
-  precio: number;
-  lotes: Lote[];
-  stockTotal: number;
-}
-
-interface ProductoProgramado {
-  id_producto: number;
-  id_lote: number;
-  nombreProducto: string;
-  categoria: string;
-  cantidad_kg: number;
-}
 
 interface GestionRutasProps {
   rutas: RutaActiva[];
@@ -57,9 +21,6 @@ export function GestionRutas({
   onRefresh,
   onVerDetalle,
 }: GestionRutasProps) {
-  // Hook para notificaciones toast
-  const { toasts, removeToast, success, error, warning, info } = useToast();
-
   // Estados para el modal de creación
   const [showCrearModal, setShowCrearModal] = useState(false);
   const [loadingCreate, setLoadingCreate] = useState(false);
@@ -78,21 +39,6 @@ export function GestionRutas({
     null
   );
   const [driverId, setDriverId] = useState("");
-
-  // Estados para programación de entregas por fecha
-  const [showProgramacionModal, setShowProgramacionModal] = useState(false);
-  const [fechaProgramacion, setFechaProgramacion] = useState("");
-  const [rutasProgramadas, setRutasProgramadas] = useState<any[]>([]);
-  const [loadingProgramacion, setLoadingProgramacion] = useState(false);
-  const [rutaParaProgramar, setRutaParaProgramar] = useState<RutaActiva | null>(
-    null
-  );
-
-  // Estados para productos con lotes
-  const [productosConLotes, setProductosConLotes] = useState<
-    ProductoConLotes[]
-  >([]);
-  const [loadingProductos, setLoadingProductos] = useState(false);
 
   // Estados para eliminar ruta
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -128,122 +74,15 @@ export function GestionRutas({
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    } catch (err) {
-      console.error("Error al obtener drivers:", err);
-      error("No se pudieron cargar los conductores", "Error de Conexión");
+    } catch (error) {
+      console.error("Error al obtener drivers:", error);
       setDrivers([]);
     } finally {
       setLoadingDrivers(false);
     }
   };
 
-  // Función para obtener productos con sus lotes
-  const fetchProductosConLotes = async () => {
-    setLoadingProductos(true);
-    try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      // Primero obtenemos todos los productos
-      const productosResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!productosResponse.ok) {
-        throw new Error(
-          `Error al obtener productos: ${productosResponse.status}`
-        );
-      }
-
-      const productos = await productosResponse.json();
-      console.log("productos:", productos);
-
-      // Ahora obtenemos los lotes de cada producto
-      const productosConLotesData: ProductoConLotes[] = await Promise.all(
-        productos.map(async (producto: any) => {
-          try {
-            const lotesResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/productos/${producto.id}/lotes`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-
-            let lotes: Lote[] = [];
-            if (lotesResponse.ok) {
-              const lotesData = await lotesResponse.json();
-              // Filtrar solo lotes disponibles con stock
-              lotes = lotesData.filter(
-                (lote: Lote) =>
-                  lote.estado === "disponible" && lote.stockActual > 0
-              );
-            }
-
-            console.log(`Lotes del producto ${producto.id}:`, lotes);
-
-            const stockTotal = lotes.reduce(
-              (sum, lote) => sum + lote.stockActual,
-              0
-            );
-
-            return {
-              id: producto.id,
-              nombre: producto.nombre,
-              categoria: producto.categoria,
-              tipoProducto: producto.tipoProducto,
-              precio: producto.precio,
-              lotes: lotes,
-              stockTotal: stockTotal,
-            };
-          } catch (error) {
-            console.error(
-              `Error al obtener lotes del producto ${producto.id}:`,
-              error
-            );
-            return {
-              id: producto.id,
-              nombre: producto.nombre,
-              categoria: producto.categoria,
-              tipoProducto: producto.tipoProducto,
-              precio: producto.precio,
-              lotes: [],
-              stockTotal: 0,
-            };
-          }
-        })
-      );
-
-      // Filtrar productos que tengan stock disponible
-      const productosDisponibles = productosConLotesData.filter(
-        (p) => p.stockTotal > 0
-      );
-
-      setProductosConLotes(productosDisponibles);
-    } catch (err) {
-      console.error("Error al obtener productos con lotes:", err);
-      error("No se pudieron cargar los productos disponibles", "Error al Cargar Productos");
-      setProductosConLotes([]);
-    } finally {
-      setLoadingProductos(false);
-    }
-  };
-
-  // Cargar drivers y productos al montar el componente
+  // Cargar drivers al montar el componente
   useEffect(() => {
     fetchDrivers();
   }, []);
@@ -256,7 +95,7 @@ export function GestionRutas({
     id_driver: string;
   }) => {
     if (!rutaData.nombre.trim()) {
-      warning("El nombre de la ruta es obligatorio", "Campo Requerido");
+      alert("El nombre de la ruta es obligatorio");
       return;
     }
 
@@ -299,7 +138,7 @@ export function GestionRutas({
       );
 
       if (response.ok) {
-        success("La ruta ha sido creada exitosamente", "¡Ruta Creada!");
+        alert("Ruta creada exitosamente");
         setShowCrearModal(false);
         setNuevaRuta({
           nombre: "",
@@ -312,11 +151,11 @@ export function GestionRutas({
         const errorData = await response.text();
         throw new Error(`Error ${response.status}: ${errorData}`);
       }
-    } catch (err) {
-      console.error("Error al crear ruta:", err);
-      error(
-        err instanceof Error ? err.message : "Error desconocido al crear la ruta",
-        "Error al Crear Ruta"
+    } catch (error) {
+      console.error("Error al crear ruta:", error);
+      alert(
+        "Error al crear ruta: " +
+          (error instanceof Error ? error.message : "Error desconocido")
       );
     } finally {
       setLoadingCreate(false);
@@ -360,137 +199,22 @@ export function GestionRutas({
       );
 
       if (response.ok) {
-        success("El conductor ha sido asignado a la ruta correctamente", "¡Conductor Asignado!");
         setShowAsignarModal(false);
         setRutaSeleccionada(null);
         setDriverId("");
         onRefresh();
+        alert("Driver asignado exitosamente");
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    } catch (err) {
-      console.error("Error al asignar driver:", err);
-      error(
-        err instanceof Error ? err.message : "Error desconocido al asignar conductor",
-        "Error al Asignar Conductor"
+    } catch (error) {
+      console.error("Error al asignar driver:", error);
+      alert(
+        "Error al asignar driver: " +
+          (error instanceof Error ? error.message : "Error desconocido")
       );
     }
   };
-
-  // Función para abrir modal de programación
-  const handleProgramarEntregas = () => {
-    setRutaParaProgramar(null); // Sin ruta específica
-    const today = new Date().toISOString().split("T")[0];
-    setFechaProgramacion(today);
-    fetchProductosConLotes(); // Cargar productos cuando se abre el modal
-    setShowProgramacionModal(true);
-  };
-
-  // Función para obtener rutas programadas por fecha
-  const fetchRutasProgramadas = async (fecha: string) => {
-    if (!fecha) return;
-
-    setLoadingProgramacion(true);
-    try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fecha}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setRutasProgramadas(data);
-      } else {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-    } catch (err) {
-      console.error("Error al obtener rutas programadas:", err);
-      error(
-        err instanceof Error ? err.message : "Error desconocido al cargar las rutas",
-        "Error al Cargar Rutas Programadas"
-      );
-    } finally {
-      setLoadingProgramacion(false);
-    }
-  };
-
-  // Función para actualizar productos de un cliente específico
-  const handleActualizarProductos = async (
-    idRuta: number,
-    idCliente: number,
-    productos: ProductoProgramado[]
-  ) => {
-    try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      console.log("Actualizando productos para cliente:", {
-        idRuta,
-        idCliente,
-        productos,
-        fechaProgramacion,
-      });
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programar-entrega`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idRuta,
-            idCliente,
-            fechaProgramacion: fechaProgramacion,
-            productos,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        // Refrescar los datos
-        await fetchRutasProgramadas(fechaProgramacion);
-        await fetchProductosConLotes(); // Actualizar stock disponible
-        success("Los productos han sido actualizados correctamente", "Productos Actualizados");
-      } else {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-    } catch (err) {
-      console.error("Error al actualizar productos:", err);
-      error(
-        err instanceof Error ? err.message : "Error desconocido al actualizar productos",
-        "Error al Actualizar Productos"
-      );
-    }
-  };
-
-  // Efecto para cargar datos cuando cambie la fecha
-  useEffect(() => {
-    if (fechaProgramacion && showProgramacionModal) {
-      fetchRutasProgramadas(fechaProgramacion);
-    }
-  }, [fechaProgramacion, showProgramacionModal]);
 
   // Función para abrir modal de eliminar
   const handleEliminarRuta = (ruta: RutaActiva) => {
@@ -554,46 +278,25 @@ export function GestionRutas({
             Administra las rutas existentes, crea nuevas rutas y asigna drivers
           </p>
         </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={handleProgramarEntregas}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+        <button
+          onClick={() => setShowCrearModal(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+        >
+          <svg
+            className="h-4 w-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="h-4 w-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            Programar Entregas
-          </button>
-          <button
-            onClick={() => setShowCrearModal(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-          >
-            <svg
-              className="h-4 w-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Crear Nueva Ruta
-          </button>
-        </div>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Crear Nueva Ruta
+        </button>
       </div>
 
       {/* Lista de rutas existentes */}
@@ -674,24 +377,6 @@ export function GestionRutas({
         setDriverId={setDriverId}
       />
 
-      {/* Modal ProgramacionEntregas */}
-      <ProgramacionEntregasModal
-        isOpen={showProgramacionModal}
-        onClose={() => {
-          setShowProgramacionModal(false);
-          setRutaParaProgramar(null);
-          setRutasProgramadas([]);
-        }}
-        ruta={rutaParaProgramar}
-        fechaProgramacion={fechaProgramacion}
-        setFechaProgramacion={setFechaProgramacion}
-        rutasProgramadas={rutasProgramadas}
-        loadingProgramacion={loadingProgramacion}
-        productosConLotes={productosConLotes}
-        loadingProductos={loadingProductos}
-        onActualizarProductos={handleActualizarProductos}
-      />
-
       {/* Modal Confirmar Eliminación */}
       <ConfirmDeleteModal
         isOpen={showDeleteModal}
@@ -704,13 +389,6 @@ export function GestionRutas({
         message="¿Estás seguro de que deseas eliminar esta ruta? Se eliminarán todos los clientes asociados y las entregas programadas."
         itemName={rutaAEliminar?.nombre}
         isLoading={loadingDelete}
-      />
-
-      {/* Contenedor de notificaciones toast */}
-      <ToastContainer
-        toasts={toasts}
-        onClose={removeToast}
-        position="bottom-right"
       />
     </div>
   );

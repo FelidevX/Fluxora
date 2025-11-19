@@ -473,7 +473,7 @@ export default function RecetasManager() {
               />
 
               <Input
-                label={`Precio por ${formulario.unidadBase} (CLP):`}
+                label={`Precio por ${formulario.unidadBase} (Precio venta):`}
                 type="number"
                 step="1"
                 placeholder="Ej: 5000"
@@ -531,104 +531,114 @@ export default function RecetasManager() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {ingredientes.map((ingrediente, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Materia Prima:
-                        </label>
-                        <select
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
-                          value={ingrediente.materiaPrimaId}
-                          onChange={(e) =>
-                            actualizarIngrediente(
-                              index,
-                              "materiaPrimaId",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          <option value="">Seleccionar...</option>
-                          {materias.map((materia) => (
-                            <option key={materia.id} value={materia.id}>
-                              {materia.nombre} (Disponible: {materia.cantidad}{" "}
-                              {materia.unidad})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                  {ingredientes.map((ingrediente, index) => {
+                    // Filtrar materias primas ya seleccionadas
+                    const materiasDisponibles = materias.filter((materia) => {
+                      const yaSeleccionada = ingredientes.some(
+                        (ing, i) => i !== index && ing.materiaPrimaId === materia.id
+                      );
+                      return !yaSeleccionada;
+                    });
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Cantidad:
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
-                          placeholder="Ej: 2.5"
-                          value={ingrediente.cantidadNecesaria}
-                          onChange={(e) =>
-                            actualizarIngrediente(
-                              index,
-                              "cantidadNecesaria",
-                              parseFloat(e.target.value)
-                            )
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 ">
-                          Unidad:
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                          value={ingrediente.unidad}
-                          readOnly
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Opcional:
-                        </label>
-                        <label className="flex items-center mt-2">
-                          <input
-                            type="checkbox"
-                            checked={ingrediente.esOpcional}
+                    return (
+                      <div
+                        key={index}
+                        className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-lg"
+                      >
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Materia Prima:
+                          </label>
+                          <select
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                            value={ingrediente.materiaPrimaId}
                             onChange={(e) =>
                               actualizarIngrediente(
                                 index,
-                                "esOpcional",
-                                e.target.checked
+                                "materiaPrimaId",
+                                e.target.value
                               )
                             }
-                            className="mr-2"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Es opcional
-                          </span>
-                        </label>
-                      </div>
+                            required
+                          >
+                            <option value="">Seleccionar...</option>
+                            {materiasDisponibles.map((materia) => (
+                              <option key={materia.id} value={materia.id}>
+                                {materia.nombre} (Disponible: {materia.cantidad}{" "}
+                                {materia.unidad})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-                      <div className="flex items-end">
-                        <button
-                          type="button"
-                          onClick={() => eliminarIngrediente(index)}
-                          className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg"
-                        >
-                          <MaterialIcon name="delete" className="w-4 h-4" />
-                        </button>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Cantidad:
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                            placeholder="Ej: 2.5"
+                            value={ingrediente.cantidadNecesaria}
+                            onChange={(e) =>
+                              actualizarIngrediente(
+                                index,
+                                "cantidadNecesaria",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1 ">
+                            Unidad:
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
+                            value={ingrediente.unidad}
+                            readOnly
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Opcional:
+                          </label>
+                          <label className="flex items-center mt-2">
+                            <input
+                              type="checkbox"
+                              checked={ingrediente.esOpcional}
+                              onChange={(e) =>
+                                actualizarIngrediente(
+                                  index,
+                                  "esOpcional",
+                                  e.target.checked
+                                )
+                              }
+                              className="mr-2"
+                            />
+                            <span className="text-sm text-gray-600">
+                              Es opcional
+                            </span>
+                          </label>
+                        </div>
+
+                        <div className="flex items-end">
+                          <button
+                            type="button"
+                            onClick={() => eliminarIngrediente(index)}
+                            className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg"
+                          >
+                            <MaterialIcon name="delete" className="w-8 h-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

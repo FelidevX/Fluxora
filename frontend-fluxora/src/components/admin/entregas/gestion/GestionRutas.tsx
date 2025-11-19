@@ -7,6 +7,7 @@ import { TarjetaRuta } from "@/components/admin/entregas/gestion/components/Tarj
 import { CrearRutaModal } from "@/components/admin/entregas/gestion/components/CrearRutaModal";
 import { AsignarDriverModal } from "@/components/admin/entregas/gestion/components/AsignarDriverModal";
 import { ProgramacionEntregasModal } from "@/components/admin/entregas/gestion/components/ProgramacionEntregasModal";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 // Interfaces para productos y lotes
 interface Lote {
@@ -81,8 +82,15 @@ export function GestionRutas({
   );
 
   // Estados para productos con lotes
-  const [productosConLotes, setProductosConLotes] = useState<ProductoConLotes[]>([]);
+  const [productosConLotes, setProductosConLotes] = useState<
+    ProductoConLotes[]
+  >([]);
   const [loadingProductos, setLoadingProductos] = useState(false);
+
+  // Estados para eliminar ruta
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [rutaAEliminar, setRutaAEliminar] = useState<RutaActiva | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   // Función para obtener todos los drivers
   const fetchDrivers = async () => {
@@ -146,7 +154,9 @@ export function GestionRutas({
       );
 
       if (!productosResponse.ok) {
-        throw new Error(`Error al obtener productos: ${productosResponse.status}`);
+        throw new Error(
+          `Error al obtener productos: ${productosResponse.status}`
+        );
       }
 
       const productos = await productosResponse.json();
@@ -171,13 +181,17 @@ export function GestionRutas({
               const lotesData = await lotesResponse.json();
               // Filtrar solo lotes disponibles con stock
               lotes = lotesData.filter(
-                (lote: Lote) => lote.estado === "disponible" && lote.stockActual > 0
+                (lote: Lote) =>
+                  lote.estado === "disponible" && lote.stockActual > 0
               );
             }
 
             console.log(`Lotes del producto ${producto.id}:`, lotes);
 
-            const stockTotal = lotes.reduce((sum, lote) => sum + lote.stockActual, 0);
+            const stockTotal = lotes.reduce(
+              (sum, lote) => sum + lote.stockActual,
+              0
+            );
 
             return {
               id: producto.id,
@@ -189,7 +203,10 @@ export function GestionRutas({
               stockTotal: stockTotal,
             };
           } catch (error) {
-            console.error(`Error al obtener lotes del producto ${producto.id}:`, error);
+            console.error(
+              `Error al obtener lotes del producto ${producto.id}:`,
+              error
+            );
             return {
               id: producto.id,
               nombre: producto.nombre,
@@ -418,12 +435,11 @@ export function GestionRutas({
         token = token.substring(7);
       }
 
-
       console.log("Actualizando productos para cliente:", {
         idRuta,
         idCliente,
         productos,
-        fechaProgramacion
+        fechaProgramacion,
       });
 
       const response = await fetch(
@@ -466,6 +482,57 @@ export function GestionRutas({
       fetchRutasProgramadas(fechaProgramacion);
     }
   }, [fechaProgramacion, showProgramacionModal]);
+
+  // Función para abrir modal de eliminar
+  const handleEliminarRuta = (ruta: RutaActiva) => {
+    setRutaAEliminar(ruta);
+    setShowDeleteModal(true);
+  };
+
+  // Función para confirmar eliminación
+  const handleConfirmDelete = async () => {
+    if (!rutaAEliminar) return;
+
+    setLoadingDelete(true);
+    try {
+      let token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("No se encontró el token de autenticación");
+      }
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas/${rutaAEliminar.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        alert("Ruta eliminada exitosamente");
+        setShowDeleteModal(false);
+        setRutaAEliminar(null);
+        onRefresh();
+      } else {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error al eliminar ruta:", error);
+      alert(
+        "Error al eliminar ruta: " +
+          (error instanceof Error ? error.message : "Error desconocido")
+      );
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
 
   return (
     <div>
@@ -556,6 +623,7 @@ export function GestionRutas({
             <TarjetaRuta
               key={ruta.id}
               ruta={ruta}
+              onEliminar={handleEliminarRuta}
               onVerDetalle={onVerDetalle}
               onAsignarDriver={abrirModalAsignar}
             />
@@ -613,6 +681,20 @@ export function GestionRutas({
         productosConLotes={productosConLotes}
         loadingProductos={loadingProductos}
         onActualizarProductos={handleActualizarProductos}
+      />
+
+      {/* Modal Confirmar Eliminación */}
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setRutaAEliminar(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Ruta"
+        message="¿Estás seguro de que deseas eliminar esta ruta? Se eliminarán todos los clientes asociados y las entregas programadas."
+        itemName={rutaAEliminar?.nombre}
+        isLoading={loadingDelete}
       />
     </div>
   );

@@ -191,6 +191,18 @@ public class EntregaController {
         }
     }
 
+    // Eliminar una ruta completa
+    @org.springframework.web.bind.annotation.DeleteMapping("/rutas/{idRuta}")
+    public ResponseEntity<String> eliminarRuta(@PathVariable Long idRuta) {
+        System.out.println("Solicitud para eliminar ruta ID: " + idRuta);
+        try {
+            entregaService.eliminarRuta(idRuta);
+            return ResponseEntity.ok("Ruta eliminada exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al eliminar ruta: " + e.getMessage());
+        }
+    }
+
     // Obtener estadísticas para el dashboard
     @GetMapping("/estadisticas-dashboard")
     public ResponseEntity<Map<String, Object>> obtenerEstadisticasDashboard() {

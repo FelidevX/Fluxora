@@ -892,4 +892,29 @@ public class EntregaService {
         
         return respuesta;
     }
+
+    /**
+     * Eliminar una ruta y todas sus relaciones
+     */
+    public void eliminarRuta(Long idRuta) {
+        System.out.println("Eliminando ruta ID: " + idRuta);
+        
+        // Verificar que la ruta existe
+        Ruta ruta = rutaRepository.findById(idRuta)
+            .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+        
+        // Eliminar programaciones de entregas asociadas a los clientes de esta ruta
+        List<RutaCliente> rutasClientes = rutaClienteRepository.findByIdRuta(idRuta);
+        for (RutaCliente rc : rutasClientes) {
+            programacionEntregaRepository.deleteByIdCliente(rc.getId_cliente());
+        }
+        
+        // Eliminar relaciones ruta-cliente
+        rutaClienteRepository.deleteAll(rutasClientes);
+        
+        // Eliminar la ruta
+        rutaRepository.delete(ruta);
+        
+        System.out.println("Ruta eliminada exitosamente");
+    }
 }

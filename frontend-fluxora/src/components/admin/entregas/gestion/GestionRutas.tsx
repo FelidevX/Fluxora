@@ -704,13 +704,13 @@ export function GestionRutas({
         message="¿Estás seguro de que deseas eliminar esta ruta? Se eliminarán todos los clientes asociados y las entregas programadas."
         itemName={rutaAEliminar?.nombre}
         isLoading={loadingDelete}
+      />
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer
         toasts={toasts}
         onClose={removeToast}
         position="bottom-right"
-
       />
     </div>
   );

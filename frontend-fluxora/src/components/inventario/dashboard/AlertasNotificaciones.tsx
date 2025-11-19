@@ -38,6 +38,7 @@ export default function AlertasNotificaciones() {
     // Alertas de stock bajo en materias primas
     materias.forEach((materia) => {
       const cantidad = materia.cantidad ?? 0;
+      
       if (cantidad > 0 && cantidad < 5) {
         nuevasAlertas.push({
           id: `stock-materia-${materia.id}`,
@@ -67,7 +68,8 @@ export default function AlertasNotificaciones() {
 
     // Alertas de materias primas agotadas (cantidad = 0)
     materias.forEach((materia) => {
-      if (materia.cantidad === 0) {
+      const cantidad = materia.cantidad ?? 0;
+      if (cantidad === 0) {
         nuevasAlertas.push({
           id: `agotado-${materia.id}`,
           tipo: "materia_agotada",

@@ -176,7 +176,7 @@ export default function RegistrarCompra() {
           </button>
         </div>
       )}
-
+        
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Datos de la Compra */}
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -522,7 +522,7 @@ export default function RegistrarCompra() {
           </div>
         </div>
       )}
-      
+
       <ToastContainer
         toasts={toasts}
         onClose={removeToast}

@@ -16,6 +16,7 @@ public class CompraMateriaPrimaResponseDTO {
     private String proveedor;
     private LocalDate fechaCompra;
     private LocalDate fechaPago;
+    private CompraMateriaPrima.EstadoPago estadoPago;
     private LocalDate createdAt;
     private Integer totalLotes;
     private Double montoTotal;

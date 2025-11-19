@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import GestionProductos from "@/components/inventario/productos/GestionProductos";
+import HistorialMermas from "@/components/inventario/mermas/HistorialMermas";
+import RegistrarMermaModal from "@/components/inventario/RegistrarMermaModal";
 import { Producto, ProductoDTO } from "@/types/inventario";
 import { RecetaMaestra } from "@/types/produccion";
 import { useProductos } from "@/hooks/useProductos";
@@ -25,7 +28,8 @@ export default function ProductosPage() {
     eliminarProducto,
     clearError,
   } = useProductos();
-
+  const [activeTab, setActiveTab] = useState<"gestion" | "mermas">("gestion");
+  const [showMermaModal, setShowMermaModal] = useState(false);
   const { recetas, loading: loadingRecetas } = useRecetas();
 
   // Hook para notificaciones toast
@@ -293,15 +297,33 @@ export default function ProductosPage() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Gestión de Productos
-        </h1>
-        <p className="text-gray-600">
-          Administre el catálogo de productos y sus lotes de producción
-        </p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Gestión de Productos y Mermas
+          </h1>
+          <p className="text-gray-600">
+            Administre el catálogo de productos, lotes de producción y registro
+            de mermas
+          </p>
+        </div>
       </div>
 
+      {/* Tabs */}
+      <div className="mb-6">
+        <nav className="inline-flex rounded-md shadow-sm" role="tablist">
+          <button
+            className={`px-4 py-2 rounded-l-md border text-sm font-medium focus:outline-none transition-colors ${
+              activeTab === "gestion"
+                ? "bg-white border-blue-500 text-blue-600 z-10"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "gestion"}
+            onClick={() => setActiveTab("gestion")}
+          >
+            Gestión de Productos
+          </button>
       {/* Barra de búsqueda y acciones */}
       <div className="mb-6 flex flex-col md:flex-row gap-4">
         <div className="flex-1">
@@ -325,255 +347,39 @@ export default function ProductosPage() {
         </Button>
       </div>
 
-      {/* Tabla de productos */}
-      <div className="bg-white rounded-lg shadow">
-        <DataTable
-          data={productosFiltrados}
-          columns={columns}
-          actions={actions}
-          loading={loading}
-          emptyMessage="No hay productos registrados"
-        />
+          <button
+            className={`px-4 py-2 rounded-r-md border text-sm font-medium focus:outline-none transition-colors ${
+              activeTab === "mermas"
+                ? "bg-white border-blue-500 text-blue-600 z-10"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "mermas"}
+            onClick={() => setActiveTab("mermas")}
+          >
+            Merma de Productos
+          </button>
+        </nav>
       </div>
 
-      {/* Modal de formulario */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {productoEnEdicion ? "Editar Producto" : "Nuevo Producto"}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  resetFormulario();
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <MaterialIcon name="close" className="text-2xl" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-4">
-                {/* Selector de Receta (solo para crear) */}
-                {!productoEnEdicion && (
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700">
-                      Seleccionar Receta *
-                    </label>
-                    <select
-                      value={recetaSeleccionada?.id || ""}
-                      onChange={(e) =>
-                        handleRecetaChange(Number(e.target.value))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
-                      required
-                      disabled={loadingRecetas}
-                    >
-                      <option value="">
-                        {loadingRecetas
-                          ? "Cargando recetas..."
-                          : "-- Seleccione una receta --"}
-                      </option>
-                      {recetas
-                        .filter((r) => r.activa)
-                        .map((receta) => (
-                          <option key={receta.id} value={receta.id}>
-                            {receta.nombre} - {receta.categoria}
-                          </option>
-                        ))}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                      El nombre, categoría y precio se extraerán de la receta
-                      seleccionada
-                    </p>
-                  </div>
-                )}
-
-                {/* Nombre (readonly siempre que no se esté editando) */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
-                    Nombre del Producto *
-                  </label>
-                  <Input
-                    type="text"
-                    value={formulario.nombre}
-                    onChange={(e) =>
-                      setFormulario({ ...formulario, nombre: e.target.value })
-                    }
-                    required
-                    placeholder="Seleccione una receta"
-                    readOnly={!productoEnEdicion}
-                    className={!productoEnEdicion ? "bg-gray-100" : ""}
-                  />
-                  {!productoEnEdicion && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      El nombre se obtiene de la receta seleccionada
-                    </p>
-                  )}
-                </div>
-
-                {/* Categoría (viene de la receta pero se puede cambiar) */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
-                    Categoría *
-                  </label>
-                  <select
-                    value={formulario.categoria}
-                    onChange={(e) => {
-                      const categoria = e.target.value;
-                      setFormulario({
-                        ...formulario,
-                        categoria,
-                        // Si no es panadería, tipo producto = NO_APLICA
-                        tipoProducto:
-                          categoria.toLowerCase() !== "panaderia"
-                            ? "NO_APLICA"
-                            : "CORRIENTE",
-                      });
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
-                    required
-                  >
-                    <option value="">-- Seleccione una categoría --</option>
-                    <option value="panaderia">Panadería</option>
-                    <option value="pasteleria">Pastelería</option>
-                    <option value="reposteria">Repostería</option>
-                    <option value="otros">Otros</option>
-                  </select>
-                  {!productoEnEdicion && (
-                    <p className="text-xs text-gray-500 mt-1"></p>
-                  )}
-                </div>
-
-                {/* Tipo Producto (solo si es panadería) */}
-                {formulario.categoria.toLowerCase() === "panaderia" && (
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700">
-                      Tipo de Producto (Panadería) *
-                    </label>
-                    <select
-                      value={formulario.tipoProducto || "CORRIENTE"}
-                      onChange={(e) =>
-                        setFormulario({
-                          ...formulario,
-                          tipoProducto: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
-                      required
-                    >
-                      <option value="CORRIENTE">Corriente</option>
-                      <option value="ESPECIAL">Especial</option>
-                    </select>
-                    {!productoEnEdicion && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Por defecto es "Corriente", puede cambiarse a "Especial"
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Precio de Venta (readonly cuando no se edita) */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
-                    Precio de Venta *
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-600">$</span>
-                    <Input
-                      type="number"
-                      value={formulario.precioVenta || ""}
-                      onChange={(e) =>
-                        setFormulario({
-                          ...formulario,
-                          precioVenta: Number(e.target.value),
-                        })
-                      }
-                      min="0"
-                      step="1"
-                      required
-                      readOnly={!productoEnEdicion}
-                      className={!productoEnEdicion ? "bg-gray-100" : ""}
-                    />
-                  </div>
-                  {!productoEnEdicion && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      El precio se obtiene de la receta seleccionada
-                    </p>
-                  )}
-                </div>
-
-                {/* Estado */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
-                    Estado *
-                  </label>
-                  <select
-                    value={formulario.estado}
-                    onChange={(e) =>
-                      setFormulario({ ...formulario, estado: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
-                    required
-                  >
-                    <option value="activo">Activo</option>
-                    <option value="descontinuado">Descontinuado</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Botones de acción */}
-              <div className="flex gap-2 mt-6">
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    resetFormulario();
-                  }}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={loading}
-                  className="flex-1"
-                >
-                  {loading
-                    ? "Guardando..."
-                    : productoEnEdicion
-                    ? "Actualizar"
-                    : "Crear Producto"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* Contenido según tab activa */}
+      {activeTab === "gestion" && (
+        <GestionProductos onOpenMerma={() => setShowMermaModal(true)} />
       )}
 
-      {/* Modal de gestión de lotes */}
-      {productoParaLotes && (
-        <LoteProductoModal
-          producto={productoParaLotes}
-          isOpen={!!productoParaLotes}
-          onClose={() => setProductoParaLotes(null)}
-        />
-      )}
+      {activeTab === "mermas" && <HistorialMermas />}
 
-      {/* Modal de confirmación para eliminar producto */}
-      <ConfirmDeleteModal
-        isOpen={showDeleteModal}
-        onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        title="Eliminar Producto"
-        message="¿Está seguro de que desea eliminar este producto? Se eliminarán también todos sus lotes de producción. Esta acción no se puede deshacer."
-        itemName={productoAEliminar?.nombre}
-        requireConfirmation={true}
+      {/* Modal de registro de merma */}
+      <RegistrarMermaModal
+        isOpen={showMermaModal}
+        onClose={() => setShowMermaModal(false)}
+        onSuccess={() => {
+          console.log("Merma registrada exitosamente");
+          // Si estamos en la tab de mermas, podríamos recargar la lista
+          if (activeTab === "mermas") {
+            // El componente HistorialMermas se recargará automáticamente
+          }
+        }}
       />
 
       {/* Contenedor de notificaciones toast */}

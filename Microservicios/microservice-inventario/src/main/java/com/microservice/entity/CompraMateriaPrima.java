@@ -33,6 +33,11 @@ public class CompraMateriaPrima {
     @Column(name = "fecha_pago")
     private LocalDate fechaPago;
 
+    @Column(name = "estado_pago", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private EstadoPago estadoPago = EstadoPago.PENDIENTE;
+
     @Column(name = "created_at", updatable = false)
     private LocalDate createdAt;
 
@@ -67,5 +72,10 @@ public class CompraMateriaPrima {
     public enum TipoDocumento {
     BOLETA,
     FACTURA
+    }
+
+    public enum EstadoPago {
+    PENDIENTE,
+    PAGADO
     }
 }

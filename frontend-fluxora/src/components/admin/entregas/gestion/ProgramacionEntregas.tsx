@@ -32,6 +32,7 @@ interface ProductoProgramado {
   id_lote: number;
   nombreProducto: string;
   categoria: string;
+  tipoProducto: string;
   cantidad_kg: number;
 }
 

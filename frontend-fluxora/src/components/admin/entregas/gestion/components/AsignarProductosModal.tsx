@@ -28,6 +28,7 @@ interface ProductoProgramado {
   id_lote: number;
   nombreProducto: string;
   categoria: string;
+  tipoProducto: string;
   cantidad_kg: number;
 }
 
@@ -85,6 +86,7 @@ export function AsignarProductosModal({
           id_lote: primerLote.id,
           nombreProducto: producto.nombre,
           categoria: producto.categoria,
+          tipoProducto: producto.tipoProducto,
           cantidad_kg: 0,
         },
       ]);
@@ -313,8 +315,8 @@ export function AsignarProductosModal({
                                   (l) => l.id === prod.id_lote
                                 )?.stockActual || 0
                               }
-                              step="0.1"
-                              value={prod.cantidad_kg}
+                              step="1"
+                              value={prod.cantidad_kg || ""}
                               onChange={(e) =>
                                 handleCantidadChange(
                                   prod.id_producto,

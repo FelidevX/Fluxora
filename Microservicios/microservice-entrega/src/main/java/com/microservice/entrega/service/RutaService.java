@@ -60,14 +60,14 @@ public class RutaService {
     @Autowired
     private ProgramacionEntregaRepository programacionEntregaRepository;
 
-    public List<ClienteDTO> getOptimizedRouteORTools(List<ClienteDTO> clientes) {
+    public List<ClienteDTO> getOptimizedRouteORTools(Long id_ruta, List<ClienteDTO> clientes) {
 
         // Se construye la matriz de distancias
         int size = clientes.size() + 1;
-        Optional<Ruta> origen = rutaRepository.findById(((long) 1));
+        Ruta origen = getOrigenRuta(id_ruta);
 
         List<double[]> locations = new ArrayList();
-        locations.add(new double[] { origen.get().getLatitud(), origen.get().getLongitud() });
+        locations.add(new double[] { origen.getLatitud(), origen.getLongitud() });
 
         for (ClienteDTO c : clientes) {
             locations.add(new double[] { c.getLatitud(), c.getLongitud() });

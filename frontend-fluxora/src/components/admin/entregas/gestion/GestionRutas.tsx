@@ -7,6 +7,8 @@ import { TarjetaRuta } from "@/components/admin/entregas/gestion/components/Tarj
 import { CrearRutaModal } from "@/components/admin/entregas/gestion/components/CrearRutaModal";
 import { AsignarDriverModal } from "@/components/admin/entregas/gestion/components/AsignarDriverModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface GestionRutasProps {
   rutas: RutaActiva[];
@@ -32,6 +34,16 @@ export function GestionRutas({
     origen_coordenada: "-36.612523, -72.082921",
     id_driver: "",
   });
+
+  // Hook para notificaciones toast
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+    info,
+  } = useToast();
 
   // Estados para asignar driver
   const [showAsignarModal, setShowAsignarModal] = useState(false);
@@ -95,7 +107,7 @@ export function GestionRutas({
     id_driver: string;
   }) => {
     if (!rutaData.nombre.trim()) {
-      alert("El nombre de la ruta es obligatorio");
+      warning("El nombre de la ruta es obligatorio", "Validación");
       return;
     }
 
@@ -138,7 +150,7 @@ export function GestionRutas({
       );
 
       if (response.ok) {
-        alert("Ruta creada exitosamente");
+        success("La ruta ha sido creada exitosamente", "¡Ruta Creada!");
         setShowCrearModal(false);
         setNuevaRuta({
           nombre: "",
@@ -153,9 +165,9 @@ export function GestionRutas({
       }
     } catch (error) {
       console.error("Error al crear ruta:", error);
-      alert(
-        "Error al crear ruta: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+      showError(
+        error instanceof Error ? error.message : "Error desconocido",
+        "Error al Crear Ruta"
       );
     } finally {
       setLoadingCreate(false);
@@ -199,19 +211,22 @@ export function GestionRutas({
       );
 
       if (response.ok) {
+        success(
+          "El driver ha sido asignado correctamente a la ruta",
+          "¡Driver Asignado!"
+        );
         setShowAsignarModal(false);
         setRutaSeleccionada(null);
         setDriverId("");
         onRefresh();
-        alert("Driver asignado exitosamente");
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error("Error al asignar driver:", error);
-      alert(
-        "Error al asignar driver: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+      showError(
+        error instanceof Error ? error.message : "Error desconocido",
+        "Error al Asignar Driver"
       );
     }
   };
@@ -249,7 +264,7 @@ export function GestionRutas({
       );
 
       if (response.ok) {
-        alert("Ruta eliminada exitosamente");
+        success("La ruta ha sido eliminada exitosamente", "¡Ruta Eliminada!");
         setShowDeleteModal(false);
         setRutaAEliminar(null);
         onRefresh();
@@ -258,9 +273,9 @@ export function GestionRutas({
       }
     } catch (error) {
       console.error("Error al eliminar ruta:", error);
-      alert(
-        "Error al eliminar ruta: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+      showError(
+        error instanceof Error ? error.message : "Error desconocido",
+        "Error al Eliminar Ruta"
       );
     } finally {
       setLoadingDelete(false);
@@ -390,6 +405,13 @@ export function GestionRutas({
         message="¿Estás seguro de que deseas eliminar esta ruta? Se eliminarán todos los clientes asociados y las entregas programadas."
         itemName={rutaAEliminar?.nombre}
         isLoading={loadingDelete}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

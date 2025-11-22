@@ -45,7 +45,13 @@ export default function LoteProductoModal({
   const [loteAEliminar, setLoteAEliminar] = useState<LoteProducto | null>(null);
 
   // Hook para notificaciones
-  const { toasts, removeToast, success, error: showError, warning } = useToast();
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+  } = useToast();
 
   // Formulario para nuevo lote
   const [formulario, setFormulario] = useState({
@@ -466,7 +472,7 @@ export default function LoteProductoModal({
                       <Input
                         type="number"
                         value={multiplicador}
-                        onChange={(e) =>
+                        onChange={(e) =>  
                           handleMultiplicadorChange(Number(e.target.value))
                         }
                         min="1"

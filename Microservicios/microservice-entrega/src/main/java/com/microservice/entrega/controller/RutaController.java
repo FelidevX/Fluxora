@@ -38,7 +38,7 @@ public class RutaController {
     @GetMapping("/optimized-ortools/{id_ruta}")
     public Map<String, Object> getOptimizedRouteORTools(@PathVariable Long id_ruta) {
         List<ClienteDTO> clientes = rutaService.getClientesDeRuta(id_ruta);
-        List<ClienteDTO> orderedClients = rutaService.getOptimizedRouteORTools(clientes);
+        List<ClienteDTO> orderedClients = rutaService.getOptimizedRouteORTools(id_ruta, clientes);
         Ruta origen = rutaService.getOrigenRuta(id_ruta);
         String osrmRoute = rutaService.getOsrmRoute(orderedClients, origen);
 
@@ -67,7 +67,7 @@ public class RutaController {
 
             result.put("testClientes", testClientes);
 
-            List<ClienteDTO> optimizedRoute = rutaService.getOptimizedRouteORTools(testClientes);
+            List<ClienteDTO> optimizedRoute = rutaService.getOptimizedRouteORTools(1L, testClientes);
             result.put("optimizedRoute", optimizedRoute);
 
             Ruta origen = rutaService.getOrigenRuta(1L);

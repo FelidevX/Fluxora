@@ -6,12 +6,13 @@ import GestionRutas from "@/components/admin/entregas/gestion/GestionRutas";
 import { RutasActivas } from "@/components/admin/entregas/rutas/RutasActivas";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { AsignarClientes } from "@/components/admin/entregas/asignar/AsignarClientes";
+import { ProgramacionEntregas } from "@/components/admin/entregas/gestion/ProgramacionEntregas";
 
 export default function GestionRutasPage() {
   const [rutas, setRutas] = useState<RutaActiva[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "gestion" | "rutas-activas" | "asignar"
+    "gestion" | "rutas-activas" | "programar" | "asignar"
   >("gestion");
   const router = useRouter();
 
@@ -79,16 +80,29 @@ export default function GestionRutasPage() {
           </button>
 
           <button
-            className={`px-4 py-2 border-t border-b border-gray-200 text-sm font-medium focus:outline-none ${
+            className={`px-4 py-2 border text-sm font-medium focus:outline-none ${
               activeTab === "rutas-activas"
                 ? "bg-white border-blue-500 text-blue-600"
-                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
             }`}
             role="tab"
             aria-selected={activeTab === "rutas-activas"}
             onClick={() => setActiveTab("rutas-activas")}
           >
             Rutas Activas
+          </button>
+
+          <button
+            className={`px-4 py-2 border text-sm font-medium focus:outline-none ${
+              activeTab === "programar"
+                ? "bg-white border-blue-500 text-blue-600"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "programar"}
+            onClick={() => setActiveTab("programar")}
+          >
+            Programar Entregas
           </button>
 
           <button
@@ -127,6 +141,11 @@ export default function GestionRutasPage() {
             />
           </div>
         )}
+
+        {activeTab === "programar" && (
+          <ProgramacionEntregas rutas={rutas} loading={loading} />
+        )}
+
         {activeTab === "asignar" && <AsignarClientes />}
       </div>
     </div>

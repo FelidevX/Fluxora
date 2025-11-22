@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 interface Client {
   id: number;
@@ -35,6 +37,15 @@ export default function PendingClientList({
   const [selectedRuta, setSelectedRuta] = useState<number | null>(null);
   const [loadingRutas, setLoadingRutas] = useState(false);
   const [assigningClients, setAssigningClients] = useState(false);
+
+  // Hook para notificaciones toast
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+  } = useToast();
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -107,9 +118,9 @@ export default function PendingClientList({
       setRutas(rutasData);
     } catch (err) {
       console.error("Error al cargar rutas: ", err);
-      alert(
-        "Error al cargar rutas: " +
-          (err instanceof Error ? err.message : "Error desconocido")
+      showError(
+        err instanceof Error ? err.message : "Error desconocido",
+        "Error al Cargar Rutas"
       );
     } finally {
       setLoadingRutas(false);
@@ -148,7 +159,7 @@ export default function PendingClientList({
 
   const handleConfirmAssignment = async () => {
     if (!selectedRuta) {
-      alert("Por favor selecciona una ruta");
+      warning("Por favor selecciona una ruta", "Selección Requerida");
       return;
     }
 
@@ -192,14 +203,18 @@ export default function PendingClientList({
       setShowModal(false);
       setSelectedRuta(null);
 
-      alert(
-        `${selectedClientIds.length} clientes asignados exitosamente a la ruta`
+      success(
+        `${selectedClientIds.length} cliente(s) asignado(s) exitosamente a la ruta`,
+        "¡Asignación Exitosa!"
       );
+
+      // Recargar clientes sin ruta
+      window.location.reload();
     } catch (err) {
       console.error("Error al asignar clientes:", err);
-      alert(
-        "Error al asignar clientes: " +
-          (err instanceof Error ? err.message : "Error desconocido")
+      showError(
+        err instanceof Error ? err.message : "Error desconocido",
+        "Error al Asignar Clientes"
       );
     } finally {
       setAssigningClients(false);
@@ -410,6 +425,13 @@ export default function PendingClientList({
           </div>
         </div>
       )}
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

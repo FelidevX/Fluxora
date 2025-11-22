@@ -74,8 +74,8 @@ export default function ModalPagoCompra({
         </div>
 
         {/* Advertencia */}
-        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <MaterialIcon name="info" className="w-5 h-5 text-amber-600 mt-0.5" />
+        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <MaterialIcon name="info" className="w-5 h-5 text-amber-600" />
           <p className="text-xs text-amber-800">
             Esta acción marcará la factura como saldada.
           </p>

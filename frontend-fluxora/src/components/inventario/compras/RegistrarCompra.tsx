@@ -164,6 +164,19 @@ export default function RegistrarCompra() {
         </p>
       </div>
 
+      {/* Mostrar errores */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <span className="block sm:inline">{error}</span>
+          <button
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+            onClick={clearError}
+          >
+            <MaterialIcon name="close" className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+        
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Datos de la Compra */}
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -280,7 +293,7 @@ export default function RegistrarCompra() {
             <Input
               label="Cantidad:"
               type="number"
-              value={loteActual.cantidad}
+              value={loteActual.cantidad || ''}
               onChange={(e) =>
                 setLoteActual({
                   ...loteActual,
@@ -288,14 +301,14 @@ export default function RegistrarCompra() {
                 })
               }
               min="0"
-              step="0.01"
+              step="1"
               placeholder="0"
             />
 
             <Input
               label="Costo Unitario (CLP):"
               type="number"
-              value={loteActual.costoUnitario}
+              value={loteActual.costoUnitario || ''}
               onChange={(e) =>
                 setLoteActual({
                   ...loteActual,

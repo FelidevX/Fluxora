@@ -341,8 +341,7 @@ export default function GestionMateriasPrimas() {
 
             <div className="p-6">
               <p className="text-sm text-gray-600 mb-4">
-                Lotes con stock disponible (ordenados por fecha de vencimiento -
-                FEFO)
+                Lotes con stock disponible (ordenados por fecha de vencimiento)
               </p>
 
               {lotes && lotes.length > 0 ? (

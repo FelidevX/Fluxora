@@ -38,14 +38,13 @@ export default function AlertasNotificaciones() {
     // Alertas de stock bajo en materias primas
     materias.forEach((materia) => {
       const cantidad = materia.cantidad ?? 0;
-      if (cantidad < 5) {
+      
+      if (cantidad > 0 && cantidad < 5) {
         nuevasAlertas.push({
           id: `stock-materia-${materia.id}`,
           tipo: "stock_bajo",
           titulo: "Stock Bajo - Materia Prima",
-          mensaje: `${materia.nombre}: solo quedan ${cantidad.toFixed(1)} ${
-            materia.unidad
-          }`,
+          mensaje: `${materia.nombre}: solo quedan ${cantidad} ${materia.unidad}`,
           prioridad: cantidad < 2 ? "alta" : "media",
           timestamp: new Date(),
         });
@@ -55,14 +54,12 @@ export default function AlertasNotificaciones() {
     // Alertas de stock bajo en productos
     productos.forEach((producto) => {
       const stockTotal = producto.stockTotal ?? 0;
-      if (stockTotal < 5) {
+      if (stockTotal > 0 && stockTotal < 5) {
         nuevasAlertas.push({
           id: `stock-producto-${producto.id}`,
           tipo: "stock_bajo",
           titulo: "Stock Bajo - Producto",
-          mensaje: `${producto.nombre}: solo quedan ${stockTotal.toFixed(
-            1
-          )} kg`,
+          mensaje: `${producto.nombre}: solo quedan ${stockTotal} unidades`,
           prioridad: stockTotal < 2 ? "alta" : "media",
           timestamp: new Date(),
         });

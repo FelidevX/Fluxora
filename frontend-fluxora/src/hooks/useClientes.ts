@@ -7,6 +7,7 @@ interface UseClientesResult {
   error: string | null;
   cargarClientes: () => Promise<void>;
   crearCliente: (cliente: ClienteDTO) => Promise<void>;
+  editarCliente: (id: number, cliente: ClienteDTO) => Promise<void>;
   eliminarCliente: (id: number) => Promise<void>;
   clearError: () => void;
 }
@@ -90,6 +91,46 @@ export function useClientes(): UseClientesResult {
     }
   };
 
+  const editarCliente = async (id: number, cliente: ClienteDTO) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      let token = localStorage.getItem("auth_token");
+
+      if (!token) throw new Error("No se encontró el token de autenticación");
+
+      if (token.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(cliente),
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error("Error al editar el cliente");
+      }
+      await cargarClientes();
+    } catch (err) {
+      console.error("Error al editar cliente:", err);
+      setError(
+        err instanceof Error ? err.message : "Error al editar el cliente"
+      );
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const eliminarCliente = async (id: number) => {
     try {
       setLoading(true);
@@ -134,6 +175,7 @@ export function useClientes(): UseClientesResult {
     error,
     cargarClientes,
     crearCliente,
+    editarCliente,
     clearError,
     eliminarCliente,
   };

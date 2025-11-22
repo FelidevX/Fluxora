@@ -18,6 +18,7 @@ export interface ClienteResponse {
   nombreNegocio?: string;
   contacto: string;
   direccion: string;
+  email?: string;
   ruta: string;
   ultimaEntrega: string;
   estado?: "activo" | "inactivo";

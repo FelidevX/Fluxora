@@ -19,6 +19,7 @@ const ClientesPage = () => {
     error,
     cargarClientes,
     crearCliente,
+    editarCliente,
     clearError,
     eliminarCliente,
   } = useClientes();
@@ -35,10 +36,14 @@ const ClientesPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [clienteAEliminar, setClienteAEliminar] =
     useState<ClienteResponse | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [clienteAEditar, setClienteAEditar] =
+    useState<ClienteResponse | null>(null);
 
   // Cargar clientes al montar el componente
   useEffect(() => {
     cargarClientes();
+    console.log("Clientes cargados:", clientes);
   }, [cargarClientes]);
 
   // Filtrar clientes por búsqueda
@@ -81,11 +86,41 @@ const ClientesPage = () => {
   };
 
   const handleEdit = (id: number) => {
-    info("Función de edición en desarrollo", "Editar Cliente");
-    // TODO: Implementar la funcionalidad de edición
+    const cliente = clientes.find((c) => c.id === id);
+    if (cliente) {
+      setClienteAEditar(cliente);
+      setShowEditModal(true);
+    }
   };
 
-  const handleDelete = (cliente: ClienteResponse) => {
+  const handleClientEditSubmit = async (data: any) => {
+    if (!clienteAEditar) return;
+    
+    try {
+      // Transformar los datos del formulario al formato del backend
+      const clientData = {
+        nombreNegocio: data.businessName,
+        nombre: data.contactPerson,
+        contacto: data.phone,
+        direccion: data.address,
+        latitud: data.latitude,
+        longitud: data.longitude,
+        email: data.email,
+        precioCorriente: data.precioCorriente,
+        precioEspecial: data.precioEspecial,
+      };
+      
+      await editarCliente(clienteAEditar.id, clientData);
+      success("El cliente ha sido actualizado exitosamente", "¡Cliente Actualizado!");
+      setShowEditModal(false);
+      setClienteAEditar(null);
+    } catch (err) {
+      showError(
+        err instanceof Error ? err.message : "Error desconocido al actualizar el cliente",
+        "Error al Actualizar Cliente"
+      );
+    }
+  };  const handleDelete = (cliente: ClienteResponse) => {
     setClienteAEliminar(cliente);
     setShowDeleteModal(true);
   };
@@ -264,6 +299,46 @@ const ClientesPage = () => {
         message={"¿Está seguro que desea eliminar este cliente?"}
         itemName={clienteAEliminar?.nombre || ""}
       />
+
+      {/* Modal de edición de cliente */}
+      {showEditModal && clienteAEditar && (
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Editar Cliente
+              </h2>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setClienteAEditar(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <MaterialIcon name="close" className="text-2xl" />
+              </button>
+            </div>
+            <div className="p-6">
+              <ClientForm
+                onSubmit={(data) => {
+                  handleClientEditSubmit(data);
+                }}
+                initialData={{
+                  businessName: clienteAEditar.nombreNegocio || "",
+                  contactPerson: clienteAEditar.nombre || "",
+                  phone: clienteAEditar.contacto || "",
+                  email: clienteAEditar.email || "",
+                  address: clienteAEditar.direccion || "",
+                  precioCorriente: clienteAEditar.precioCorriente || 1200,
+                  precioEspecial: clienteAEditar.precioEspecial || 1500,
+                }}
+                title="Actualizar información del cliente"
+                submitButtonText="Guardar cambios"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer

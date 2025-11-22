@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,4 +86,19 @@ public class ClienteService {
         }
     }
 
+    public ResponseEntity<Cliente> updateCliente(Long id, Cliente clienteDetails) {
+        Cliente cliente = clienteRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+        
+        cliente.setNombre(clienteDetails.getNombre());
+        cliente.setDireccion(clienteDetails.getDireccion());
+        cliente.setLatitud(clienteDetails.getLatitud());
+        cliente.setLongitud(clienteDetails.getLongitud());
+        cliente.setEmail(clienteDetails.getEmail());
+        cliente.setPrecioCorriente(clienteDetails.getPrecioCorriente());
+        cliente.setPrecioEspecial(clienteDetails.getPrecioEspecial());
+        
+        Cliente updatedCliente = clienteRepository.save(cliente);
+        return ResponseEntity.ok(updatedCliente);
+    }
 }

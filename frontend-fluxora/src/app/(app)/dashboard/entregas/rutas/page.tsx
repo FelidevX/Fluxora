@@ -80,10 +80,10 @@ export default function GestionRutasPage() {
           </button>
 
           <button
-            className={`px-4 py-2 border-t border-b border-gray-200 text-sm font-medium focus:outline-none ${
+            className={`px-4 py-2 border text-sm font-medium focus:outline-none ${
               activeTab === "rutas-activas"
                 ? "bg-white border-blue-500 text-blue-600"
-                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
             }`}
             role="tab"
             aria-selected={activeTab === "rutas-activas"}
@@ -93,10 +93,10 @@ export default function GestionRutasPage() {
           </button>
 
           <button
-            className={`px-4 py-2 border-t border-b border-gray-200 text-sm font-medium focus:outline-none ${
+            className={`px-4 py-2 border text-sm font-medium focus:outline-none ${
               activeTab === "programar"
                 ? "bg-white border-blue-500 text-blue-600"
-                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
             }`}
             role="tab"
             aria-selected={activeTab === "programar"}

@@ -213,10 +213,25 @@ export default function LoteProductoModal({
       setShowForm(false);
     } catch (err) {
       console.error("Error al crear lote:", err);
-      showError(
-        "Ingredientes de receta no disponibles en el inventario para la producción",
-        "Error al Crear"
-      );
+      
+      // Determinar el título y mensaje según el error
+      let errorTitle = "Error al Crear Lote";
+      let errorMessage = "Error al crear el lote. Por favor, inténtelo de nuevo.";
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        
+        // Determinar el título según el contenido del mensaje
+        if (errorMessage.toLowerCase().includes("stock insuficiente")) {
+          errorTitle = "Stock Insuficiente";
+        } else if (errorMessage.toLowerCase().includes("receta")) {
+          errorTitle = "Receta No Encontrada";
+        } else if (errorMessage.toLowerCase().includes("no encontrado")) {
+          errorTitle = "Recurso No Encontrado";
+        }
+      }
+      
+      showError(errorMessage, errorTitle);
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,8 @@ import com.microservice.entity.LoteProducto;
 import com.microservice.entity.Producto;
 import com.microservice.entity.LoteMateriaPrima;
 import com.microservice.entity.RecetaMaestra;
+import com.microservice.exception.BusinessRuleException;
+import com.microservice.exception.RecursoNoEncontradoException;
 import com.microservice.repository.LoteProductoRepository;
 import com.microservice.repository.ProductoRepository;
 import com.microservice.repository.LoteMateriaPrimaRepository;
@@ -40,24 +42,34 @@ public class LoteProductoService {
 
     @Transactional
     public LoteProductoDTO save(Long productoId, LoteProductoDTO dto) {
+        // 1. Validar que el producto existe (404)
         Producto producto = productoRepository.findById(productoId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + productoId));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                    "Producto no encontrado con ID: " + productoId));
 
-        // Obtener la receta del producto
+        // 2. Validar que tiene receta (Lógica de negocio - 409)
         RecetaMaestra receta = producto.getRecetaMaestra();
+        if (receta == null) {
+            throw new BusinessRuleException(
+                "RECETA_NO_ENCONTRADA",
+                "El producto '" + producto.getNombre() + "' no tiene una receta asociada. Por favor, asigne una receta antes de crear el lote."
+            );
+        }
 
-        // Si hay receta, validar y descontar stock de materias primas usando FEFO (First Expired, First Out)
-        if (receta != null && dto.getCantidadProducida() != null) {
+        // 3. Si hay receta, validar y descontar stock de materias primas usando FEFO
+        if (dto.getCantidadProducida() != null) {
             // Calcular el multiplicador basado en la cantidad producida
             double multiplicador = dto.getCantidadProducida() / receta.getCantidadBase();
 
-            // Validar y descontar cada ingrediente
+            // Lista para acumular ingredientes con stock insuficiente
+            List<Map<String, Object>> ingredientesFaltantes = new ArrayList<>();
+
+            // Validar cada ingrediente ANTES de descontar
             receta.getIngredientes().forEach(ingrediente -> {
                 Long materiaPrimaId = ingrediente.getMateriaPrimaId();
                 Double cantidadNecesaria = ingrediente.getCantidadNecesaria() * multiplicador;
 
                 // Obtener lotes disponibles ordenados por fecha de vencimiento (FEFO)
-                // Primero se consumen los que vencen más pronto
                 List<LoteMateriaPrima> lotesDisponibles = loteMateriaPrimaRepository
                         .findLotesByMateriaPrimaIdOrderByFechaVencimientoAsc(materiaPrimaId);
                 
@@ -71,13 +83,54 @@ public class LoteProductoService {
                         .mapToDouble(LoteMateriaPrima::getStockActual)
                         .sum();
 
-                // Validar que hay suficiente stock
+                // Obtener información de la materia prima
+                var materiaPrima = materiaPrimaRepository.findById(materiaPrimaId).orElse(null);
+                String nombreMateria = materiaPrima != null ? materiaPrima.getNombre() : "ID " + materiaPrimaId;
+                String unidad = materiaPrima != null ? materiaPrima.getUnidad() : "";
+
+                // Si no hay suficiente stock, agregar a la lista de faltantes
                 if (stockTotal < cantidadNecesaria) {
-                    throw new RuntimeException(
-                            String.format("Stock insuficiente para materia prima ID %d. " +
-                                    "Necesario: %.2f, Disponible: %.2f",
-                                    materiaPrimaId, cantidadNecesaria, stockTotal));
+                    ingredientesFaltantes.add(Map.of(
+                        "materiaPrima", nombreMateria,
+                        "necesario", cantidadNecesaria,
+                        "disponible", stockTotal,
+                        "unidad", unidad
+                    ));
                 }
+            });
+
+            // Si hay ingredientes faltantes, lanzar excepción con detalles
+            if (!ingredientesFaltantes.isEmpty()) {
+                // Construir mensaje descriptivo
+                StringBuilder mensaje = new StringBuilder("Stock insuficiente para crear el lote:");
+                ingredientesFaltantes.forEach(faltante -> {
+                    mensaje.append(String.format(
+                        "\n- %s: Necesario %.2f %s, Disponible %.2f %s",
+                        faltante.get("materiaPrima"),
+                        faltante.get("necesario"),
+                        faltante.get("unidad"),
+                        faltante.get("disponible"),
+                        faltante.get("unidad")
+                    ));
+                });
+
+                throw new BusinessRuleException(
+                    "STOCK_INSUFICIENTE",
+                    mensaje.toString(),
+                    ingredientesFaltantes // Esto se envía en el campo "detalles" del JSON
+                );
+            }
+
+            // Si llegamos aquí, hay stock suficiente → Descontar usando FEFO
+            receta.getIngredientes().forEach(ingrediente -> {
+                Long materiaPrimaId = ingrediente.getMateriaPrimaId();
+                Double cantidadNecesaria = ingrediente.getCantidadNecesaria() * multiplicador;
+
+                List<LoteMateriaPrima> lotesDisponibles = loteMateriaPrimaRepository
+                        .findLotesByMateriaPrimaIdOrderByFechaVencimientoAsc(materiaPrimaId)
+                        .stream()
+                        .filter(lote -> lote.getStockActual() > 0)
+                        .collect(Collectors.toList());
 
                 // Descontar stock usando FEFO (primero los que vencen más pronto)
                 double cantidadRestante = cantidadNecesaria;
@@ -118,7 +171,8 @@ public class LoteProductoService {
 
     public LoteProductoDTO update(Long id, LoteProductoDTO dto) {
         LoteProducto lote = loteProductoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lote de producto no encontrado con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                    "Lote de producto no encontrado con ID: " + id));
 
         if (dto.getCantidadProducida() != null) {
             lote.setCantidadProducida(dto.getCantidadProducida());
@@ -149,6 +203,11 @@ public class LoteProductoService {
     }
 
     public void delete(Long id) {
+        // Validar que existe antes de eliminar
+        if (!loteProductoRepository.existsById(id)) {
+            throw new RecursoNoEncontradoException(
+                "Lote de producto no encontrado con ID: " + id);
+        }
         loteProductoRepository.deleteById(id);
     }
 
@@ -171,19 +230,16 @@ public class LoteProductoService {
         return loteProductoRepository.sumStockActualByProductoId(productoId);
     }
 
-    /**
-     * Verifica el stock disponible de materias primas para una producción
-     * @param productoId ID del producto
-     * @param multiplicador Cuántas veces se va a preparar la receta
-     * @return Lista de stocks disponibles por ingrediente
-     */
     public List<StockDisponibleDTO> verificarStockDisponible(Long productoId, double multiplicador) {
         Producto producto = productoRepository.findById(productoId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + productoId));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                    "Producto no encontrado con ID: " + productoId));
 
         RecetaMaestra receta = producto.getRecetaMaestra();
         if (receta == null) {
-            throw new RuntimeException("El producto no tiene una receta asociada");
+            throw new BusinessRuleException(
+                "RECETA_NO_ENCONTRADA",
+                "El producto no tiene una receta asociada");
         }
 
         List<StockDisponibleDTO> stocksDisponibles = new ArrayList<>();
@@ -253,15 +309,16 @@ public class LoteProductoService {
         }
 
         if (descontarCantidad > 0) {
-            throw new RuntimeException("No hay suficiente stock para descontar la cantidad solicitada.");
+            throw new BusinessRuleException(
+                "STOCK_INSUFICIENTE",
+                "No hay suficiente stock para descontar la cantidad solicitada. Faltan " + descontarCantidad + " unidades."
+            );
         }
     }
 
     public LoteProducto getLoteById(Long loteId) {
-        Optional<LoteProducto> lote = loteProductoRepository.findById(loteId);
-        if (lote.isEmpty()) {
-            throw new RuntimeException("Lote de producto no encontrado con ID: " + loteId);
-        }
-        return lote.get();
+        return loteProductoRepository.findById(loteId)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                    "Lote de producto no encontrado con ID: " + loteId));
     }
 }

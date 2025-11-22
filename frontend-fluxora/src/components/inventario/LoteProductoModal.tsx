@@ -45,7 +45,13 @@ export default function LoteProductoModal({
   const [loteAEliminar, setLoteAEliminar] = useState<LoteProducto | null>(null);
 
   // Hook para notificaciones
-  const { toasts, removeToast, success, error: showError, warning } = useToast();
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+  } = useToast();
 
   // Formulario para nuevo lote
   const [formulario, setFormulario] = useState({
@@ -207,7 +213,10 @@ export default function LoteProductoModal({
       setShowForm(false);
     } catch (err) {
       console.error("Error al crear lote:", err);
-      showError("Error al crear el lote. Por favor, inténtelo de nuevo.", "Error al Crear");
+      showError(
+        "Ingredientes de receta no disponibles en el inventario para la producción",
+        "Error al Crear"
+      );
     } finally {
       setLoading(false);
     }
@@ -448,7 +457,7 @@ export default function LoteProductoModal({
                       <Input
                         type="number"
                         value={multiplicador}
-                        onChange={(e) =>
+                        onChange={(e) =>  
                           handleMultiplicadorChange(Number(e.target.value))
                         }
                         min="1"

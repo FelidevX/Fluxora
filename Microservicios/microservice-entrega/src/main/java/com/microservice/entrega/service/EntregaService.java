@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.microservice.entrega.client.ClienteServiceClient;
 import com.microservice.entrega.client.InventarioServiceClient;
+import com.microservice.entrega.client.UsuarioServiceClient;
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.dto.UsuarioDTO;
 import com.microservice.entrega.dto.ProductoEntregadoDTO;
 import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
@@ -61,6 +63,9 @@ public class EntregaService {
 
     @Autowired
     private EmailTemplateGenerator emailTemplateGenerator;
+
+    @Autowired
+    private UsuarioServiceClient usuarioServiceClient;
 
     // Obtener rutas programadas por fecha
     public List<Map<String, Object>> getRutasProgramadasPorFecha(String fecha) {
@@ -385,6 +390,19 @@ public class EntregaService {
             rutaInfo.put("id", ruta.getId());
             rutaInfo.put("nombre", ruta.getNombre());
             rutaInfo.put("id_driver", ruta.getId_driver());
+            
+            // Obtener nombre del driver si está asignado
+            if (ruta.getId_driver() != null) {
+                try {
+                    UsuarioDTO driver = usuarioServiceClient.getDriverById(ruta.getId_driver());
+                    rutaInfo.put("nombreDriver", driver.getNombre());
+                } catch (Exception e) {
+                    rutaInfo.put("nombreDriver", null);
+                }
+            } else {
+                rutaInfo.put("nombreDriver", null);
+            }
+            
             rutaData.put("ruta", rutaInfo);
             rutaData.put("fecha", fecha.toString());
 
@@ -448,10 +466,11 @@ public class EntregaService {
                     .findFirst();
                 rutaClienteInfo.put("orden", rutaClienteOpt.map(ProgramacionEntrega::getOrden).orElse(0));
 
-                clienteData.put("rutaCliente", rutaClienteInfo);
-
                 // Lista de productos programados
                 List<Map<String, Object>> productosList = new ArrayList<>();
+                double kgCorrienteTotal = 0.0;
+                double kgEspecialTotal = 0.0;
+                
                 for (ProgramacionEntrega prod : productosProgramados) {
                     Map<String, Object> prodMap = new HashMap<>();
                     
@@ -477,12 +496,30 @@ public class EntregaService {
                             productoInfo = (Map<String, Object>) responseProducto.getBody();
                         }
                         if (productoInfo != null && productoInfo.containsKey("tipoProducto")) {
-                            prodMap.put("tipoProducto", productoInfo.get("tipoProducto"));
+                            String tipoProducto = (String) productoInfo.get("tipoProducto");
+                            prodMap.put("tipoProducto", tipoProducto);
+                            
+                            // Sumar kg según el tipo de producto
+                            Integer cantidadKgInt = prod.getCantidadProducto();
+                            if (cantidadKgInt != null) {
+                                double cantidadKg = cantidadKgInt.doubleValue();
+                                if ("CORRIENTE".equalsIgnoreCase(tipoProducto)) {
+                                    kgCorrienteTotal += cantidadKg;
+                                } else if ("ESPECIAL".equalsIgnoreCase(tipoProducto)) {
+                                    kgEspecialTotal += cantidadKg;
+                                }
+                            }
                         }
                     }
 
                     productosList.add(prodMap);
                 }
+                
+                // Agregar los totales calculados a rutaClienteInfo
+                rutaClienteInfo.put("kg_corriente_programado", kgCorrienteTotal);
+                rutaClienteInfo.put("kg_especial_programado", kgEspecialTotal);
+                
+                clienteData.put("rutaCliente", rutaClienteInfo);
                 clienteData.put("productosProgramados", productosList);
 
                 clientesData.add(clienteData);

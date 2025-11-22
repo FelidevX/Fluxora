@@ -1,7 +1,9 @@
 import { RutaActiva } from "@/interfaces/entregas/entregas";
+import { Driver } from "@/interfaces/entregas/driver";
 
 interface TarjetaRutaProps {
   ruta: RutaActiva;
+  drivers: Driver[];
   onVerDetalle: (ruta: RutaActiva) => void;
   onAsignarDriver: (ruta: RutaActiva) => void;
   onEliminar: (ruta: RutaActiva) => void;
@@ -9,6 +11,7 @@ interface TarjetaRutaProps {
 
 export function TarjetaRuta({
   ruta,
+  drivers,
   onVerDetalle,
   onAsignarDriver,
   onEliminar,
@@ -53,11 +56,10 @@ export function TarjetaRuta({
                   d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                 />
               </svg>
-              {ruta.id_driver
-                ? `Driver #${ruta.id_driver}`
+              {drivers.map((d) => d.id).includes(ruta.id_driver)
+                ? drivers.find((d) => d.id === ruta.id_driver)?.nombre
                 : "Sin driver asignado"}
             </div>
-
             <div className="flex items-center">
               <svg
                 className="w-4 h-4 mr-2"

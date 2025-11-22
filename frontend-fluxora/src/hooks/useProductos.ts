@@ -179,7 +179,6 @@ export function useProductos(): UseProductosResult {
   ) => {
     try {
       setLoading(true);
-      setError(null);
 
       const response = await fetch(`${API_BASE}/${productoId}/lotes`, {
         method: "POST",
@@ -188,16 +187,28 @@ export function useProductos(): UseProductosResult {
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(
-          `Error al crear lote: ${response.status} - ${errorData}`
-        );
+        // Parsear el error del backend
+        let errorMessage = "Error al crear el lote";
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.mensaje || errorMessage;
+        } catch {
+          try {
+            errorMessage = await response.text() || errorMessage;
+          } catch {
+            errorMessage = `Error ${response.status}: No se pudo crear el lote`;
+          }
+        }
+        
+        // Solo lanzar el error, NO guardarlo en el estado
+        throw new Error(errorMessage);
       }
 
-      await cargarProductos(); // Recargar para actualizar stock total
+      await cargarProductos();
     } catch (err) {
       console.error("Error al crear lote:", err);
-      setError(err instanceof Error ? err.message : "Error al crear el lote");
+      // Re-lanzar para que el componente lo maneje
       throw err;
     } finally {
       setLoading(false);

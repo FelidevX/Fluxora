@@ -338,6 +338,7 @@ export function GestionRutas({
               onEliminar={handleEliminarRuta}
               onVerDetalle={onVerDetalle}
               onAsignarDriver={abrirModalAsignar}
+              drivers={drivers}
             />
           ))}
         </div>

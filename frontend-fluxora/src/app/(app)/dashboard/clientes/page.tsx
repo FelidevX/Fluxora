@@ -251,19 +251,21 @@ const ClientesPage = () => {
               ),
             },
             {
-              key: "ultimaEntrega",
-              label: "Última entrega",
+              key: "precioCorriente",
+              label: "Precio Corriente",
               render: (c: ClienteResponse) => (
-                <span className="text-sm text-gray-800">{c.ultimaEntrega}</span>
+                <span className="text-sm font-semibold text-gray-700">
+                  ${c.precioCorriente?.toFixed(2) || "0.00"}
+                </span>
               ),
             },
             {
-              key: "estado",
-              label: "Estado",
+              key: "precioEspecial",
+              label: "Precio Especial",
               render: (c: ClienteResponse) => (
-                <Badge variant={c.estado === "activo" ? "success" : "warning"}>
-                  {c.estado === "activo" ? "Activo" : "Inactivo"}
-                </Badge>
+                <span className="text-sm font-semibold text-gray-700">
+                  ${c.precioEspecial?.toFixed(2) || "0.00"}
+                </span>
               ),
             },
           ]}

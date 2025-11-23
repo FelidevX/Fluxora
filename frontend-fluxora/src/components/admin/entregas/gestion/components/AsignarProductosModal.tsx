@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Interfaces
 interface Lote {
@@ -57,8 +57,15 @@ export function AsignarProductosModal({
 }: AsignarProductosModalProps) {
   const [productosProgramados, setProductosProgramados] = useState<
     ProductoProgramado[]
-  >(cliente.productos || []);
+  >([]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Sincronizar productos cuando cambie el cliente o se abra el modal
+  useEffect(() => {
+    if (isOpen && cliente) {
+      setProductosProgramados(cliente.productos || []);
+    }
+  }, [isOpen, cliente]);
 
   if (!isOpen) return null;
 
@@ -78,19 +85,25 @@ export function AsignarProductosModal({
 
   const handleSeleccionarProducto = (producto: ProductoConLotes) => {
     if (producto.lotes.length > 0) {
-      const primerLote = producto.lotes[0];
-      setProductosProgramados([
-        ...productosProgramados,
-        {
-          id_producto: producto.id,
-          id_lote: primerLote.id,
-          nombreProducto: producto.nombre,
-          categoria: producto.categoria,
-          tipoProducto: producto.tipoProducto,
-          cantidad_kg: 0,
-        },
-      ]);
-      setSearchTerm("");
+      // Buscar el primer lote que no esté ya asignado
+      const loteDisponible = producto.lotes.find(
+        (lote) => !productosProgramados.some((pp) => pp.id_lote === lote.id)
+      );
+
+      if (loteDisponible) {
+        setProductosProgramados([
+          ...productosProgramados,
+          {
+            id_producto: producto.id,
+            id_lote: loteDisponible.id,
+            nombreProducto: producto.nombre,
+            categoria: producto.categoria,
+            tipoProducto: producto.tipoProducto,
+            cantidad_kg: 0,
+          },
+        ]);
+        setSearchTerm("");
+      }
     }
   };
 
@@ -298,12 +311,21 @@ export function AsignarProductosModal({
                               }
                               className="w-full px-2 py-1 text-xs text-black border border-gray-300 rounded mb-2"
                             >
-                              {producto?.lotes.map((lote) => (
-                                <option key={lote.id} value={lote.id}>
-                                  Lote #{lote.id} - {lote.stockActual}kg
-                                  disponible
-                                </option>
-                              ))}
+                              {producto?.lotes
+                                .filter(
+                                  (lote) =>
+                                    // Mostrar solo el lote actual o lotes no asignados a otros productos
+                                    lote.id === prod.id_lote ||
+                                    !productosProgramados.some(
+                                      (pp) => pp.id_lote === lote.id
+                                    )
+                                )
+                                .map((lote) => (
+                                  <option key={lote.id} value={lote.id}>
+                                    Lote #{lote.id} - {lote.stockActual}kg
+                                    disponible
+                                  </option>
+                                ))}
                             </select>
 
                             {/* Input de cantidad */}

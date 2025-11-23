@@ -631,8 +631,21 @@ public class EntregaService {
         return sesionRepartoRepository.findAll();
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public String programarEntrega(Long idRuta, Long idCliente, LocalDate fechaProgramacion, List<Map<String, Object>> productos) {
         try {
+            // Primero, eliminar las programaciones existentes para este cliente en esta ruta y fecha
+            // Esto permite actualizar los productos sin duplicar
+            List<ProgramacionEntrega> programacionesExistentes = programacionEntregaRepository
+                .findByIdRutaAndIdClienteAndFechaProgramada(idRuta, idCliente, fechaProgramacion);
+            
+            if (!programacionesExistentes.isEmpty()) {
+                programacionEntregaRepository.deleteAll(programacionesExistentes);
+                System.out.println("Se eliminaron " + programacionesExistentes.size() + 
+                    " programaciones existentes para el cliente " + idCliente);
+            }
+            
+            // Ahora crear las nuevas programaciones
             for (Map<String, Object> prod : productos) {
                 Long idProducto = Long.valueOf(prod.get("id_producto").toString());
                 Long idLote = Long.valueOf(prod.get("id_lote").toString());
@@ -659,8 +672,8 @@ public class EntregaService {
                 }
 
                 programacionEntregaRepository.save(programacion);
-
             }
+            
             return "Entrega programada exitosamente";
         } catch (Exception e) {
             throw new RuntimeException("Error al programar entrega diaria: " + e.getMessage(), e);

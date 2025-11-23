@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { AsignarProductosModal } from "./components/AsignarProductosModal";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 // Interfaces para productos y lotes
 interface Lote {
@@ -53,6 +55,16 @@ export function ProgramacionEntregas({
     ProductoConLotes[]
   >([]);
   const [loadingProductos, setLoadingProductos] = useState(false);
+
+  // Hook para notificaciones toast
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+    info,
+  } = useToast();
 
   // Estados para el modal de asignación
   const [showAsignarModal, setShowAsignarModal] = useState(false);
@@ -203,9 +215,9 @@ export function ProgramacionEntregas({
       }
     } catch (error) {
       console.error("Error al obtener rutas programadas:", error);
-      alert(
-        "Error al obtener rutas programadas: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+      showError(
+        error instanceof Error ? error.message : "Error desconocido",
+        "Error al Obtener Programación"
       );
     } finally {
       setLoadingProgramacion(false);
@@ -261,16 +273,19 @@ export function ProgramacionEntregas({
         // Refrescar los datos
         await fetchRutasProgramadas(fechaProgramacion);
         await fetchProductosConLotes();
-        alert("Productos actualizados exitosamente");
+        success(
+          "Los productos han sido asignados correctamente al cliente",
+          "¡Productos Asignados!"
+        );
         setShowAsignarModal(false);
       } else {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error("Error al actualizar productos:", error);
-      alert(
-        "Error al actualizar productos: " +
-          (error instanceof Error ? error.message : "Error desconocido")
+      showError(
+        error instanceof Error ? error.message : "Error desconocido",
+        "Error al Asignar Productos"
       );
     }
   };
@@ -491,6 +506,13 @@ export function ProgramacionEntregas({
           onActualizar={handleActualizarProductos}
         />
       )}
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

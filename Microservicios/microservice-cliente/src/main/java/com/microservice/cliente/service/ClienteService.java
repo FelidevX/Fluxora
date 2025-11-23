@@ -1,6 +1,7 @@
 package com.microservice.cliente.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,49 @@ public class ClienteService {
         return clienteRepository.findAll();
     }
 
+    /**
+     * Obtiene todos los clientes con su información de ruta incluida
+     * @return Lista de ClienteDTO con información completa incluyendo ruta
+     */
+    public List<ClienteDTO> getAllClientesConInfoRuta() {
+        List<Cliente> clientes = clienteRepository.findAll();
+        return clientes.stream()
+                .map(cliente -> {
+                    String nombreRuta = obtenerNombreRuta(cliente.getId());
+                    return new ClienteDTO(
+                        cliente.getId(), 
+                        cliente.getNombreNegocio(),
+                        cliente.getNombre(),
+                        cliente.getContacto(),
+                        cliente.getDireccion(), 
+                        cliente.getLatitud(), 
+                        cliente.getLongitud(), 
+                        cliente.getEmail(),
+                        cliente.getPrecioCorriente(),
+                        cliente.getPrecioEspecial(),
+                        nombreRuta);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene el nombre de la ruta para un cliente específico
+     * @param idCliente ID del cliente
+     * @return Nombre de la ruta o "Sin ruta asignada" si no tiene ruta
+     */
+    private String obtenerNombreRuta(Long idCliente) {
+        try {
+            ResponseEntity<Map<String, Object>> response = entregaServiceClient.getNombreRutaPorCliente(idCliente);
+            if (response.getBody() != null && response.getBody().get("nombreRuta") != null) {
+                return (String) response.getBody().get("nombreRuta");
+            }
+            return "Sin ruta asignada";
+        } catch (Exception e) {
+            System.err.println("Error al obtener nombre de ruta para cliente " + idCliente + ": " + e.getMessage());
+            return "Sin ruta asignada";
+        }
+    }
+
     public Cliente addCliente(Cliente cliente) {
         return clienteRepository.save(cliente);
     }
@@ -33,15 +77,21 @@ public class ClienteService {
     public List<ClienteDTO> getClienteByIds(List<Long> ids) {
         List<Cliente> clientes = clienteRepository.findAllById(ids);
         List<ClienteDTO> clientesDTO = clientes.stream()
-                .map(cliente -> new ClienteDTO(
+                .map(cliente -> {
+                    String nombreRuta = obtenerNombreRuta(cliente.getId());
+                    return new ClienteDTO(
                         cliente.getId(), 
+                        cliente.getNombreNegocio(),
                         cliente.getNombre(),
+                        cliente.getContacto(),
                         cliente.getDireccion(), 
                         cliente.getLatitud(), 
                         cliente.getLongitud(), 
                         cliente.getEmail(),
                         cliente.getPrecioCorriente(),
-                        cliente.getPrecioEspecial()))
+                        cliente.getPrecioEspecial(),
+                        nombreRuta);
+                })
                 .collect(Collectors.toList());
         
         return clientesDTO;
@@ -50,15 +100,19 @@ public class ClienteService {
     public ClienteDTO getClienteById(Long id) {
         Cliente cliente = clienteRepository.findById(id).orElse(null);
         if (cliente != null) {
+            String nombreRuta = obtenerNombreRuta(id);
             return new ClienteDTO(
                     cliente.getId(), 
+                    cliente.getNombreNegocio(),
                     cliente.getNombre(),
+                    cliente.getContacto(),
                     cliente.getDireccion(), 
                     cliente.getLatitud(), 
                     cliente.getLongitud(), 
                     cliente.getEmail(),
                     cliente.getPrecioCorriente(),
-                    cliente.getPrecioEspecial());
+                    cliente.getPrecioEspecial(),
+                    nombreRuta);
         }
         return null;
     }

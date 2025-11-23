@@ -25,8 +25,8 @@ public class ClienteController {
     private ClienteService clienteService;
 
     @GetMapping()
-    public List<Cliente> getAllClientes() {
-        return clienteService.getAllClientes();
+    public List<ClienteDTO> getAllClientes() {
+        return clienteService.getAllClientesConInfoRuta();
     }
 
     @PostMapping()

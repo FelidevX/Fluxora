@@ -19,9 +19,12 @@ export interface ClienteResponse {
   contacto: string;
   direccion: string;
   email?: string;
-  ruta: string;
-  ultimaEntrega: string;
+  nombreRuta?: string; // Nombre de la ruta obtenido del backend
+  ruta?: string; // Alias para nombreRuta (compatibilidad)
+  ultimaEntrega?: string;
   estado?: "activo" | "inactivo";
   precioCorriente?: number;
   precioEspecial?: number;
+  latitud?: number;
+  longitud?: number;
 }

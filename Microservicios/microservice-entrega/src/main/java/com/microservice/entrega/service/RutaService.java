@@ -337,4 +337,39 @@ public class RutaService {
             throw new RuntimeException("Error al finalizar la ruta: " + e.getMessage());
         }
     }
+
+    /**
+     * Obtiene el nombre de la ruta asociada a un cliente específico
+     * @param idCliente ID del cliente
+     * @return Nombre de la ruta o null si el cliente no tiene ruta asignada
+     */
+    public String getNombreRutaPorCliente(Long idCliente) {
+        try {
+            // Buscar todas las relaciones del cliente con rutas
+            List<Long> clientesAsignados = rutaClienteRepository.findAllClienteIds();
+            
+            if (!clientesAsignados.contains(idCliente)) {
+                return null; // Cliente sin ruta asignada
+            }
+
+            // Obtener todas las relaciones RutaCliente y buscar la del cliente
+            List<RutaCliente> todasRelaciones = rutaClienteRepository.findAll();
+            Optional<Long> idRuta = todasRelaciones.stream()
+                    .filter(rc -> rc.getId_cliente().equals(idCliente))
+                    .map(RutaCliente::getId_ruta)
+                    .findFirst();
+
+            if (idRuta.isEmpty()) {
+                return null;
+            }
+
+            // Obtener el nombre de la ruta
+            Optional<Ruta> ruta = rutaRepository.findById(idRuta.get());
+            return ruta.map(Ruta::getNombre).orElse(null);
+
+        } catch (Exception e) {
+            System.err.println("Error al obtener nombre de ruta para cliente " + idCliente + ": " + e.getMessage());
+            return null;
+        }
+    }
 }

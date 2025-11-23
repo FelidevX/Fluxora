@@ -39,7 +39,16 @@ export function useClientes(): UseClientesResult {
       }
 
       const data = await response.json();
-      setClientes(Array.isArray(data) ? data : []);
+      
+      // Mapear los datos del backend al formato esperado por el frontend
+      const clientesMapeados = (Array.isArray(data) ? data : []).map((cliente: any) => ({
+        ...cliente,
+        ruta: cliente.nombreRuta || "Sin ruta asignada",
+        ultimaEntrega: cliente.ultimaEntrega || "Sin entregas",
+        estado: cliente.estado || "activo",
+      }));
+      
+      setClientes(clientesMapeados);
     } catch (err) {
       console.error("Error al cargar clientes:", err);
       setError(

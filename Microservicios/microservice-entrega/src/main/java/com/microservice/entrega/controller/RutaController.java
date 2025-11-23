@@ -166,4 +166,26 @@ public class RutaController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    @GetMapping("/cliente/{idCliente}/ruta")
+    public ResponseEntity<Map<String, Object>> getNombreRutaPorCliente(@PathVariable Long idCliente) {
+        try {
+            String nombreRuta = rutaService.getNombreRutaPorCliente(idCliente);
+            Map<String, Object> response = new HashMap<>();
+            
+            if (nombreRuta != null) {
+                response.put("nombreRuta", nombreRuta);
+                response.put("tieneRuta", true);
+            } else {
+                response.put("nombreRuta", "Sin ruta asignada");
+                response.put("tieneRuta", false);
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al obtener ruta del cliente: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }

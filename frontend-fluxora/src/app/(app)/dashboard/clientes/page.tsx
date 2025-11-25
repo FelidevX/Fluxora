@@ -187,14 +187,6 @@ const ClientesPage = () => {
               />
             </svg>
           </button>
-          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors text-gray-600">
-            <MaterialIcon name="print" className="text-green-600 mr-1" />{" "}
-            Imprimir hoja de ruta
-          </button>
-          <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-            <MaterialIcon name="file_export" className="text-white mr-1" />{" "}
-            Exportar a Excel
-          </button>
         </div>
       </div>
 

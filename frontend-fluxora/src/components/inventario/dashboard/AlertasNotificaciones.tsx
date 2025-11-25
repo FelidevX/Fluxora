@@ -189,9 +189,6 @@ export default function AlertasNotificaciones() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Prioridad
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tiempo
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -227,9 +224,6 @@ export default function AlertasNotificaciones() {
                     <Badge variant={getPrioridadColor(alerta.prioridad) as any}>
                       {alerta.prioridad.toUpperCase()}
                     </Badge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    Ahora
                   </td>
                 </tr>
               ))}

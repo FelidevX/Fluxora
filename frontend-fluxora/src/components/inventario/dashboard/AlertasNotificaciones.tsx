@@ -9,7 +9,7 @@ import Badge from "@/components/ui/Badge";
 
 interface Alerta {
   id: string;
-  tipo: "stock_bajo" | "sin_receta" | "materia_agotada" | "producto_vencido";
+  tipo: "stock_bajo" | "sin_receta" | "materia_agotada" | "producto_vencido" | "producto_agotado";
   titulo: string;
   mensaje: string;
   prioridad: "alta" | "media" | "baja";
@@ -38,7 +38,7 @@ export default function AlertasNotificaciones() {
     // Alertas de stock bajo en materias primas
     materias.forEach((materia) => {
       const cantidad = materia.cantidad ?? 0;
-      
+
       if (cantidad > 0 && cantidad < 5) {
         nuevasAlertas.push({
           id: `stock-materia-${materia.id}`,
@@ -81,6 +81,21 @@ export default function AlertasNotificaciones() {
       }
     });
 
+    // Alertas de productos agotados (cantidad = 0)
+    productos.forEach((producto) => {
+      const stockTotal = producto.stockTotal ?? 0;
+      if (stockTotal === 0) {
+        nuevasAlertas.push({
+          id: `agotado-${producto.id}`,
+          tipo: "producto_agotado",
+          titulo: "Producto Agotado",
+          mensaje: `${producto.nombre} está completamente agotado`,
+          prioridad: "alta",
+          timestamp: new Date(),
+        });
+      }
+    })
+
     // Verificar qué recetas no se pueden hacer por falta de ingredientes
     recetas.forEach((receta) => {
       const faltantes = receta.ingredientes.filter((ing) => {
@@ -120,6 +135,8 @@ export default function AlertasNotificaciones() {
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
       case "stock_bajo":
+        return "inventory_2";
+      case "producto_agotado":
         return "inventory_2";
       case "sin_receta":
         return "restaurant_menu";
@@ -188,13 +205,12 @@ export default function AlertasNotificaciones() {
                     <div className="flex items-center gap-2">
                       <MaterialIcon
                         name={getTipoIcon(alerta.tipo)}
-                        className={`w-5 h-5 ${
-                          alerta.prioridad === "alta"
-                            ? "text-red-500"
-                            : alerta.prioridad === "media"
+                        className={`w-5 h-5 ${alerta.prioridad === "alta"
+                          ? "text-red-500"
+                          : alerta.prioridad === "media"
                             ? "text-yellow-500"
                             : "text-blue-500"
-                        }`}
+                          }`}
                       />
                       <span className="text-sm text-gray-900">
                         {alerta.tipo.replace("_", " ")}

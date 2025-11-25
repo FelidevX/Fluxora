@@ -28,6 +28,7 @@ interface DetalleEntrega {
   id: number;
   id_pedido: number;
   id_cliente: number;
+  monto_total: number;
   hora_entregada: string;
   corriente_entregado: number;
   especial_entregado: number;

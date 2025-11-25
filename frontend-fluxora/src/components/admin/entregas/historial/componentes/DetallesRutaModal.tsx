@@ -26,6 +26,7 @@ interface DetalleEntrega {
   corriente_entregado: number;
   especial_entregado: number;
   comentario: string;
+  monto_total: number;
 }
 
 interface DetallesRutaModalProps {
@@ -66,6 +67,8 @@ export function DetallesRutaModal({
     (sum, d) => sum + (d.especial_entregado || 0),
     0
   );
+
+  const totalVenta = detallesEntrega.reduce((sum, d) => sum + (d.monto_total || 0), 0)
 
   return (
     <div
@@ -199,21 +202,28 @@ export function DetallesRutaModal({
 
           {/* Totales */}
           {detallesEntrega.length > 0 && (
-            <div className="mt-6 bg-gray-50 rounded-lg p-4">
-              <h4 className="text-md font-semibold text-gray-900 mb-3">
-                Totales Entregados
+            <div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-5 border border-gray-200">
+              <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-1 h-5 bg-blue-600 rounded"></span>
+                Resumen de la Ruta
               </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Total Pan Corriente</p>
-                  <p className="text-2xl font-bold text-green-700">
-                    {totalCorriente.toFixed(1)} kg
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Total Pan Corriente</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {totalCorriente.toFixed(1)} <span className="text-sm font-normal text-gray-500">kg</span>
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Total Pan Especial</p>
-                  <p className="text-2xl font-bold text-purple-700">
-                    {totalEspecial.toFixed(1)} kg
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Total Pan Especial</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {totalEspecial.toFixed(1)} <span className="text-sm font-normal text-gray-500">kg</span>
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Total Venta</p>
+                  <p className="text-2xl font-bold text-blue-700">
+                    {totalVenta.toLocaleString("es-CL", { style: "currency", currency: "CLP" })}
                   </p>
                 </div>
               </div>

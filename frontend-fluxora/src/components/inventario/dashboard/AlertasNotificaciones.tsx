@@ -64,6 +64,17 @@ export default function AlertasNotificaciones() {
           timestamp: new Date(),
         });
       }
+
+      if (stockTotal === 0) {
+        nuevasAlertas.push({
+          id: `agotado-${producto.id}`,
+          tipo: "producto_agotado",
+          titulo: "Producto Agotado",
+          mensaje: `${producto.nombre} está completamente agotado`,
+          prioridad: "alta",
+          timestamp: new Date(),
+        });
+      }
     });
 
     // Alertas de materias primas agotadas (cantidad = 0)
@@ -80,21 +91,6 @@ export default function AlertasNotificaciones() {
         });
       }
     });
-
-    // Alertas de productos agotados (cantidad = 0)
-    productos.forEach((producto) => {
-      const stockTotal = producto.stockTotal ?? 0;
-      if (stockTotal === 0) {
-        nuevasAlertas.push({
-          id: `agotado-${producto.id}`,
-          tipo: "producto_agotado",
-          titulo: "Producto Agotado",
-          mensaje: `${producto.nombre} está completamente agotado`,
-          prioridad: "alta",
-          timestamp: new Date(),
-        });
-      }
-    })
 
     // Verificar qué recetas no se pueden hacer por falta de ingredientes
     recetas.forEach((receta) => {

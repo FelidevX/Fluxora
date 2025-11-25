@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Producto, ProductoDTO } from "@/types/inventario";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import { RecetaMaestra } from "@/types/produccion";
 import { useProductos } from "@/hooks/useProductos";
 import { useRecetas } from "@/hooks/useRecetas";
@@ -29,6 +31,14 @@ export default function GestionProductos({
     eliminarProducto,
     clearError,
   } = useProductos();
+
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+  } = useToast();
 
   const { recetas, loading: loadingRecetas } = useRecetas();
 
@@ -91,17 +101,17 @@ export default function GestionProductos({
     e.preventDefault();
 
     if (!formulario.nombre) {
-      alert("El nombre del producto es requerido");
+      warning("El nombre del producto es requerido");
       return;
     }
 
     if (formulario.precioVenta <= 0) {
-      alert("El precio de venta debe ser mayor a 0");
+      warning("El precio de venta debe ser mayor a 0");
       return;
     }
 
     if (!productoEnEdicion && !recetaSeleccionada) {
-      alert("Debe seleccionar una receta para crear el producto");
+      warning("Debe seleccionar una receta para crear el producto");
       return;
     }
 
@@ -113,10 +123,10 @@ export default function GestionProductos({
 
       if (productoEnEdicion) {
         await actualizarProducto(productoEnEdicion.id, productoDTO);
-        alert("Producto actualizado exitosamente");
+        success("Producto actualizado exitosamente");
       } else {
         await crearProducto(productoDTO);
-        alert(
+        success(
           "Producto creado exitosamente. Ahora puede registrar lotes de producción."
         );
       }
@@ -125,10 +135,9 @@ export default function GestionProductos({
       setShowForm(false);
     } catch (err) {
       console.error("Error al guardar producto:", err);
-      alert(
-        `Error al guardar el producto: ${
-          err instanceof Error ? err.message : "Error desconocido"
-        }`
+      showError(
+        err instanceof Error ? err.message : "Error desconocido",
+        "Error al Guardar Producto"
       );
     }
   };
@@ -558,6 +567,13 @@ export default function GestionProductos({
         message="¿Está seguro de que desea eliminar este producto? Se eliminarán también todos sus lotes de producción. Esta acción no se puede deshacer."
         itemName={productoAEliminar?.nombre}
         requireConfirmation={true}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

@@ -23,10 +23,10 @@ const ClientesPage = () => {
     clearError,
     eliminarCliente,
   } = useClientes();
-  
+
   // Hook para notificaciones toast
   const { toasts, removeToast, success, error: showError, warning, info } = useToast();
-  
+
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const router = useRouter();
@@ -74,7 +74,7 @@ const ClientesPage = () => {
         precioCorriente: data.precioCorriente,
         precioEspecial: data.precioEspecial,
       };
-      
+
       await crearCliente(clientData);
       success("El cliente ha sido registrado exitosamente", "¡Cliente Registrado!");
     } catch (err) {
@@ -95,7 +95,7 @@ const ClientesPage = () => {
 
   const handleClientEditSubmit = async (data: any) => {
     if (!clienteAEditar) return;
-    
+
     try {
       // Transformar los datos del formulario al formato del backend
       const clientData = {
@@ -109,7 +109,7 @@ const ClientesPage = () => {
         precioCorriente: data.precioCorriente,
         precioEspecial: data.precioEspecial,
       };
-      
+
       await editarCliente(clienteAEditar.id, clientData);
       success("El cliente ha sido actualizado exitosamente", "¡Cliente Actualizado!");
       setShowEditModal(false);
@@ -120,7 +120,7 @@ const ClientesPage = () => {
         "Error al Actualizar Cliente"
       );
     }
-  };  const handleDelete = (cliente: ClienteResponse) => {
+  }; const handleDelete = (cliente: ClienteResponse) => {
     setClienteAEliminar(cliente);
     setShowDeleteModal(true);
   };
@@ -304,8 +304,17 @@ const ClientesPage = () => {
 
       {/* Modal de edición de cliente */}
       {showEditModal && clienteAEditar && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4"
+          onClick={() => {
+            setShowEditModal(false);
+            setClienteAEditar(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-900">
                 Editar Cliente

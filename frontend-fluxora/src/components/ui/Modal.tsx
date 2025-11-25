@@ -50,6 +50,7 @@ export default function Modal({
       <div className="flex min-h-full items-center justify-center p-4">
         <div
           className={`relative w-full ${sizeClasses[size]} transform overflow-hidden rounded-lg bg-white shadow-xl transition-all`}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">

@@ -213,14 +213,14 @@ export default function LoteProductoModal({
       setShowForm(false);
     } catch (err) {
       console.error("Error al crear lote:", err);
-      
+
       // Determinar el título y mensaje según el error
       let errorTitle = "Error al Crear Lote";
       let errorMessage = "Error al crear el lote. Por favor, inténtelo de nuevo.";
-      
+
       if (err instanceof Error) {
         errorMessage = err.message;
-        
+
         // Determinar el título según el contenido del mensaje
         if (errorMessage.toLowerCase().includes("stock insuficiente")) {
           errorTitle = "Stock Insuficiente";
@@ -230,7 +230,7 @@ export default function LoteProductoModal({
           errorTitle = "Recurso No Encontrado";
         }
       }
-      
+
       showError(errorMessage, errorTitle);
     } finally {
       setLoading(false);
@@ -274,8 +274,14 @@ export default function LoteProductoModal({
   const stockTotal = lotes.reduce((sum, lote) => sum + lote.stockActual, 0);
 
   return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <div>
@@ -369,8 +375,8 @@ export default function LoteProductoModal({
                         <td className="px-4 py-2">
                           {lote.fechaVencimiento
                             ? new Date(
-                                lote.fechaVencimiento
-                              ).toLocaleDateString()
+                              lote.fechaVencimiento
+                            ).toLocaleDateString()
                             : "-"}
                         </td>
                         <td className="px-4 py-2">
@@ -472,7 +478,7 @@ export default function LoteProductoModal({
                       <Input
                         type="number"
                         value={multiplicador}
-                        onChange={(e) =>  
+                        onChange={(e) =>
                           handleMultiplicadorChange(Number(e.target.value))
                         }
                         min="1"
@@ -569,8 +575,8 @@ export default function LoteProductoModal({
                             const porcentaje =
                               formulario.costoProduccionTotal > 0
                                 ? (costoIngrediente /
-                                    formulario.costoProduccionTotal) *
-                                  100
+                                  formulario.costoProduccionTotal) *
+                                100
                                 : 0;
 
                             return (
@@ -680,8 +686,8 @@ export default function LoteProductoModal({
                   {loading
                     ? "Registrando..."
                     : !recetaSeleccionada
-                    ? "Requiere receta asociada"
-                    : "Registrar Producción"}
+                      ? "Requiere receta asociada"
+                      : "Registrar Producción"}
                 </Button>
               </div>
             </form>
@@ -712,17 +718,16 @@ export default function LoteProductoModal({
         title="Eliminar Lote de Producción"
         message={
           loteAEliminar &&
-          loteAEliminar.stockActual !== loteAEliminar.cantidadProducida
+            loteAEliminar.stockActual !== loteAEliminar.cantidadProducida
             ? "Este lote ya ha sido utilizado parcialmente. ¿Está seguro de que desea eliminarlo? Esta acción no se puede deshacer."
             : "¿Está seguro de que desea eliminar este lote? Esta acción no se puede deshacer."
         }
         itemName={
           loteAEliminar
             ? `Lote del ${new Date(
-                loteAEliminar.fechaProduccion
-              ).toLocaleDateString("es-CL")} - Stock: ${
-                loteAEliminar.stockActual
-              }/${loteAEliminar.cantidadProducida}`
+              loteAEliminar.fechaProduccion
+            ).toLocaleDateString("es-CL")} - Stock: ${loteAEliminar.stockActual
+            }/${loteAEliminar.cantidadProducida}`
             : undefined
         }
         requireConfirmation={

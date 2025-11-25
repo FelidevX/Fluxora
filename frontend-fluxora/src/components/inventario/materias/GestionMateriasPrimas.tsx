@@ -133,11 +133,11 @@ export default function GestionMateriasPrimas() {
       // Filtrar solo lotes con stock_actual > 0
       const lotesConStock = Array.isArray(data)
         ? data.filter((lote: any) => {
-            // Usar stockActual si existe, sino usar cantidad como fallback
-            const stock =
-              lote.stockActual !== undefined ? lote.stockActual : lote.cantidad;
-            return stock > 0;
-          })
+          // Usar stockActual si existe, sino usar cantidad como fallback
+          const stock =
+            lote.stockActual !== undefined ? lote.stockActual : lote.cantidad;
+          return stock > 0;
+        })
         : [];
       setLotes(lotesConStock);
     } catch (err) {
@@ -311,8 +311,14 @@ export default function GestionMateriasPrimas() {
 
       {/* Modal de Visualizar Lotes */}
       {showStockModal && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          onClick={handleCancelStock}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
               <div className="flex items-start justify-between">
                 <div>
@@ -383,8 +389,8 @@ export default function GestionMateriasPrimas() {
                             <td className="py-3 px-4 text-gray-900">
                               {lote.fechaCompra
                                 ? new Date(lote.fechaCompra).toLocaleDateString(
-                                    "es-CL"
-                                  )
+                                  "es-CL"
+                                )
                                 : "-"}
                             </td>
                             <td className="py-3 px-4">
@@ -406,11 +412,10 @@ export default function GestionMateriasPrimas() {
                             <td className="py-3 px-4 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <span
-                                  className={`font-semibold ${
-                                    porcentajeConsumido > 50
-                                      ? "text-orange-600"
-                                      : "text-green-600"
-                                  }`}
+                                  className={`font-semibold ${porcentajeConsumido > 50
+                                    ? "text-orange-600"
+                                    : "text-green-600"
+                                    }`}
                                 >
                                   {stockActual} {materiaAActualizar?.unidad}
                                 </span>
@@ -424,9 +429,9 @@ export default function GestionMateriasPrimas() {
                             <td className="py-3 px-4 text-right text-gray-900">
                               {typeof lote.costoUnitario === "number"
                                 ? lote.costoUnitario.toLocaleString("es-CL", {
-                                    style: "currency",
-                                    currency: "CLP",
-                                  })
+                                  style: "currency",
+                                  currency: "CLP",
+                                })
                                 : "-"}
                             </td>
                           </tr>

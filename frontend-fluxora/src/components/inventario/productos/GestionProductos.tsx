@@ -126,8 +126,7 @@ export default function GestionProductos({
     } catch (err) {
       console.error("Error al guardar producto:", err);
       alert(
-        `Error al guardar el producto: ${
-          err instanceof Error ? err.message : "Error desconocido"
+        `Error al guardar el producto: ${err instanceof Error ? err.message : "Error desconocido"
         }`
       );
     }
@@ -215,8 +214,8 @@ export default function GestionProductos({
             {tipo === "CORRIENTE"
               ? "Corriente"
               : tipo === "ESPECIAL"
-              ? "Especial"
-              : producto.tipoProducto}
+                ? "Especial"
+                : producto.tipoProducto}
           </Badge>
         );
       },
@@ -326,8 +325,17 @@ export default function GestionProductos({
 
       {/* Modal de formulario */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          onClick={() => {
+            setShowForm(false);
+            resetFormulario();
+          }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-800">
                 {productoEnEdicion ? "Editar Producto" : "Nuevo Producto"}
@@ -531,8 +539,8 @@ export default function GestionProductos({
                   {loading
                     ? "Guardando..."
                     : productoEnEdicion
-                    ? "Actualizar"
-                    : "Crear Producto"}
+                      ? "Actualizar"
+                      : "Crear Producto"}
                 </Button>
               </div>
             </form>

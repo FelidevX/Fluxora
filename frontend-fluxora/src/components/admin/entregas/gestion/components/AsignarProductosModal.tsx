@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 // Interfaces
 interface Lote {
@@ -59,6 +61,8 @@ export function AsignarProductosModal({
     ProductoProgramado[]
   >([]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { toasts, removeToast, warning } = useToast();
 
   // Sincronizar productos cuando cambie el cliente o se abra el modal
   useEffect(() => {
@@ -134,7 +138,7 @@ export function AsignarProductosModal({
       (p) => p.cantidad_kg > 0
     );
     if (productosValidos.length === 0) {
-      alert("Debes agregar al menos un producto con cantidad mayor a 0");
+      warning("Debes agregar al menos un producto con cantidad mayor a 0");
       return;
     }
     onActualizar(rutaId, cliente.id_cliente, productosValidos);
@@ -398,6 +402,13 @@ export function AsignarProductosModal({
           </button>
         </div>
       </div>
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

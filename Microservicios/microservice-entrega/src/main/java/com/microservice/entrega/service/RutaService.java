@@ -372,4 +372,27 @@ public class RutaService {
             return null;
         }
     }
+
+    public List<ClienteDTO> getClientesConProgramacion(Long id_ruta, LocalDate fecha) {
+        try {
+            // Obtener todas las programaciones de entregas para la ruta y fecha
+            List<ProgramacionEntrega> programaciones = programacionEntregaRepository
+                    .findByIdRutaAndFechaProgramada(id_ruta, fecha);
+            
+            // Extraer IDs únicos de clientes con programación
+            List<Long> idClientes = programaciones.stream()
+                    .map(ProgramacionEntrega::getId_cliente)
+                    .distinct()
+                    .collect(Collectors.toList());
+            
+            // Obtener información completa de los clientes
+            if (idClientes.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            return clienteServiceClient.getClientesByIds(idClientes);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener clientes con programación: " + e.getMessage());
+        }
+    }
 }

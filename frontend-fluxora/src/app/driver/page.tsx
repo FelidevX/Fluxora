@@ -70,12 +70,6 @@ export default function DriverHomePage() {
     fetchRutaOptimizada();
   }, []);
 
-  useEffect(() => {
-    if (rutaId) {
-          handleObtenerProgramacion();
-    }
-  }, [rutaId]);
-
   // Cargar entregas realizadas cuando hay pedidoId
   useEffect(() => {
     if (pedidoId) {
@@ -145,6 +139,7 @@ export default function DriverHomePage() {
         return;
       }
 
+      // Paso 1: Obtener la ruta del conductor
       const rutaResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/driver/${userData.sub}` , {
         headers: {
           Authorization: `Bearer ${token}`
@@ -157,16 +152,61 @@ export default function DriverHomePage() {
       const rutaId = rutaData.rutaId;
       setRutaId(rutaId);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      // Paso 2: Obtener la programación de entregas del día
+      const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+      
+      const programacionResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programacion/${rutaId}/${today}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
+
+      if (!programacionResponse.ok) {
+        throw new Error('Error al obtener la programación de entregas');
+      }
+
+      const programacionData = await programacionResponse.json();
+      console.log("Programación obtenida:", programacionData);
+      setProgramacion(programacionData);
+
+      // Paso 3: Extraer IDs únicos de clientes con entregas programadas
+      const clientesConEntregas = Array.from(
+        new Set(programacionData.map((p: any) => p.id_cliente))
+      );
+
+      console.log('Clientes con entregas programadas para hoy:', clientesConEntregas);
+
+      if (clientesConEntregas.length === 0) {
+        setError('No hay entregas programadas para hoy.');
+        setLoading(false);
+        return;
+      }
+
+      // Paso 4: Optimizar la ruta solo con los clientes que tienen entregas programadas
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}/${today}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
       
       if (!response.ok) throw new Error('Error al cargar la ruta');
       
       const data = await response.json();
-      console.log('Datos de ruta recibidos:', data);
+      console.log('Datos de ruta optimizada recibidos:', data);
+      
+      // Verificar si hay un mensaje de error o sin entregas
+      if (data.message || data.orderedClients.length === 0) {
+        setError(data.message || 'No hay entregas programadas para hoy.');
+        setLoading(false);
+        return;
+      }
+
       setRutaData(data);
 
       // Convertir los clientes de la ruta a entregas

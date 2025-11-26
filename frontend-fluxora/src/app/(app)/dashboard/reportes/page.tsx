@@ -208,7 +208,6 @@ export default function ReportesPage() {
         ];
       case "inventario":
         return [
-          { key: "fecha", label: "Fecha" },
           { key: "producto", label: "Producto" },
           { key: "tipo", label: "Tipo" },
           {
@@ -223,7 +222,7 @@ export default function ReportesPage() {
           },
           {
             key: "salidas",
-            label: "Salidas",
+            label: "Salidas (Mermas)",
             format: (v: number) => `${v?.toFixed(1)} kg`,
           },
           {
@@ -231,6 +230,22 @@ export default function ReportesPage() {
             label: "Stock Final",
             format: (v: number) => `${v?.toFixed(1)} kg`,
           },
+          {
+            key: "valorTotal",
+            label: "Valor Total",
+            format: (v: number) => `$${v?.toLocaleString()}`,
+          },
+          {
+            key: "rotacion",
+            label: "Rotación %",
+            format: (v: number) => (v ? `${v?.toFixed(1)}%` : "-"),
+          },
+          {
+            key: "porcentajeMerma",
+            label: "% Merma",
+            format: (v: number) => (v ? `${v?.toFixed(1)}%` : "-"),
+          },
+          { key: "estadoStock", label: "Estado" },
         ];
       case "clientes":
         return [

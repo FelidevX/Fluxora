@@ -18,4 +18,7 @@ public interface MermaProductoRepository extends JpaRepository<MermaProducto, Lo
         LocalDateTime fechaInicio, 
         LocalDateTime fechaFin
     );
+
+    // Método para reportes: buscar mermas por producto y rango de fechas
+    List<MermaProducto> findByProductoIdAndFechaRegistroBetween(Long productoId, LocalDateTime fechaInicio, LocalDateTime fechaFin);
 }

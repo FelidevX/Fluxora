@@ -3,6 +3,7 @@ import {
   CompraMateriaPrimaDTO,
   CompraMateriaPrimaResponse,
 } from "@/types/inventario";
+import { useToast } from "@/hooks/useToast";
 
 interface UseComprasResult {
   compras: CompraMateriaPrimaResponse[];
@@ -24,6 +25,7 @@ export function useCompras(): UseComprasResult {
   const [compras, setCompras] = useState<CompraMateriaPrimaResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const cargarCompras = useCallback(async () => {
     try {
@@ -42,9 +44,10 @@ export function useCompras(): UseComprasResult {
       setCompras(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error al cargar compras:", err);
-      setError(
-        "No se pudo conectar con el servidor. Verifique que el microservicio esté ejecutándose."
-      );
+      const errorMsg =
+        "No se pudo conectar con el servidor. Verifique que el microservicio esté ejecutándose.";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error al cargar compras");
       setCompras([]);
     } finally {
       setLoading(false);
@@ -73,9 +76,13 @@ export function useCompras(): UseComprasResult {
       }
 
       await cargarCompras();
+      toast.success("Compra registrada exitosamente", "Éxito");
     } catch (err) {
       console.error("Error al crear compra:", err);
-      setError(err instanceof Error ? err.message : "Error al crear la compra");
+      const errorMsg =
+        err instanceof Error ? err.message : "Error al crear la compra";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
       throw err;
     } finally {
       setLoading(false);
@@ -173,10 +180,12 @@ export function useCompras(): UseComprasResult {
       }
 
       await cargarCompras();
+      toast.success("Compra eliminada exitosamente", "Éxito");
     } catch (err) {
-      setError(
-        "No se puede eliminar esta compra ya que los lotes ya han sido utilizados."
-      );
+      const errorMsg =
+        "No se puede eliminar esta compra ya que los lotes ya han sido utilizados.";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
       throw err;
     } finally {
       setLoading(false);
@@ -205,9 +214,12 @@ export function useCompras(): UseComprasResult {
       }
 
       await cargarCompras();
+      toast.success("Compra marcada como pagada exitosamente", "Éxito");
     } catch (err) {
       console.error("Error al marcar compra como pagada:", err);
-      setError("Error al actualizar el estado de pago");
+      const errorMsg = "Error al actualizar el estado de pago";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
       throw err;
     } finally {
       setLoading(false);

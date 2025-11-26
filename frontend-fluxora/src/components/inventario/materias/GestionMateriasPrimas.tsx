@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { MateriaPrimaDTO, MateriaPrima } from "@/types/inventario";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useCurrentDate } from "@/hooks/useDate";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -24,6 +26,9 @@ export default function GestionMateriasPrimas() {
   } = useMaterias();
 
   const { currentDate } = useCurrentDate();
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError } = useToast();
 
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -86,11 +91,13 @@ export default function GestionMateriasPrimas() {
         unidad: formulario.unidad,
       });
 
+      success("Materia prima creada exitosamente", "¡Éxito!");
       // Reset del formulario (solo catálogo)
       setFormulario({ nombre: "", unidad: "kg" });
       setShowForm(false);
     } catch (err) {
       console.error(err);
+      showError("Error al crear la materia prima", "Error");
     }
   };
 
@@ -104,10 +111,12 @@ export default function GestionMateriasPrimas() {
 
     try {
       await eliminarMateria(materiaAEliminar.id);
+      success("Materia prima eliminada exitosamente", "¡Éxito!");
       setShowDeleteModal(false);
       setMateriaAEliminar(null);
     } catch (err) {
       console.error(err);
+      showError("Error al eliminar la materia prima", "Error");
     }
   };
 
@@ -471,6 +480,13 @@ export default function GestionMateriasPrimas() {
         message="¿Está seguro de que desea eliminar esta materia prima? Esta acción no se puede deshacer y se eliminarán también todos los lotes asociados."
         itemName={materiaAEliminar?.nombre}
         requireConfirmation={true}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

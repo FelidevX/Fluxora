@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { RecetaMaestra, RecetaMaestraDTO } from "@/types/produccion";
+import { useToast } from "@/hooks/useToast";
 
 export function useRecetas() {
   const [recetas, setRecetas] = useState<RecetaMaestra[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   // Cargar recetas de la API al inicializar
   useEffect(() => {
@@ -33,7 +35,9 @@ export function useRecetas() {
       setRecetas(recetasData);
     } catch (err) {
       console.error("Error cargando recetas:", err);
-      setError("Error cargando recetas de la base de datos");
+      const errorMsg = "Error cargando recetas de la base de datos";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error al cargar recetas");
     } finally {
       setLoading(false);
     }
@@ -64,11 +68,14 @@ export function useRecetas() {
 
       // Recargar toda la lista para asegurar consistencia
       await fetchRecetas();
+      toast.success("Receta creada exitosamente", "Éxito");
 
       return recetaCreada;
     } catch (err) {
       console.error("Error creando receta:", err);
-      setError("Error guardando la receta en la base de datos");
+      const errorMsg = "Error guardando la receta en la base de datos";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
       throw err;
     } finally {
       setLoading(false);
@@ -93,9 +100,12 @@ export function useRecetas() {
 
       // Actualizar la lista local
       setRecetas((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Receta eliminada exitosamente", "Éxito");
     } catch (err) {
       console.error("Error eliminando receta:", err);
-      setError("Error eliminando receta de la base de datos");
+      const errorMsg = "Error eliminando receta de la base de datos";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
       throw err;
     } finally {
       setLoading(false);
@@ -134,10 +144,13 @@ export function useRecetas() {
         )
       );
 
+      toast.success("Receta actualizada exitosamente", "Éxito");
       return recetaActualizadaResponse;
     } catch (err) {
       console.error("Error actualizando receta:", err);
-      setError("Error actualizando receta en la base de datos");
+      const errorMsg = "Error actualizando receta en la base de datos";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
       throw err;
     } finally {
       setLoading(false);
@@ -166,9 +179,12 @@ export function useRecetas() {
           receta.id === id ? { ...receta, activa: !receta.activa } : receta
         )
       );
+      toast.success("Estado de receta actualizado exitosamente", "Éxito");
     } catch (err) {
       console.error("Error cambiando estado de receta:", err);
-      setError("Error cambiando estado de receta");
+      const errorMsg = "Error cambiando estado de receta";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
       throw err;
     } finally {
       setLoading(false);

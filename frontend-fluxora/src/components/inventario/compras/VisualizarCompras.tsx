@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useCompras } from "@/hooks/useCompras";
 import { CompraMateriaPrimaResponse } from "@/types/inventario";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import DataTable from "@/components/ui/DataTable";
@@ -34,6 +36,9 @@ export default function VisualizarCompras() {
     useState<CompraMateriaPrimaResponse | null>(null);
   const [pagado, setPagado] = useState(false);
 
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError } = useToast();
+
   useEffect(() => {
     cargarCompras();
   }, [cargarCompras]);
@@ -53,10 +58,15 @@ export default function VisualizarCompras() {
 
     try {
       await eliminarCompra(compraAEliminar.id);
+      success("Compra eliminada exitosamente", "¡Éxito!");
       setShowDeleteModal(false);
       setCompraAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar la compra:", err);
+      showError(
+        "No se puede eliminar esta compra ya que los lotes ya han sido utilizados.",
+        "Error"
+      );
     } finally {
       setShowDeleteModal(false);
       setCompraAEliminar(null);
@@ -82,10 +92,12 @@ export default function VisualizarCompras() {
 
     try {
       await marcarComoPagado(compraAPagar.id);
+      success("Compra marcada como pagada exitosamente", "¡Éxito!");
       setShowModalPago(false);
       setCompraAPagar(null);
     } catch (error) {
       console.error("Error al marcar como pagado:", error);
+      showError("Error al actualizar el estado de pago", "Error");
     }
   };
 
@@ -481,6 +493,13 @@ export default function VisualizarCompras() {
         onConfirm={handleConfirmarPago}
         compra={compraAPagar}
         loading={loading}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

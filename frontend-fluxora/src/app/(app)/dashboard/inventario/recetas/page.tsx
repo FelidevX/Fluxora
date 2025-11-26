@@ -8,6 +8,8 @@ import {
 } from "@/types/produccion";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useRecetas } from "@/hooks/useRecetas";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import { formatCLP } from "@/utils/currency";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
@@ -27,6 +29,10 @@ export default function RecetasManager() {
     useRecetas();
 
   const reparadorRef = useRef<ReparadorRecetasRef>(null);
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError } = useToast();
+
   // Ejecutar reparación manual
   const handleRepararManual = async () => {
     if (reparadorRef.current) {
@@ -150,6 +156,7 @@ export default function RecetasManager() {
       };
 
       await crearReceta(nuevaReceta);
+      success("Receta creada exitosamente", "¡Éxito!");
 
       // Limpiar formulario
       setFormulario({
@@ -166,6 +173,7 @@ export default function RecetasManager() {
       setShowForm(false);
     } catch (err) {
       console.error(err);
+      showError("Error al crear la receta", "Error");
     }
   };
 
@@ -178,10 +186,12 @@ export default function RecetasManager() {
     if (!recetaAEliminar) return;
     try {
       await eliminarReceta(recetaAEliminar.id);
+      success("Receta eliminada exitosamente", "¡Éxito!");
       setShowDeleteModal(false);
       setRecetaAEliminar(null);
     } catch (err) {
       console.error(err);
+      showError("Error al eliminar la receta", "Error");
     } finally {
       setShowDeleteModal(false);
       setRecetaAEliminar(null);
@@ -709,6 +719,13 @@ export default function RecetasManager() {
         title="Eliminar Receta"
         message="¿Está seguro de que desea eliminar esta receta?"
         itemName={recetaAEliminar?.nombre}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

@@ -538,11 +538,11 @@ export default function RecetasManager() {
 
       {/* Modal de Crear Receta */}
       {showForm && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
           onClick={() => setShowForm(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -553,7 +553,8 @@ export default function RecetasManager() {
                     Crear Nueva Receta
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Complete la información de la receta y agregue los ingredientes necesarios
+                    Complete la información de la receta y agregue los
+                    ingredientes necesarios
                   </p>
                 </div>
                 <button
@@ -566,259 +567,265 @@ export default function RecetasManager() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Información básica */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Input
-                label="Nombre de la receta:"
-                placeholder="Ej: Pan Francés"
-                value={formulario.nombre}
-                onChange={(e) =>
-                  setFormulario({ ...formulario, nombre: e.target.value })
-                }
-                required
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Categoría:
-                </label>
-                <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
-                  value={formulario.categoria}
+              {/* Información básica */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Input
+                  label="Nombre de la receta:"
+                  placeholder="Ej: Pan Francés"
+                  value={formulario.nombre}
                   onChange={(e) =>
-                    setFormulario({ ...formulario, categoria: e.target.value })
+                    setFormulario({ ...formulario, nombre: e.target.value })
                   }
-                >
-                  <option value="Panadería">Panadería</option>
-                  <option value="Pastelería">Pastelería</option>
-                </select>
-              </div>
+                  required
+                />
 
-              <Input
-                label="Cantidad base:"
-                type="number"
-                step="0.1"
-                placeholder="Ej: 1"
-                value={formulario.cantidadBase || ""}
-                onChange={(e) =>
-                  setFormulario({
-                    ...formulario,
-                    cantidadBase: parseFloat(e.target.value) || 1,
-                  })
-                }
-                required
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Unidad base:
-                </label>
-                <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
-                  value={formulario.unidadBase}
-                  onChange={(e) =>
-                    setFormulario({ ...formulario, unidadBase: e.target.value })
-                  }
-                >
-                  <option value="kg">Kilogramos (kg)</option>
-                  <option value="L">Litros (L)</option>
-                  <option value="unidad">Unidades</option>
-                  <option value="porcion">Porciones</option>
-                </select>
-              </div>
-
-              <Input
-                label="Tiempo de preparación (min):"
-                type="number"
-                placeholder="Ej: 120"
-                value={formulario.tiempoPreparacion || ""}
-                onChange={(e) =>
-                  setFormulario({
-                    ...formulario,
-                    tiempoPreparacion: parseInt(e.target.value) || 0,
-                  })
-                }
-              />
-
-              <Input
-                label={`Precio por ${formulario.unidadBase} (Precio venta):`}
-                type="number"
-                step="1"
-                placeholder="Ej: 5000"
-                value={formulario.precioUnidad || ""}
-                onChange={(e) =>
-                  setFormulario({
-                    ...formulario,
-                    precioUnidad: parseFloat(e.target.value) || 0,
-                  })
-                }
-                required
-              />
-            </div>
-
-            {/* precioEstimado se calcula en el backend usando PPP; no se ingresa manualmente */}
-
-            <div>
-              <Input
-                label="Descripción:"
-                placeholder="Ej: Pan tradicional francés con corteza crujiente y miga suave"
-                value={formulario.descripcion}
-                onChange={(e) =>
-                  setFormulario({ ...formulario, descripcion: e.target.value })
-                }
-                required
-              />
-            </div>
-
-            {/* Sección de ingredientes */}
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Ingredientes (para {formulario.cantidadBase}{" "}
-                  {formulario.unidadBase})
-                </h3>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  icon="add"
-                  onClick={agregarIngrediente}
-                >
-                  Agregar Ingrediente
-                </Button>
-              </div>
-
-              {ingredientes.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <MaterialIcon
-                    name="restaurant"
-                    className="w-12 h-12 text-gray-400 mx-auto mb-2"
-                  />
-                  <p className="text-gray-600">
-                    Agregue los ingredientes necesarios para esta receta
-                  </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Categoría:
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    value={formulario.categoria}
+                    onChange={(e) =>
+                      setFormulario({
+                        ...formulario,
+                        categoria: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="Panadería">Panadería</option>
+                    <option value="Pastelería">Pastelería</option>
+                  </select>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {ingredientes.map((ingrediente, index) => {
-                    // Filtrar materias primas ya seleccionadas
-                    const materiasDisponibles = materias.filter((materia) => {
-                      const yaSeleccionada = ingredientes.some(
-                        (ing, i) =>
-                          i !== index && ing.materiaPrimaId === materia.id
-                      );
-                      return !yaSeleccionada;
-                    });
 
-                    return (
-                      <div
-                        key={index}
-                        className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-lg"
-                      >
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Materia Prima:
-                          </label>
-                          <select
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
-                            value={ingrediente.materiaPrimaId}
-                            onChange={(e) =>
-                              actualizarIngrediente(
-                                index,
-                                "materiaPrimaId",
-                                e.target.value
-                              )
-                            }
-                            required
-                          >
-                            <option value="">Seleccionar...</option>
-                            {materiasDisponibles.map((materia) => (
-                              <option key={materia.id} value={materia.id}>
-                                {materia.nombre} (Disponible: {materia.cantidad}{" "}
-                                {materia.unidad})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                <Input
+                  label="Cantidad base:"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ej: 1"
+                  value={formulario.cantidadBase || ""}
+                  onChange={(e) =>
+                    setFormulario({
+                      ...formulario,
+                      cantidadBase: parseFloat(e.target.value) || 1,
+                    })
+                  }
+                  required
+                />
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Cantidad:
-                          </label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
-                            placeholder="Ej: 2.5"
-                            value={ingrediente.cantidadNecesaria}
-                            onChange={(e) =>
-                              actualizarIngrediente(
-                                index,
-                                "cantidadNecesaria",
-                                parseFloat(e.target.value)
-                              )
-                            }
-                            required
-                          />
-                        </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Unidad base:
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    value={formulario.unidadBase}
+                    onChange={(e) =>
+                      setFormulario({
+                        ...formulario,
+                        unidadBase: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="kg">Kilogramos (kg)</option>
+                    <option value="L">Litros (L)</option>
+                    <option value="unidad">Unidades</option>
+                    <option value="porcion">Porciones</option>
+                  </select>
+                </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1 ">
-                            Unidad:
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
-                            value={ingrediente.unidad}
-                            readOnly
-                          />
-                        </div>
+                <Input
+                  label="Tiempo de preparación (min):"
+                  type="number"
+                  placeholder="Ej: 120"
+                  value={formulario.tiempoPreparacion || ""}
+                  onChange={(e) =>
+                    setFormulario({
+                      ...formulario,
+                      tiempoPreparacion: parseInt(e.target.value) || 0,
+                    })
+                  }
+                />
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Opcional:
-                          </label>
-                          <label className="flex items-center mt-2">
-                            <input
-                              type="checkbox"
-                              checked={ingrediente.esOpcional}
+                <Input
+                  label={`Precio por ${formulario.unidadBase} (Precio venta):`}
+                  type="number"
+                  step="1"
+                  placeholder="Ej: 5000"
+                  value={formulario.precioUnidad || ""}
+                  onChange={(e) =>
+                    setFormulario({
+                      ...formulario,
+                      precioUnidad: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              {/* precioEstimado se calcula en el backend usando PPP; no se ingresa manualmente */}
+
+              <div>
+                <Input
+                  label="Descripción:"
+                  placeholder="Ej: Pan tradicional francés con corteza crujiente y miga suave"
+                  value={formulario.descripcion}
+                  onChange={(e) =>
+                    setFormulario({
+                      ...formulario,
+                      descripcion: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              {/* Sección de ingredientes */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Ingredientes (para {formulario.cantidadBase}{" "}
+                    {formulario.unidadBase})
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    icon="add"
+                    onClick={agregarIngrediente}
+                  >
+                    Agregar Ingrediente
+                  </Button>
+                </div>
+
+                {ingredientes.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <MaterialIcon
+                      name="restaurant"
+                      className="w-12 h-12 text-gray-400 mx-auto mb-2"
+                    />
+                    <p className="text-gray-600">
+                      Agregue los ingredientes necesarios para esta receta
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {ingredientes.map((ingrediente, index) => {
+                      // Filtrar materias primas ya seleccionadas
+                      const materiasDisponibles = materias.filter((materia) => {
+                        const yaSeleccionada = ingredientes.some(
+                          (ing, i) =>
+                            i !== index && ing.materiaPrimaId === materia.id
+                        );
+                        return !yaSeleccionada;
+                      });
+
+                      return (
+                        <div
+                          key={index}
+                          className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-lg"
+                        >
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Materia Prima:
+                            </label>
+                            <select
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                              value={ingrediente.materiaPrimaId}
                               onChange={(e) =>
                                 actualizarIngrediente(
                                   index,
-                                  "esOpcional",
-                                  e.target.checked
+                                  "materiaPrimaId",
+                                  e.target.value
                                 )
                               }
-                              className="mr-2"
-                            />
-                            <span className="text-sm text-gray-600">
-                              Es opcional
-                            </span>
-                          </label>
-                        </div>
+                              required
+                            >
+                              <option value="">Seleccionar...</option>
+                              {materiasDisponibles.map((materia) => (
+                                <option key={materia.id} value={materia.id}>
+                                  {materia.nombre} (Disponible:{" "}
+                                  {materia.cantidad} {materia.unidad})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                        <div className="flex items-end">
-                          <button
-                            type="button"
-                            onClick={() => eliminarIngrediente(index)}
-                            className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg"
-                          >
-                            <MaterialIcon name="delete" className="w-8 h-4" />
-                          </button>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Cantidad:
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                              placeholder="Ej: 2.5"
+                              value={ingrediente.cantidadNecesaria}
+                              onChange={(e) =>
+                                actualizarIngrediente(
+                                  index,
+                                  "cantidadNecesaria",
+                                  parseFloat(e.target.value)
+                                )
+                              }
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 ">
+                              Unidad:
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
+                              value={ingrediente.unidad}
+                              readOnly
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Opcional:
+                            </label>
+                            <label className="flex items-center mt-2">
+                              <input
+                                type="checkbox"
+                                checked={ingrediente.esOpcional}
+                                onChange={(e) =>
+                                  actualizarIngrediente(
+                                    index,
+                                    "esOpcional",
+                                    e.target.checked
+                                  )
+                                }
+                                className="mr-2"
+                              />
+                              <span className="text-sm text-gray-600">
+                                Es opcional
+                              </span>
+                            </label>
+                          </div>
+
+                          <div className="flex items-end">
+                            <button
+                              type="button"
+                              onClick={() => eliminarIngrediente(index)}
+                              className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg"
+                            >
+                              <MaterialIcon name="delete" className="w-8 h-4" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </form>
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex gap-3 justify-end">
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowForm(false)}
-                >
+                <Button variant="secondary" onClick={() => setShowForm(false)}>
                   Cancelar
                 </Button>
                 <Button
@@ -897,11 +904,11 @@ export default function RecetasManager() {
 
       {/* Modal de Ver Detalle */}
       {showDetalleModal && recetaSeleccionada && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
           onClick={() => setShowDetalleModal(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -1073,14 +1080,14 @@ export default function RecetasManager() {
 
       {/* Modal de Editar */}
       {showEditModal && recetaAEditar && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
           onClick={() => {
             setShowEditModal(false);
             setRecetaAEditar(null);
           }}
         >
-          <div 
+          <div
             className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >

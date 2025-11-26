@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -22,4 +23,7 @@ public interface LoteProductoRepository extends JpaRepository<LoteProducto, Long
 
     @Query(value = "SELECT * FROM lotes_producto l WHERE l.producto_id = :productoId AND l.stock_actual > 0 ORDER BY l.fecha_vencimiento ASC", nativeQuery = true)
     List<LoteProducto> findLotesDisponiblesByProductoIdOrderByFechaVencimientoAsc(@Param("productoId") Long productoId);
+
+    // Método para reportes: buscar lotes por producto y rango de fechas
+    List<LoteProducto> findByProductoIdAndFechaProduccionBetween(Long productoId, LocalDate fechaInicio, LocalDate fechaFin);
 }

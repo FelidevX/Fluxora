@@ -11,6 +11,9 @@ COPY package*.json ./
 # Instalar dependencias
 RUN npm ci
 
+# Copiar el código fuente
+COPY . .
+
 # Crear directorios necesarios
 RUN mkdir -p .next
 

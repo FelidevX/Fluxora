@@ -19,6 +19,13 @@ export interface FiltrosReporte {
   idRuta?: number;
   idCliente?: number;
   idProducto?: number;
+  // Opciones específicas para reporte de inventario
+  tipoReporteInventario?:
+    | "movimientos"
+    | "bajoStock"
+    | "sinMovimiento"
+    | "altaMerma";
+  incluirAnalisis?: boolean;
 }
 
 // Reporte de entregas
@@ -54,6 +61,11 @@ export interface ReporteInventario {
   salidas: number;
   stockFinal: number;
   valorTotal: number;
+  // Campos opcionales de análisis
+  rotacion?: number;
+  diasSinMovimiento?: number;
+  porcentajeMerma?: number;
+  estadoStock?: "Óptimo" | "Bajo" | "Crítico" | "Exceso";
 }
 
 // Reporte de clientes

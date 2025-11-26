@@ -32,14 +32,7 @@ const RepartosPage = () => {
             })}
           </p>
         </div>
-        <div className="flex gap-3">
-          <button className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-            🖨️ Imprimir hoja de ruta
-          </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-            📊 Exportar a Excel
-          </button>
-        </div>
+        <div className="flex gap-3"></div>
       </div>
     </div>
   );

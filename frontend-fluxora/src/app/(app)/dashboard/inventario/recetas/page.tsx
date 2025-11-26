@@ -25,7 +25,7 @@ import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 export default function RecetasManager() {
   const { materias, setOnMateriaCreated } = useMaterias();
-  const { recetas, loading, error, crearReceta, eliminarReceta, clearError } =
+  const { recetas, loading, error, crearReceta, eliminarReceta, actualizarReceta, clearError } =
     useRecetas();
 
   const reparadorRef = useRef<ReparadorRecetasRef>(null);
@@ -55,6 +55,17 @@ export default function RecetasManager() {
   const [recetaAEditar, setRecetaAEditar] = useState<RecetaMaestra | null>(
     null
   );
+  const [formularioEdicion, setFormularioEdicion] = useState<RecetaMaestraDTO>({
+    nombre: "",
+    descripcion: "",
+    categoria: "Panadería",
+    unidadBase: "kg",
+    cantidadBase: 1,
+    precioUnidad: 0,
+    tiempoPreparacion: 0,
+    ingredientes: [],
+  });
+  const [ingredientesEdicion, setIngredientesEdicion] = useState<RecetaIngredienteDTO[]>([]);
 
   const [formulario, setFormulario] = useState<RecetaMaestraDTO>({
     nombre: "",
@@ -217,7 +228,103 @@ export default function RecetasManager() {
 
   const handleEdit = (receta: RecetaMaestra) => {
     setRecetaAEditar(receta);
+    setFormularioEdicion({
+      nombre: receta.nombre,
+      descripcion: receta.descripcion,
+      categoria: receta.categoria,
+      unidadBase: receta.unidadBase,
+      cantidadBase: receta.cantidadBase,
+      precioUnidad: receta.precioUnidad,
+      tiempoPreparacion: receta.tiempoPreparacion,
+      ingredientes: receta.ingredientes,
+    });
+    setIngredientesEdicion(receta.ingredientes);
     setShowEditModal(true);
+  };
+
+  const agregarIngredienteEdicion = () => {
+    setIngredientesEdicion([
+      ...ingredientesEdicion,
+      {
+        materiaPrimaId: 0,
+        cantidadNecesaria: 0,
+        unidad: "kg",
+        esOpcional: false,
+        notas: "",
+      },
+    ]);
+  };
+
+  const eliminarIngredienteEdicion = (index: number) => {
+    setIngredientesEdicion(ingredientesEdicion.filter((_, i) => i !== index));
+  };
+
+  const actualizarIngredienteEdicion = (
+    index: number,
+    campo: keyof RecetaIngredienteDTO,
+    valor: any
+  ) => {
+    const nuevosIngredientes = [...ingredientesEdicion];
+    if (campo === "materiaPrimaId") {
+      const materia = materias.find((m) => m.id === parseInt(valor));
+      nuevosIngredientes[index] = {
+        ...nuevosIngredientes[index],
+        materiaPrimaId: parseInt(valor),
+        unidad: materia?.unidad || "kg",
+      } as RecetaIngredienteDTO;
+    } else {
+      nuevosIngredientes[index] = {
+        ...nuevosIngredientes[index],
+        [campo]: valor,
+      } as RecetaIngredienteDTO;
+    }
+    setIngredientesEdicion(nuevosIngredientes);
+  };
+
+  const handleSubmitEdicion = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !formularioEdicion.nombre ||
+      !formularioEdicion.descripcion ||
+      ingredientesEdicion.length === 0
+    ) {
+      showError("Todos los campos son requeridos", "Error");
+      return;
+    }
+
+    // Validar que todos los ingredientes tengan materia prima seleccionada
+    const ingredientesIncompletos = ingredientesEdicion.some(
+      (ing) => ing.materiaPrimaId === 0 || ing.cantidadNecesaria <= 0
+    );
+
+    if (ingredientesIncompletos) {
+      showError("Todos los ingredientes deben estar completos", "Error");
+      return;
+    }
+
+    if (!recetaAEditar) return;
+
+    try {
+      const recetaActualizada: RecetaMaestraDTO = {
+        ...formularioEdicion,
+        ingredientes: ingredientesEdicion.map((ing) => {
+          const materia = materias.find((m) => m.id === ing.materiaPrimaId);
+          return {
+            ...ing,
+            materiaPrimaNombre: materia?.nombre || "",
+          };
+        }),
+      };
+
+      await actualizarReceta(recetaAEditar.id, recetaActualizada);
+      success("Receta actualizada exitosamente", "¡Éxito!");
+      setShowEditModal(false);
+      setRecetaAEditar(null);
+    } catch (err) {
+      console.error(err);
+      showError("Error al actualizar la receta", "Error");
+    }
   };
 
   // Verificar materias primas faltantes en recetas rotas
@@ -935,7 +1042,10 @@ export default function RecetasManager() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setRecetaAEditar(null);
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <MaterialIcon name="close" className="w-6 h-6" />
@@ -943,29 +1053,268 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <div className="p-6">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <div className="flex items-start">
-                  <MaterialIcon
-                    name="info"
-                    className="w-5 h-5 text-yellow-600 mr-2 mt-0.5"
-                  />
-                  <p className="text-sm text-yellow-800">
-                    La funcionalidad de edición de recetas estará disponible
-                    próximamente. Por ahora, puede ver los detalles o eliminar
-                    la receta.
-                  </p>
+            <form onSubmit={handleSubmitEdicion} className="p-6 space-y-6">
+              {/* Información básica */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Input
+                  label="Nombre de la receta:"
+                  placeholder="Ej: Pan Francés"
+                  value={formularioEdicion.nombre}
+                  onChange={(e) =>
+                    setFormularioEdicion({ ...formularioEdicion, nombre: e.target.value })
+                  }
+                  required
+                />
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Categoría:
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    value={formularioEdicion.categoria}
+                    onChange={(e) =>
+                      setFormularioEdicion({ ...formularioEdicion, categoria: e.target.value })
+                    }
+                  >
+                    <option value="Panadería">Panadería</option>
+                    <option value="Pastelería">Pastelería</option>
+                  </select>
                 </div>
+
+                <Input
+                  label="Cantidad base:"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ej: 1"
+                  value={formularioEdicion.cantidadBase || ""}
+                  onChange={(e) =>
+                    setFormularioEdicion({
+                      ...formularioEdicion,
+                      cantidadBase: parseFloat(e.target.value) || 1,
+                    })
+                  }
+                  required
+                />
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Unidad base:
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    value={formularioEdicion.unidadBase}
+                    onChange={(e) =>
+                      setFormularioEdicion({ ...formularioEdicion, unidadBase: e.target.value })
+                    }
+                  >
+                    <option value="kg">Kilogramos (kg)</option>
+                    <option value="L">Litros (L)</option>
+                    <option value="unidad">Unidades</option>
+                    <option value="porcion">Porciones</option>
+                  </select>
+                </div>
+
+                <Input
+                  label="Tiempo de preparación (min):"
+                  type="number"
+                  placeholder="Ej: 120"
+                  value={formularioEdicion.tiempoPreparacion || ""}
+                  onChange={(e) =>
+                    setFormularioEdicion({
+                      ...formularioEdicion,
+                      tiempoPreparacion: parseInt(e.target.value) || 0,
+                    })
+                  }
+                />
+
+                <Input
+                  label={`Precio por ${formularioEdicion.unidadBase} (Precio venta):`}
+                  type="number"
+                  step="1"
+                  placeholder="Ej: 5000"
+                  value={formularioEdicion.precioUnidad || ""}
+                  onChange={(e) =>
+                    setFormularioEdicion({
+                      ...formularioEdicion,
+                      precioUnidad: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  required
+                />
               </div>
-            </div>
+
+              <div>
+                <Input
+                  label="Descripción:"
+                  placeholder="Ej: Pan tradicional francés con corteza crujiente y miga suave"
+                  value={formularioEdicion.descripcion}
+                  onChange={(e) =>
+                    setFormularioEdicion({ ...formularioEdicion, descripcion: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              {/* Sección de ingredientes */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Ingredientes (para {formularioEdicion.cantidadBase}{" "}
+                    {formularioEdicion.unidadBase})
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    icon="add"
+                    onClick={agregarIngredienteEdicion}
+                  >
+                    Agregar Ingrediente
+                  </Button>
+                </div>
+
+                {ingredientesEdicion.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <MaterialIcon
+                      name="restaurant"
+                      className="w-12 h-12 text-gray-400 mx-auto mb-2"
+                    />
+                    <p className="text-gray-600">
+                      Agregue los ingredientes necesarios para esta receta
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {ingredientesEdicion.map((ingrediente, index) => {
+                      const materiasDisponibles = materias.filter((materia) => {
+                        const yaSeleccionada = ingredientesEdicion.some(
+                          (ing, i) =>
+                            i !== index && ing.materiaPrimaId === materia.id
+                        );
+                        return !yaSeleccionada;
+                      });
+
+                      return (
+                        <div
+                          key={index}
+                          className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-lg"
+                        >
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Materia Prima:
+                            </label>
+                            <select
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                              value={ingrediente.materiaPrimaId}
+                              onChange={(e) =>
+                                actualizarIngredienteEdicion(
+                                  index,
+                                  "materiaPrimaId",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              <option value="">Seleccionar...</option>
+                              {materiasDisponibles.map((materia) => (
+                                <option key={materia.id} value={materia.id}>
+                                  {materia.nombre} (Disponible: {materia.cantidad}{" "}
+                                  {materia.unidad})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Cantidad:
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                              placeholder="Ej: 2.5"
+                              value={ingrediente.cantidadNecesaria}
+                              onChange={(e) =>
+                                actualizarIngredienteEdicion(
+                                  index,
+                                  "cantidadNecesaria",
+                                  parseFloat(e.target.value)
+                                )
+                              }
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 ">
+                              Unidad:
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
+                              value={ingrediente.unidad}
+                              readOnly
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Opcional:
+                            </label>
+                            <label className="flex items-center mt-2">
+                              <input
+                                type="checkbox"
+                                checked={ingrediente.esOpcional}
+                                onChange={(e) =>
+                                  actualizarIngredienteEdicion(
+                                    index,
+                                    "esOpcional",
+                                    e.target.checked
+                                  )
+                                }
+                                className="mr-2"
+                              />
+                              <span className="text-sm text-gray-600">
+                                Es opcional
+                              </span>
+                            </label>
+                          </div>
+
+                          <div className="flex items-end">
+                            <button
+                              type="button"
+                              onClick={() => eliminarIngredienteEdicion(index)}
+                              className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg"
+                            >
+                              <MaterialIcon name="delete" className="w-8 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </form>
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex gap-3 justify-end">
                 <Button
                   variant="secondary"
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setRecetaAEditar(null);
+                  }}
                 >
-                  Cerrar
+                  Cancelar
+                </Button>
+                <Button
+                  variant="success"
+                  onClick={handleSubmitEdicion}
+                  disabled={loading}
+                >
+                  {loading ? "Actualizando..." : "Actualizar Receta"}
                 </Button>
               </div>
             </div>

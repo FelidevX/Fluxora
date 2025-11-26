@@ -23,10 +23,17 @@ const ClientesPage = () => {
     clearError,
     eliminarCliente,
   } = useClientes();
-  
+
   // Hook para notificaciones toast
-  const { toasts, removeToast, success, error: showError, warning, info } = useToast();
-  
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+    info,
+  } = useToast();
+
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const router = useRouter();
@@ -37,8 +44,9 @@ const ClientesPage = () => {
   const [clienteAEliminar, setClienteAEliminar] =
     useState<ClienteResponse | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [clienteAEditar, setClienteAEditar] =
-    useState<ClienteResponse | null>(null);
+  const [clienteAEditar, setClienteAEditar] = useState<ClienteResponse | null>(
+    null
+  );
 
   // Cargar clientes al montar el componente
   useEffect(() => {
@@ -74,12 +82,17 @@ const ClientesPage = () => {
         precioCorriente: data.precioCorriente,
         precioEspecial: data.precioEspecial,
       };
-      
+
       await crearCliente(clientData);
-      success("El cliente ha sido registrado exitosamente", "¡Cliente Registrado!");
+      success(
+        "El cliente ha sido registrado exitosamente",
+        "¡Cliente Registrado!"
+      );
     } catch (err) {
       showError(
-        err instanceof Error ? err.message : "Error desconocido al registrar el cliente",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al registrar el cliente",
         "Error al Registrar Cliente"
       );
     }
@@ -95,7 +108,7 @@ const ClientesPage = () => {
 
   const handleClientEditSubmit = async (data: any) => {
     if (!clienteAEditar) return;
-    
+
     try {
       // Transformar los datos del formulario al formato del backend
       const clientData = {
@@ -109,18 +122,24 @@ const ClientesPage = () => {
         precioCorriente: data.precioCorriente,
         precioEspecial: data.precioEspecial,
       };
-      
+
       await editarCliente(clienteAEditar.id, clientData);
-      success("El cliente ha sido actualizado exitosamente", "¡Cliente Actualizado!");
+      success(
+        "El cliente ha sido actualizado exitosamente",
+        "¡Cliente Actualizado!"
+      );
       setShowEditModal(false);
       setClienteAEditar(null);
     } catch (err) {
       showError(
-        err instanceof Error ? err.message : "Error desconocido al actualizar el cliente",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al actualizar el cliente",
         "Error al Actualizar Cliente"
       );
     }
-  };  const handleDelete = (cliente: ClienteResponse) => {
+  };
+  const handleDelete = (cliente: ClienteResponse) => {
     setClienteAEliminar(cliente);
     setShowDeleteModal(true);
   };
@@ -129,13 +148,18 @@ const ClientesPage = () => {
     if (!clienteAEliminar) return;
     try {
       await eliminarCliente(clienteAEliminar.id);
-      success("El cliente ha sido eliminado correctamente", "Cliente Eliminado");
+      success(
+        "El cliente ha sido eliminado correctamente",
+        "Cliente Eliminado"
+      );
       setShowDeleteModal(false);
       setClienteAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar cliente:", err);
       showError(
-        err instanceof Error ? err.message : "Error desconocido al eliminar el cliente",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al eliminar el cliente",
         "Error al Eliminar Cliente"
       );
       setShowDeleteModal(false);
@@ -187,10 +211,7 @@ const ClientesPage = () => {
               />
             </svg>
           </button>
-          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors text-gray-600">
-            <MaterialIcon name="print" className="text-green-600 mr-1" />{" "}
-            Imprimir hoja de ruta
-          </button>
+
           <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
             <MaterialIcon name="file_export" className="text-white mr-1" />{" "}
             Exportar a Excel

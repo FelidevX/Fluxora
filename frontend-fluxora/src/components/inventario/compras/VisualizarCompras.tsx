@@ -32,6 +32,7 @@ export default function VisualizarCompras() {
   const [showModalPago, setShowModalPago] = useState(false);
   const [compraAPagar, setCompraAPagar] =
     useState<CompraMateriaPrimaResponse | null>(null);
+  const [pagado, setPagado] = useState(false);
 
   useEffect(() => {
     cargarCompras();
@@ -70,6 +71,10 @@ export default function VisualizarCompras() {
   const handleMarcarPago = (compra: CompraMateriaPrimaResponse) => {
     setCompraAPagar(compra);
     setShowModalPago(true);
+  };
+
+  const deshabilitarBotonPago = (compra: CompraMateriaPrimaResponse) => {
+    return compra.estadoPago === "PAGADO";
   };
 
   const handleConfirmarPago = async () => {
@@ -195,7 +200,11 @@ export default function VisualizarCompras() {
       label: "Marcar como Pagado",
       icon: "payments",
       variant: "success" as const,
-      onClick: (compra: CompraMateriaPrimaResponse) => handleMarcarPago(compra),
+      onClick: (compra: CompraMateriaPrimaResponse) => {
+        if (compra.estadoPago !== "PAGADO") {
+          handleMarcarPago(compra);
+        }
+      },
       disabled: (compra: CompraMateriaPrimaResponse) =>
         compra.estadoPago === "PAGADO",
     },

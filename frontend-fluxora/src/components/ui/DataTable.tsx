@@ -24,6 +24,7 @@ interface TableAction<T> {
   variant: "primary" | "success" | "warning" | "danger";
   onClick: (item: T) => void;
   condition?: (item: T) => boolean;
+  disabled?: (item: T) => boolean; // Agregar esta línea
 }
 
 interface DataTableProps<T> {
@@ -199,13 +200,22 @@ function DataTable<T extends Record<string, any>>({
                               return null;
                             }
 
+                            const isDisabled = action.disabled
+                              ? action.disabled(item)
+                              : false;
+
                             return (
                               <Button
                                 key={actionIndex}
                                 variant={action.variant}
                                 size="sm"
+                                disabled={isDisabled}
                                 onClick={() => action.onClick(item)}
-                                className="flex items-center gap-1 cursor-pointer"
+                                className={`flex items-center gap-1 ${
+                                  isDisabled
+                                    ? "opacity-30 bg-stone-800 cursor-not-allowed hover:bg-stone-800"
+                                    : "cursor-pointer"
+                                }`}
                               >
                                 <MaterialIcon name={action.icon} />
                                 {action.label}

@@ -253,7 +253,7 @@ export function GestionRutas({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas/${rutaAEliminar.id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/${rutaAEliminar.id}`,
         {
           method: "DELETE",
           headers: {

@@ -74,8 +74,7 @@ function DataTable<T extends Record<string, any>>({
   const paginationEnabled = pagination?.enabled ?? false;
   const serverSide = pagination?.serverSide ?? false;
   const pageSizeOptions = pagination?.pageSizeOptions ?? [5, 10, 25, 50];
-  const defaultPageSize =
-    pagination?.defaultPageSize ?? pageSizeOptions[0] ?? 5;
+  const defaultPageSize = pagination?.defaultPageSize ?? 5;
 
   const [page, setPage] = useState<number>(pagination?.page ?? 1);
   const [pageSize, setPageSize] = useState<number>(defaultPageSize);
@@ -302,7 +301,7 @@ function TablePaginator<T extends Record<string, any>>({
           <label className="text-sm text-gray-600">Filas:</label>
           <select
             value={pageSize}
-            onChange={(e) => setPageSize(parseInt(e.target.value, 5))}
+            onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
             className="border border-gray-300 rounded px-2 py-1 text-sm"
           >
             {pageSizeOptions.map((opt) => (

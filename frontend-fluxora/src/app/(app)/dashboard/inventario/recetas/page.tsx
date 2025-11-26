@@ -420,9 +420,6 @@ export default function RecetasManager() {
                 >
                   <option value="Panadería">Panadería</option>
                   <option value="Pastelería">Pastelería</option>
-                  <option value="Bebidas">Bebidas</option>
-                  <option value="Snacks">Snacks</option>
-                  <option value="Especiales">Especiales</option>
                 </select>
               </div>
 
@@ -535,7 +532,8 @@ export default function RecetasManager() {
                     // Filtrar materias primas ya seleccionadas
                     const materiasDisponibles = materias.filter((materia) => {
                       const yaSeleccionada = ingredientes.some(
-                        (ing, i) => i !== index && ing.materiaPrimaId === materia.id
+                        (ing, i) =>
+                          i !== index && ing.materiaPrimaId === materia.id
                       );
                       return !yaSeleccionada;
                     });

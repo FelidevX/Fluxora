@@ -17,7 +17,14 @@ export default function ReportesPage() {
   const { loading, error, generarReporte } = useReportes();
 
   // Hook para notificaciones toast
-  const { toasts, removeToast, success, error: showError, warning, info } = useToast();
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+    info,
+  } = useToast();
 
   // Tipos de reportes disponibles
   const tiposReportes = [
@@ -62,7 +69,9 @@ export default function ReportesPage() {
     } catch (err) {
       console.error("Error en handleGenerarReporte:", err);
       showError(
-        err instanceof Error ? err.message : "Error desconocido al generar el reporte",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al generar el reporte",
         "Error al Generar Reporte"
       );
     }
@@ -77,8 +86,8 @@ export default function ReportesPage() {
 
     try {
       console.log("Exportando a Excel...");
-      info("Preparando exportación del reporte...", "Exportando");
-      
+      info("Preparando exportación a Excel...", "Exportando");
+
       const { ExcelExportService } = await import(
         "@/services/exportacion/excelExportService"
       );
@@ -93,11 +102,56 @@ export default function ReportesPage() {
       });
 
       console.log("Excel exportado exitosamente");
-      success("El reporte se ha exportado a Excel correctamente", "Exportación Exitosa");
+      success(
+        "El reporte se ha exportado a Excel correctamente",
+        "Exportación Exitosa"
+      );
     } catch (err) {
       console.error("Error al exportar:", err);
       showError(
-        err instanceof Error ? err.message : "Error desconocido al exportar el reporte",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al exportar el reporte",
+        "Error al Exportar"
+      );
+    }
+  };
+
+  // Exportar a PDF
+  const exportarAPDF = async () => {
+    if (!datosReporte || !datosReporte.datos || !tipoSeleccionado) {
+      warning("No hay datos disponibles para exportar", "Sin Datos");
+      return;
+    }
+
+    try {
+      console.log("Exportando a PDF...");
+      info("Preparando exportación a PDF...", "Exportando");
+
+      const { PDFExportService } = await import(
+        "@/services/exportacion/pdfExportService"
+      );
+
+      await PDFExportService.exportar({
+        tipo: tipoSeleccionado,
+        datos: datosReporte.datos,
+        resumen: datosReporte.resumen,
+        columnas: getColumnas(),
+        fechaInicio: datosReporte.fechaInicio,
+        fechaFin: datosReporte.fechaFin,
+      });
+
+      console.log("PDF exportado exitosamente");
+      success(
+        "El reporte se ha exportado a PDF correctamente",
+        "Exportación Exitosa"
+      );
+    } catch (err) {
+      console.error("Error al exportar:", err);
+      showError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al exportar el reporte",
         "Error al Exportar"
       );
     }
@@ -261,7 +315,8 @@ export default function ReportesPage() {
             data={datosReporte.datos}
             columns={getColumnas()}
             titulo={`Resultados del Reporte - ${tipoSeleccionado?.toUpperCase()}`}
-            onExportar={exportarAExcel}
+            onExportarExcel={exportarAExcel}
+            onExportarPDF={exportarAPDF}
           />
         </div>
       )}
@@ -276,7 +331,7 @@ export default function ReportesPage() {
             </p>
           </div>
         )}
-      
+
       {/* Contenedor de notificaciones toast */}
       <ToastContainer
         toasts={toasts}

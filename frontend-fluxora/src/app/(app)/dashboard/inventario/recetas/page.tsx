@@ -48,6 +48,13 @@ export default function RecetasManager() {
   const [recetaAEliminar, setRecetaAEliminar] = useState<RecetaMaestra | null>(
     null
   );
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [recetaSeleccionada, setRecetaSeleccionada] =
+    useState<RecetaMaestra | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [recetaAEditar, setRecetaAEditar] = useState<RecetaMaestra | null>(
+    null
+  );
 
   const [formulario, setFormulario] = useState<RecetaMaestraDTO>({
     nombre: "",
@@ -203,6 +210,16 @@ export default function RecetasManager() {
     setRecetaAEliminar(null);
   };
 
+  const handleVerDetalle = (receta: RecetaMaestra) => {
+    setRecetaSeleccionada(receta);
+    setShowDetalleModal(true);
+  };
+
+  const handleEdit = (receta: RecetaMaestra) => {
+    setRecetaAEditar(receta);
+    setShowEditModal(true);
+  };
+
   // Verificar materias primas faltantes en recetas rotas
   const checkMissingMaterials = () => {
     const faltantes: string[] = [];
@@ -302,6 +319,18 @@ export default function RecetasManager() {
 
   // Definir acciones de la tabla
   const actions = [
+    {
+      label: "Ver Detalle",
+      icon: "visibility",
+      variant: "primary" as const,
+      onClick: (receta: RecetaMaestra) => handleVerDetalle(receta),
+    },
+    {
+      label: "Editar",
+      icon: "edit",
+      variant: "warning" as const,
+      onClick: (receta: RecetaMaestra) => handleEdit(receta),
+    },
     {
       label: "Eliminar",
       icon: "delete",
@@ -720,6 +749,229 @@ export default function RecetasManager() {
         message="¿Está seguro de que desea eliminar esta receta?"
         itemName={recetaAEliminar?.nombre}
       />
+
+      {/* Modal de Ver Detalle */}
+      {showDetalleModal && recetaSeleccionada && (
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Detalle de Receta
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {recetaSeleccionada.nombre}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDetalleModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <MaterialIcon name="close" className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Información General */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                  Información General
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Nombre
+                    </label>
+                    <p className="text-base text-gray-900 font-medium">
+                      {recetaSeleccionada.nombre}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Categoría
+                    </label>
+                    <p className="text-base text-gray-900">
+                      <Badge variant="info">
+                        {recetaSeleccionada.categoria}
+                      </Badge>
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Descripción
+                    </label>
+                    <p className="text-base text-gray-900">
+                      {recetaSeleccionada.descripcion}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Cantidad Base
+                    </label>
+                    <p className="text-base text-gray-900">
+                      {recetaSeleccionada.cantidadBase}{" "}
+                      {recetaSeleccionada.unidadBase}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Precio Estimado
+                    </label>
+                    <p className="text-lg text-gray-900 font-bold">
+                      {formatCLP(recetaSeleccionada.precioEstimado || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Precio por {recetaSeleccionada.unidadBase}
+                    </label>
+                    <p className="text-lg text-gray-900 font-bold">
+                      {formatCLP(recetaSeleccionada.precioUnidad || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Tiempo de Preparación
+                    </label>
+                    <p className="text-base text-gray-900">
+                      {recetaSeleccionada.tiempoPreparacion} minutos
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Estado
+                    </label>
+                    <p className="text-base text-gray-900">
+                      <Badge
+                        variant={
+                          recetaSeleccionada.activa ? "success" : "danger"
+                        }
+                      >
+                        {recetaSeleccionada.activa ? "Activa" : "Inactiva"}
+                      </Badge>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ingredientes */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                  Ingredientes ({recetaSeleccionada.ingredientes.length})
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Materia Prima
+                        </th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Cantidad Necesaria
+                        </th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Unidad
+                        </th>
+                        <th className="px-4 py-3 text-gray-700 font-medium">
+                          Opcional
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {recetaSeleccionada.ingredientes.map((ing, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-gray-900 font-medium">
+                            {ing.materiaPrimaNombre}
+                          </td>
+                          <td className="px-4 py-3 text-gray-900">
+                            {ing.cantidadNecesaria}
+                          </td>
+                          <td className="px-4 py-3 text-gray-900">
+                            {ing.unidad}
+                          </td>
+                          <td className="px-4 py-3">
+                            {ing.esOpcional ? (
+                              <Badge variant="warning">Sí</Badge>
+                            ) : (
+                              <Badge variant="info">No</Badge>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowDetalleModal(false)}
+                >
+                  Cerrar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Editar */}
+      {showEditModal && recetaAEditar && (
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Editar Receta
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {recetaAEditar.nombre}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <MaterialIcon name="close" className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start">
+                  <MaterialIcon
+                    name="info"
+                    className="w-5 h-5 text-yellow-600 mr-2 mt-0.5"
+                  />
+                  <p className="text-sm text-yellow-800">
+                    La funcionalidad de edición de recetas estará disponible
+                    próximamente. Por ahora, puede ver los detalles o eliminar
+                    la receta.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowEditModal(false)}
+                >
+                  Cerrar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer

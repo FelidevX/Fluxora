@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useCompras } from "@/hooks/useCompras";
 import { CompraMateriaPrimaResponse } from "@/types/inventario";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import DataTable from "@/components/ui/DataTable";
@@ -32,6 +34,10 @@ export default function VisualizarCompras() {
   const [showModalPago, setShowModalPago] = useState(false);
   const [compraAPagar, setCompraAPagar] =
     useState<CompraMateriaPrimaResponse | null>(null);
+  const [pagado, setPagado] = useState(false);
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError } = useToast();
 
   useEffect(() => {
     cargarCompras();
@@ -52,10 +58,15 @@ export default function VisualizarCompras() {
 
     try {
       await eliminarCompra(compraAEliminar.id);
+      success("Compra eliminada exitosamente", "¡Éxito!");
       setShowDeleteModal(false);
       setCompraAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar la compra:", err);
+      showError(
+        "No se puede eliminar esta compra ya que los lotes ya han sido utilizados.",
+        "Error"
+      );
     } finally {
       setShowDeleteModal(false);
       setCompraAEliminar(null);
@@ -72,15 +83,21 @@ export default function VisualizarCompras() {
     setShowModalPago(true);
   };
 
+  const deshabilitarBotonPago = (compra: CompraMateriaPrimaResponse) => {
+    return compra.estadoPago === "PAGADO";
+  };
+
   const handleConfirmarPago = async () => {
     if (!compraAPagar) return;
 
     try {
       await marcarComoPagado(compraAPagar.id);
+      success("Compra marcada como pagada exitosamente", "¡Éxito!");
       setShowModalPago(false);
       setCompraAPagar(null);
     } catch (error) {
       console.error("Error al marcar como pagado:", error);
+      showError("Error al actualizar el estado de pago", "Error");
     }
   };
 
@@ -195,7 +212,11 @@ export default function VisualizarCompras() {
       label: "Marcar como Pagado",
       icon: "payments",
       variant: "success" as const,
-      onClick: (compra: CompraMateriaPrimaResponse) => handleMarcarPago(compra),
+      onClick: (compra: CompraMateriaPrimaResponse) => {
+        if (compra.estadoPago !== "PAGADO") {
+          handleMarcarPago(compra);
+        }
+      },
       disabled: (compra: CompraMateriaPrimaResponse) =>
         compra.estadoPago === "PAGADO",
     },
@@ -472,6 +493,13 @@ export default function VisualizarCompras() {
         onConfirm={handleConfirmarPago}
         compra={compraAPagar}
         loading={loading}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

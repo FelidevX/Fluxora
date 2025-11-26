@@ -284,54 +284,64 @@ export default function GestionProductos({
   ];
 
   return (
-    <div>
-      {/* Alertas */}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Gestión de Productos
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Administra los productos y sus lotes de producción
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={onOpenMerma} variant="danger" icon="delete_sweep">
+            Registrar Merma
+          </Button>
+          <Button
+            onClick={() => {
+              resetFormulario();
+              setShowForm(true);
+            }}
+            variant="primary"
+            icon="add"
+          >
+            Nuevo Producto
+          </Button>
+        </div>
+      </div>
+
+      {/* Mostrar errores */}
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded flex justify-between items-center">
-          <span>{error}</span>
-          <button onClick={clearError} className="text-red-700 font-bold">
-            ✕
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <span className="block sm:inline">{error}</span>
+          <button
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+            onClick={clearError}
+          >
+            <MaterialIcon name="close" className="w-5 h-5" />
           </button>
         </div>
       )}
 
-      {/* Barra de búsqueda y acciones */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            type="text"
-            placeholder="Buscar productos..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            icon="search"
-          />
-        </div>
-        <Button onClick={onOpenMerma} variant="danger">
-          <MaterialIcon name="delete_sweep" className="mr-2" />
-          Registrar Merma
-        </Button>
-        <Button
-          onClick={() => {
-            resetFormulario();
-            setShowForm(true);
-          }}
-          variant="primary"
-        >
-          <MaterialIcon name="add" className="mr-2" />
-          Nuevo Producto
-        </Button>
-      </div>
-
-      {/* Tabla de productos */}
-      <div className="bg-white rounded-lg shadow">
-        <DataTable
-          data={productosFiltrados}
-          columns={columns}
-          actions={actions}
-          loading={loading}
-          emptyMessage="No hay productos registrados"
-        />
-      </div>
+      {/* Tabla de productos usando DataTable con búsqueda y paginación */}
+      <DataTable
+        data={productosFiltrados}
+        columns={columns}
+        actions={actions}
+        loading={loading}
+        searchValue={busqueda}
+        onSearch={setBusqueda}
+        searchPlaceholder="Buscar por nombre o categoría..."
+        emptyMessage="No hay productos registrados"
+        pagination={{
+          enabled: true,
+          serverSide: false,
+          defaultPageSize: 10,
+          pageSizeOptions: [5, 10, 25, 50],
+        }}
+      />
 
       {/* Modal de formulario */}
       {showForm && (

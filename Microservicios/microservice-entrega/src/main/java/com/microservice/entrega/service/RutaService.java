@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import com.google.ortools.Loader;
 import com.google.ortools.constraintsolver.Assignment;
@@ -25,6 +26,7 @@ import com.google.ortools.constraintsolver.RoutingSearchParameters;
 import com.google.ortools.constraintsolver.main;
 import com.microservice.entrega.client.ClienteServiceClient;
 import com.microservice.entrega.dto.ClienteDTO;
+import com.microservice.entrega.dto.ClienteConRutaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
@@ -194,6 +196,55 @@ public class RutaService {
         }
     }
 
+    public List<ClienteConRutaDTO> getClientesConRuta() {
+        try {
+            // Obtener todos los clientes
+            List<ClienteDTO> allClients = clienteServiceClient.getAllClientes();
+            
+            // Obtener todas las relaciones ruta-cliente
+            List<RutaCliente> rutaClientes = rutaClienteRepository.findAll();
+            
+            // Obtener todas las rutas
+            List<Ruta> rutas = rutaRepository.findAll();
+            
+            // Crear un mapa de rutaId -> nombre de ruta para búsqueda rápida
+            java.util.Map<Long, String> rutaNombresMap = rutas.stream()
+                .collect(java.util.stream.Collectors.toMap(Ruta::getId, Ruta::getNombre));
+            
+            // Filtrar clientes que están asignados y agregar información de ruta
+            return rutaClientes.stream()
+                .map(rc -> {
+                    // Buscar el cliente correspondiente
+                    ClienteDTO cliente = allClients.stream()
+                        .filter(c -> c.getId().equals(rc.getId_cliente()))
+                        .findFirst()
+                        .orElse(null);
+                    
+                    if (cliente == null) return null;
+                    
+                    // Crear ClienteConRutaDTO
+                    ClienteConRutaDTO clienteConRuta = new ClienteConRutaDTO();
+                    clienteConRuta.setId(cliente.getId());
+                    clienteConRuta.setNombre(cliente.getNombre());
+                    clienteConRuta.setDireccion(cliente.getDireccion());
+                    clienteConRuta.setLatitud(cliente.getLatitud());
+                    clienteConRuta.setLongitud(cliente.getLongitud());
+                    clienteConRuta.setEmail(cliente.getEmail());
+                    clienteConRuta.setPrecioCorriente(cliente.getPrecioCorriente());
+                    clienteConRuta.setPrecioEspecial(cliente.getPrecioEspecial());
+                    clienteConRuta.setRutaId(rc.getId_ruta());
+                    clienteConRuta.setRutaNombre(rutaNombresMap.get(rc.getId_ruta()));
+                    
+                    return clienteConRuta;
+                })
+                .filter(c -> c != null)
+                .distinct() // Evitar duplicados si un cliente está en múltiples fechas de la misma ruta
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener clientes con ruta: " + e.getMessage());
+        }
+    }
+
     public void asignarClienteARuta(Long idRuta, Long idCliente) {
         try {
             // Verifica que la ruta existe
@@ -215,6 +266,50 @@ public class RutaService {
             rutaClienteRepository.save(rutaCliente);
         } catch (Exception e) {
             throw new RuntimeException("Error al asignar cliente a ruta: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void reasignarClienteARuta(Long idRuta, Long idCliente) {
+        try {
+            // Verifica que la ruta destino existe
+            if (!rutaRepository.existsById(idRuta)) {
+                throw new RuntimeException("La ruta con ID " + idRuta + " no existe");
+            }
+
+            // Eliminar las asignaciones existentes del cliente (de todas las rutas y fechas)
+            rutaClienteRepository.deleteByIdCliente(idCliente);
+
+            // Crear nueva asignación
+            RutaCliente rutaCliente = new RutaCliente();
+            rutaCliente.setId_ruta(idRuta);
+            rutaCliente.setId_cliente(idCliente);
+            rutaCliente.setOrden(1);
+
+            rutaClienteRepository.save(rutaCliente);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al reasignar cliente a ruta: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void deleteRuta(Long idRuta) {
+        try {
+            // Verifica que la ruta existe
+            if (!rutaRepository.existsById(idRuta)) {
+                throw new RuntimeException("La ruta con ID " + idRuta + " no existe");
+            }
+
+            // Primero eliminar todas las relaciones ruta-cliente
+            List<RutaCliente> rutaClientes = rutaClienteRepository.findByIdRuta(idRuta);
+            if (!rutaClientes.isEmpty()) {
+                rutaClienteRepository.deleteAll(rutaClientes);
+            }
+
+            // Ahora eliminar la ruta
+            rutaRepository.deleteById(idRuta);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al eliminar ruta: " + e.getMessage());
         }
     }
 

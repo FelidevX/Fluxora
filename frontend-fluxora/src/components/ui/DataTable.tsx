@@ -24,6 +24,7 @@ interface TableAction<T> {
   variant: "primary" | "success" | "warning" | "danger";
   onClick: (item: T) => void;
   condition?: (item: T) => boolean;
+  disabled?: (item: T) => boolean; // Agregar esta línea
 }
 
 interface DataTableProps<T> {
@@ -73,8 +74,7 @@ function DataTable<T extends Record<string, any>>({
   const paginationEnabled = pagination?.enabled ?? false;
   const serverSide = pagination?.serverSide ?? false;
   const pageSizeOptions = pagination?.pageSizeOptions ?? [5, 10, 25, 50];
-  const defaultPageSize =
-    pagination?.defaultPageSize ?? pageSizeOptions[0] ?? 5;
+  const defaultPageSize = pagination?.defaultPageSize ?? 5;
 
   const [page, setPage] = useState<number>(pagination?.page ?? 1);
   const [pageSize, setPageSize] = useState<number>(defaultPageSize);
@@ -199,13 +199,22 @@ function DataTable<T extends Record<string, any>>({
                               return null;
                             }
 
+                            const isDisabled = action.disabled
+                              ? action.disabled(item)
+                              : false;
+
                             return (
                               <Button
                                 key={actionIndex}
                                 variant={action.variant}
                                 size="sm"
+                                disabled={isDisabled}
                                 onClick={() => action.onClick(item)}
-                                className="flex items-center gap-1 cursor-pointer"
+                                className={`flex items-center gap-1 ${
+                                  isDisabled
+                                    ? "opacity-30 bg-stone-800 cursor-not-allowed hover:bg-stone-800"
+                                    : "cursor-pointer"
+                                }`}
                               >
                                 <MaterialIcon name={action.icon} />
                                 {action.label}
@@ -292,7 +301,7 @@ function TablePaginator<T extends Record<string, any>>({
           <label className="text-sm text-gray-600">Filas:</label>
           <select
             value={pageSize}
-            onChange={(e) => setPageSize(parseInt(e.target.value, 5))}
+            onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
             className="border border-gray-300 rounded px-2 py-1 text-sm"
           >
             {pageSizeOptions.map((opt) => (

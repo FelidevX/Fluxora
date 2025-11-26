@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -110,6 +111,11 @@ public class RutaController {
         return rutaService.getClientesSinRuta();
     }
 
+    @GetMapping("/clientes-con-ruta")
+    public List<ClienteConRutaDTO> getClientesConRuta() {
+        return rutaService.getClientesConRuta();
+    }
+
     @PostMapping("/asignar-cliente")
     public ResponseEntity<String> asignarClienteARuta(@RequestBody Map<String, Long> request) {
         try {
@@ -120,6 +126,29 @@ public class RutaController {
             return ResponseEntity.ok(("Cliente asignado correctamente a la ruta"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al asignar el cliente" + e.getMessage());
+        }
+    }
+
+    @PostMapping("/reasignar-cliente")
+    public ResponseEntity<String> reasignarClienteARuta(@RequestBody Map<String, Long> request) {
+        try {
+            Long idRuta = request.get("id_ruta");
+            Long idCliente = request.get("id_cliente");
+
+            rutaService.reasignarClienteARuta(idRuta, idCliente);
+            return ResponseEntity.ok("Cliente reasignado correctamente a la ruta");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al reasignar el cliente: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id_ruta}")
+    public ResponseEntity<String> deleteRuta(@PathVariable Long id_ruta) {
+        try {
+            rutaService.deleteRuta(id_ruta);
+            return ResponseEntity.ok("Ruta eliminada correctamente. Los clientes fueron desasignados.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al eliminar la ruta: " + e.getMessage());
         }
     }
 

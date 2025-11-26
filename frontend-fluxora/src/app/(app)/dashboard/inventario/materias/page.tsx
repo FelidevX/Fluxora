@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import GestionMateriasPrimas from "@/components/inventario/materias/GestionMateriasPrimas";
 import RegistrarCompra from "@/components/inventario/compras/RegistrarCompra";
 import VisualizarCompras from "@/components/inventario/compras/VisualizarCompras";
+import Link from "next/dist/client/link";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 
 function MateriasContent() {
   const searchParams = useSearchParams();
@@ -27,14 +29,13 @@ function MateriasContent() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Materias Primas y Compras
-          </h1>
-          <p className="text-gray-600">
-            Gestiona el catálogo de materias primas y registra nuevas compras
-          </p>
-        </div>
+        <Link
+          className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+          href={"/dashboard/inventario"}
+        >
+          <MaterialIcon name="arrow_back" className="mr-1" />
+          <span>Volver al inicio</span>
+        </Link>
       </div>
 
       {/* Tabs */}

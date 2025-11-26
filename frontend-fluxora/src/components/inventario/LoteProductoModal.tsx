@@ -199,7 +199,7 @@ export default function LoteProductoModal({
 
       success("Producción registrada exitosamente", "¡Lote Creado!");
 
-      // Reset formulario
+      // Reset formulario pero mantener receta seleccionada y multiplicador
       setFormulario({
         cantidadProducida: 0,
         stockActual: 0,
@@ -208,19 +208,19 @@ export default function LoteProductoModal({
         fechaProduccion: currentDate || new Date().toISOString().split("T")[0],
         fechaVencimiento: "",
       });
-      setRecetaSeleccionada(null);
-      setMultiplicador(1);
+      // NO resetear recetaSeleccionada ni multiplicador para mantener la configuración
       setShowForm(false);
     } catch (err) {
       console.error("Error al crear lote:", err);
-      
+
       // Determinar el título y mensaje según el error
       let errorTitle = "Error al Crear Lote";
-      let errorMessage = "Error al crear el lote. Por favor, inténtelo de nuevo.";
-      
+      let errorMessage =
+        "Error al crear el lote. Por favor, inténtelo de nuevo.";
+
       if (err instanceof Error) {
         errorMessage = err.message;
-        
+
         // Determinar el título según el contenido del mensaje
         if (errorMessage.toLowerCase().includes("stock insuficiente")) {
           errorTitle = "Stock Insuficiente";
@@ -230,7 +230,7 @@ export default function LoteProductoModal({
           errorTitle = "Recurso No Encontrado";
         }
       }
-      
+
       showError(errorMessage, errorTitle);
     } finally {
       setLoading(false);
@@ -472,7 +472,7 @@ export default function LoteProductoModal({
                       <Input
                         type="number"
                         value={multiplicador}
-                        onChange={(e) =>  
+                        onChange={(e) =>
                           handleMultiplicadorChange(Number(e.target.value))
                         }
                         min="1"

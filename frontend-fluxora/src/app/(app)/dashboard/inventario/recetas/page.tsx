@@ -25,8 +25,15 @@ import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 export default function RecetasManager() {
   const { materias, setOnMateriaCreated } = useMaterias();
-  const { recetas, loading, error, crearReceta, eliminarReceta, actualizarReceta, clearError } =
-    useRecetas();
+  const {
+    recetas,
+    loading,
+    error,
+    crearReceta,
+    eliminarReceta,
+    actualizarReceta,
+    clearError,
+  } = useRecetas();
 
   const reparadorRef = useRef<ReparadorRecetasRef>(null);
 
@@ -65,7 +72,9 @@ export default function RecetasManager() {
     tiempoPreparacion: 0,
     ingredientes: [],
   });
-  const [ingredientesEdicion, setIngredientesEdicion] = useState<RecetaIngredienteDTO[]>([]);
+  const [ingredientesEdicion, setIngredientesEdicion] = useState<
+    RecetaIngredienteDTO[]
+  >([]);
 
   const [formulario, setFormulario] = useState<RecetaMaestraDTO>({
     nombre: "",
@@ -527,20 +536,36 @@ export default function RecetasManager() {
       {/* Reparador de recetas */}
       <ReparadorRecetas ref={reparadorRef} />
 
-      {/* Formulario de nueva receta */}
+      {/* Modal de Crear Receta */}
       {showForm && (
-        <div className="bg-white rounded-lg border border-purple-200 p-6">
-          <div className="flex items-center mb-6">
-            <MaterialIcon
-              name="restaurant_menu"
-              className="w-6 h-6 text-purple-600 mr-2"
-            />
-            <h2 className="text-xl font-semibold text-gray-900">
-              Crear Nueva Receta
-            </h2>
-          </div>
+        <div 
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          onClick={() => setShowForm(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Crear Nueva Receta
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Complete la información de la receta y agregue los ingredientes necesarios
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <MaterialIcon name="close" className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Información básica */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Input
@@ -786,13 +811,26 @@ export default function RecetasManager() {
                 </div>
               )}
             </div>
+            </form>
 
-            <div className="flex justify-end">
-              <Button type="submit" variant="success" disabled={loading}>
-                {loading ? "Creando..." : "Crear Receta"}
-              </Button>
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowForm(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="success"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? "Creando..." : "Crear Receta"}
+                </Button>
+              </div>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
@@ -859,9 +897,15 @@ export default function RecetasManager() {
 
       {/* Modal de Ver Detalle */}
       {showDetalleModal && recetaSeleccionada && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+        <div 
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          onClick={() => setShowDetalleModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -1029,9 +1073,18 @@ export default function RecetasManager() {
 
       {/* Modal de Editar */}
       {showEditModal && recetaAEditar && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+        <div 
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          onClick={() => {
+            setShowEditModal(false);
+            setRecetaAEditar(null);
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -1061,7 +1114,10 @@ export default function RecetasManager() {
                   placeholder="Ej: Pan Francés"
                   value={formularioEdicion.nombre}
                   onChange={(e) =>
-                    setFormularioEdicion({ ...formularioEdicion, nombre: e.target.value })
+                    setFormularioEdicion({
+                      ...formularioEdicion,
+                      nombre: e.target.value,
+                    })
                   }
                   required
                 />
@@ -1074,7 +1130,10 @@ export default function RecetasManager() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                     value={formularioEdicion.categoria}
                     onChange={(e) =>
-                      setFormularioEdicion({ ...formularioEdicion, categoria: e.target.value })
+                      setFormularioEdicion({
+                        ...formularioEdicion,
+                        categoria: e.target.value,
+                      })
                     }
                   >
                     <option value="Panadería">Panadería</option>
@@ -1105,7 +1164,10 @@ export default function RecetasManager() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                     value={formularioEdicion.unidadBase}
                     onChange={(e) =>
-                      setFormularioEdicion({ ...formularioEdicion, unidadBase: e.target.value })
+                      setFormularioEdicion({
+                        ...formularioEdicion,
+                        unidadBase: e.target.value,
+                      })
                     }
                   >
                     <option value="kg">Kilogramos (kg)</option>
@@ -1150,7 +1212,10 @@ export default function RecetasManager() {
                   placeholder="Ej: Pan tradicional francés con corteza crujiente y miga suave"
                   value={formularioEdicion.descripcion}
                   onChange={(e) =>
-                    setFormularioEdicion({ ...formularioEdicion, descripcion: e.target.value })
+                    setFormularioEdicion({
+                      ...formularioEdicion,
+                      descripcion: e.target.value,
+                    })
                   }
                   required
                 />
@@ -1218,8 +1283,8 @@ export default function RecetasManager() {
                               <option value="">Seleccionar...</option>
                               {materiasDisponibles.map((materia) => (
                                 <option key={materia.id} value={materia.id}>
-                                  {materia.nombre} (Disponible: {materia.cantidad}{" "}
-                                  {materia.unidad})
+                                  {materia.nombre} (Disponible:{" "}
+                                  {materia.cantidad} {materia.unidad})
                                 </option>
                               ))}
                             </select>

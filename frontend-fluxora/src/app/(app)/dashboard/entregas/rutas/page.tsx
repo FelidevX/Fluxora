@@ -7,6 +7,8 @@ import { RutasActivas } from "@/components/admin/entregas/rutas/RutasActivas";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { AsignarClientes } from "@/components/admin/entregas/asignar/AsignarClientes";
 import { ProgramacionEntregas } from "@/components/admin/entregas/gestion/ProgramacionEntregas";
+import MaterialIcon from "@/components/ui/MaterialIcon";
+import Link from "next/dist/client/link";
 
 export default function GestionRutasPage() {
   const [rutas, setRutas] = useState<RutaActiva[]>([]);
@@ -59,9 +61,13 @@ export default function GestionRutasPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-black">Rutas</h1>
-      </div>
+      <Link
+        className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+        href={"/dashboard/entregas"}
+      >
+        <MaterialIcon name="arrow_back" className="mr-1" />
+        <span>Volver al inicio</span>
+      </Link>
 
       {/* Tabs */}
       <div className="mb-6">

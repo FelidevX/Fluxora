@@ -17,6 +17,7 @@ import LoteProductoModal from "@/components/inventario/LoteProductoModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModalText";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
+import Link from "next/dist/client/link";
 
 export default function ProductosPage() {
   const {
@@ -33,7 +34,13 @@ export default function ProductosPage() {
   const { recetas, loading: loadingRecetas } = useRecetas();
 
   // Hook para notificaciones toast
-  const { toasts, removeToast, success, error: showError, warning } = useToast();
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+  } = useToast();
 
   const [busqueda, setBusqueda] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -107,7 +114,10 @@ export default function ProductosPage() {
 
     // Validar que se haya seleccionado una receta cuando se crea
     if (!productoEnEdicion && !recetaSeleccionada) {
-      warning("Debe seleccionar una receta para crear el producto", "Receta Requerida");
+      warning(
+        "Debe seleccionar una receta para crear el producto",
+        "Receta Requerida"
+      );
       return;
     }
 
@@ -120,7 +130,10 @@ export default function ProductosPage() {
 
       if (productoEnEdicion) {
         await actualizarProducto(productoEnEdicion.id, productoDTO);
-        success("El producto ha sido actualizado correctamente", "Producto Actualizado");
+        success(
+          "El producto ha sido actualizado correctamente",
+          "Producto Actualizado"
+        );
       } else {
         await crearProducto(productoDTO);
         success(
@@ -134,7 +147,9 @@ export default function ProductosPage() {
     } catch (err) {
       console.error("Error al guardar producto:", err);
       showError(
-        err instanceof Error ? err.message : "Error desconocido al guardar el producto",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al guardar el producto",
         "Error al Guardar Producto"
       );
     }
@@ -162,13 +177,18 @@ export default function ProductosPage() {
 
     try {
       await eliminarProducto(productoAEliminar.id);
-      success("El producto y sus lotes han sido eliminados correctamente", "Producto Eliminado");
+      success(
+        "El producto y sus lotes han sido eliminados correctamente",
+        "Producto Eliminado"
+      );
       setShowDeleteModal(false);
       setProductoAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar producto:", err);
       showError(
-        err instanceof Error ? err.message : "Error desconocido al eliminar el producto",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al eliminar el producto",
         "Error al Eliminar Producto"
       );
       setShowDeleteModal(false);
@@ -296,18 +316,13 @@ export default function ProductosPage() {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Gestión de Productos y Mermas
-          </h1>
-          <p className="text-gray-600">
-            Administre el catálogo de productos, lotes de producción y registro
-            de mermas
-          </p>
-        </div>
-      </div>
+      <Link
+        className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
+        href={"/dashboard/inventario"}
+      >
+        <MaterialIcon name="arrow_back" className="mr-1" />
+        <span>Volver al inicio</span>
+      </Link>
 
       {/* Tabs */}
       <div className="mb-6">
@@ -324,7 +339,6 @@ export default function ProductosPage() {
           >
             Gestión de Productos
           </button>
-    
 
           <button
             className={`px-4 py-2 rounded-r-md border text-sm font-medium focus:outline-none transition-colors ${

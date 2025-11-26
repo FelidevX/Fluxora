@@ -149,7 +149,7 @@ export class PDFExportService {
       },
       columnStyles: {
         0: { cellWidth: 100, fontStyle: "bold" },
-        1: { cellWidth: 80, halign: "right" },
+        1: { cellWidth: 0, halign: "right" },
       },
       margin: { left: 15, right: 15 },
     });
@@ -273,6 +273,8 @@ export class PDFExportService {
     );
 
     // Crear tabla
+    const pageHeight = doc.internal.pageSize.getHeight();
+
     autoTable(doc, {
       startY: yPos,
       head: [headers],
@@ -293,7 +295,7 @@ export class PDFExportService {
       alternateRowStyles: {
         fillColor: [249, 250, 251], // bg-gray-50
       },
-      margin: { left: 15, right: 15 },
+      margin: { left: 15, right: 15, bottom: 25 }, // Margen inferior para el pie de página
       didDrawPage: (data) => {
         // Agregar número de página en cada página
         const pageCount = (doc as any).internal.getNumberOfPages();
@@ -305,7 +307,7 @@ export class PDFExportService {
         doc.text(
           `Página ${currentPage} de ${pageCount}`,
           pageWidth / 2,
-          doc.internal.pageSize.getHeight() - 10,
+          pageHeight - 10,
           { align: "center" }
         );
       },

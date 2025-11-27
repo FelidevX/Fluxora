@@ -332,6 +332,8 @@ const ClientesPage = () => {
                   phone: clienteAEditar.contacto || "",
                   email: clienteAEditar.email || "",
                   address: clienteAEditar.direccion || "",
+                  latitude: clienteAEditar.latitud,
+                  longitude: clienteAEditar.longitud,
                   precioCorriente: clienteAEditar.precioCorriente || 1200,
                   precioEspecial: clienteAEditar.precioEspecial || 1500,
                 }}

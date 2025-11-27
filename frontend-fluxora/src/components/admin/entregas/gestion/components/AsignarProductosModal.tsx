@@ -92,11 +92,15 @@ export function AsignarProductosModal({
       // Seleccionar el lote más antiguo disponible (FIFO - First In, First Out)
       const lotesDisponibles = producto.lotes
         .filter((lote) => lote.stockActual > 0)
-        .sort((a, b) => new Date(a.fechaProduccion).getTime() - new Date(b.fechaProduccion).getTime());
+        .sort(
+          (a, b) =>
+            new Date(a.fechaProduccion).getTime() -
+            new Date(b.fechaProduccion).getTime()
+        );
 
       if (lotesDisponibles.length > 0) {
         const loteSeleccionado = lotesDisponibles[0];
-        
+
         setProductosProgramados([
           ...productosProgramados,
           {
@@ -287,7 +291,8 @@ export function AsignarProductosModal({
                                 </span>
                                 {loteAsignado && (
                                   <span className="text-xs text-gray-500">
-                                    Lote #{loteAsignado.id} - {loteAsignado.stockActual}kg disponible
+                                    Lote #{loteAsignado.id} -{" "}
+                                    {loteAsignado.stockActual}kg disponible
                                   </span>
                                 )}
                               </div>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useMermas } from "@/hooks/useMermas";
@@ -29,6 +31,14 @@ export default function RegistrarMermaModal({
   const { registrarMermaManual, registrarMermaAutomatica, loading } =
     useMermas();
   const { productos, cargarProductos } = useProductos();
+
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+  } = useToast();
 
   const [tipoMerma, setTipoMerma] = useState<"MANUAL" | "AUTOMATICA">("MANUAL");
   const [motivo, setMotivo] = useState("");
@@ -59,7 +69,7 @@ export default function RegistrarMermaModal({
     e.preventDefault();
 
     if (!motivo.trim()) {
-      alert("Debe ingresar un motivo para la merma");
+      warning("Debe ingresar un motivo para la merma");
       return;
     }
 
@@ -69,13 +79,14 @@ export default function RegistrarMermaModal({
         const mermasRegistradas = await registrarMermaAutomatica(motivo);
 
         if (mermasRegistradas.length === 0) {
-          alert("No hay productos con stock para mermar automáticamente");
+          warning("No hay productos con stock para mermar automáticamente");
           return;
         }
 
-        alert(
-          `Merma automática registrada exitosamente.\n${mermasRegistradas.length
-          } producto(s) mermados.\nTotal: ${mermasRegistradas
+        success(
+          `Merma automática registrada: ${
+            mermasRegistradas.length
+          } producto(s), Total: ${mermasRegistradas
             .reduce((sum, m) => sum + m.cantidadMermada, 0)
             .toFixed(1)} kg`
         );
@@ -86,14 +97,14 @@ export default function RegistrarMermaModal({
         );
 
         if (mermasARegistrar.length === 0) {
-          alert("Debe ingresar al menos una cantidad mayor a 0");
+          warning("Debe ingresar al menos una cantidad mayor a 0");
           return;
         }
 
         // Validar que las cantidades no excedan el stock
         for (const pm of mermasARegistrar) {
           if (pm.cantidadAMermar > pm.stockActual) {
-            alert(
+            warning(
               `La cantidad a mermar de "${pm.productoNombre}" (${pm.cantidadAMermar} kg) excede el stock disponible (${pm.stockActual} kg)`
             );
             return;
@@ -110,9 +121,10 @@ export default function RegistrarMermaModal({
           await registrarMermaManual(mermaDTO);
         }
 
-        alert(
-          `Merma manual registrada exitosamente.\n${mermasARegistrar.length
-          } producto(s) mermados.\nTotal: ${mermasARegistrar
+        success(
+          `Merma manual registrada: ${
+            mermasARegistrar.length
+          } producto(s), Total: ${mermasARegistrar
             .reduce((sum, pm) => sum + pm.cantidadAMermar, 0)
             .toFixed(1)} kg`
         );
@@ -125,9 +137,9 @@ export default function RegistrarMermaModal({
       onClose();
     } catch (error) {
       console.error("Error al registrar merma:", error);
-      alert(
-        "Error al registrar la merma: " +
-        (error instanceof Error ? error.message : "Error desconocido")
+      showError(
+        error instanceof Error ? error.message : "Error desconocido",
+        "Error al Registrar Merma"
       );
     }
   };
@@ -415,6 +427,13 @@ export default function RegistrarMermaModal({
           </div>
         </form>
       </div>
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
+      />
     </div>
   );
 }

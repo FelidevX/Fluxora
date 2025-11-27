@@ -349,6 +349,9 @@ export default function DashboardHome() {
             <span className="text-3xl font-semibold text-gray-900">
               {alertasInventario.length}
             </span>
+            <span className="text-xs text-semibold text-gray-500 mr-[150px] mb-1">
+              producto(s)
+            </span>
             {alertasInventario.length > 0 && (
               <span className="text-xs text-rose-600">Requiere atención</span>
             )}

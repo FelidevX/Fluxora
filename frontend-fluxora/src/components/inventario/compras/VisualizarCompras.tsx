@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useCompras } from "@/hooks/useCompras";
 import { CompraMateriaPrimaResponse } from "@/types/inventario";
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/ToastContainer";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Button from "@/components/ui/Button";
 import DataTable from "@/components/ui/DataTable";
@@ -32,6 +34,10 @@ export default function VisualizarCompras() {
   const [showModalPago, setShowModalPago] = useState(false);
   const [compraAPagar, setCompraAPagar] =
     useState<CompraMateriaPrimaResponse | null>(null);
+  const [pagado, setPagado] = useState(false);
+
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError } = useToast();
 
   useEffect(() => {
     cargarCompras();
@@ -52,10 +58,15 @@ export default function VisualizarCompras() {
 
     try {
       await eliminarCompra(compraAEliminar.id);
+      success("Compra eliminada exitosamente", "¡Éxito!");
       setShowDeleteModal(false);
       setCompraAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar la compra:", err);
+      showError(
+        "No se puede eliminar esta compra ya que los lotes ya han sido utilizados.",
+        "Error"
+      );
     } finally {
       setShowDeleteModal(false);
       setCompraAEliminar(null);
@@ -72,15 +83,21 @@ export default function VisualizarCompras() {
     setShowModalPago(true);
   };
 
+  const deshabilitarBotonPago = (compra: CompraMateriaPrimaResponse) => {
+    return compra.estadoPago === "PAGADO";
+  };
+
   const handleConfirmarPago = async () => {
     if (!compraAPagar) return;
 
     try {
       await marcarComoPagado(compraAPagar.id);
+      success("Compra marcada como pagada exitosamente", "¡Éxito!");
       setShowModalPago(false);
       setCompraAPagar(null);
     } catch (error) {
       console.error("Error al marcar como pagado:", error);
+      showError("Error al actualizar el estado de pago", "Error");
     }
   };
 
@@ -182,6 +199,38 @@ export default function VisualizarCompras() {
     },
   ];
 
+  // Exportar compra a PDF
+  const handleExportarPDF = async (compra: CompraMateriaPrimaResponse) => {
+    try {
+      const { CompraPDFService } = await import(
+        "@/services/exportacion/compraPdfService"
+      );
+      await CompraPDFService.exportarCompra(compra);
+      success("PDF generado exitosamente", "¡Éxito!");
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      showError("Error al generar el PDF de la compra", "Error");
+    }
+  };
+
+  // Exportar múltiples compras
+  const handleExportarTodasPDF = async () => {
+    try {
+      if (comprasFiltradas.length === 0) {
+        showError("No hay compras para exportar", "Sin datos");
+        return;
+      }
+      const { CompraPDFService } = await import(
+        "@/services/exportacion/compraPdfService"
+      );
+      await CompraPDFService.exportarVariasCompras(comprasFiltradas);
+      success("PDF generado exitosamente", "¡Éxito!");
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      showError("Error al generar el PDF del reporte", "Error");
+    }
+  };
+
   // Definir acciones de la tabla
   const actions = [
     {
@@ -191,10 +240,21 @@ export default function VisualizarCompras() {
       onClick: (compra: CompraMateriaPrimaResponse) => handleVerDetalle(compra),
     },
     {
+      label: "Exportar PDF",
+      icon: "picture_as_pdf",
+      variant: "secondary" as const,
+      onClick: (compra: CompraMateriaPrimaResponse) =>
+        handleExportarPDF(compra),
+    },
+    {
       label: "Marcar como Pagado",
       icon: "payments",
       variant: "success" as const,
-      onClick: (compra: CompraMateriaPrimaResponse) => handleMarcarPago(compra),
+      onClick: (compra: CompraMateriaPrimaResponse) => {
+        if (compra.estadoPago !== "PAGADO") {
+          handleMarcarPago(compra);
+        }
+      },
       disabled: (compra: CompraMateriaPrimaResponse) =>
         compra.estadoPago === "PAGADO",
     },
@@ -219,36 +279,49 @@ export default function VisualizarCompras() {
           </p>
         </div>
 
-        {/* Filtros rápidos */}
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-3">
+          {/* Botón exportar todas */}
           <Button
-            variant={filtroReciente === null ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(null)}
+            variant="secondary"
+            onClick={handleExportarTodasPDF}
+            disabled={comprasFiltradas.length === 0}
             className="text-sm"
           >
-            Todas
+            <MaterialIcon name="picture_as_pdf" className="mr-2" />
+            Exportar a PDF ({comprasFiltradas.length})
           </Button>
-          <Button
-            variant={filtroReciente === 7 ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(7)}
-            className="text-sm"
-          >
-            7 días
-          </Button>
-          <Button
-            variant={filtroReciente === 30 ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(30)}
-            className="text-sm"
-          >
-            30 días
-          </Button>
-          <Button
-            variant={filtroReciente === 90 ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(90)}
-            className="text-sm"
-          >
-            90 días
-          </Button>
+
+          {/* Filtros rápidos */}
+          <div className="flex gap-2">
+            <Button
+              variant={filtroReciente === null ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(null)}
+              className="text-sm"
+            >
+              Todas
+            </Button>
+            <Button
+              variant={filtroReciente === 7 ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(7)}
+              className="text-sm"
+            >
+              7 días
+            </Button>
+            <Button
+              variant={filtroReciente === 30 ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(30)}
+              className="text-sm"
+            >
+              30 días
+            </Button>
+            <Button
+              variant={filtroReciente === 90 ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(90)}
+              className="text-sm"
+            >
+              90 días
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -449,6 +522,13 @@ export default function VisualizarCompras() {
               <div className="flex gap-3 justify-end">
                 <Button
                   variant="secondary"
+                  onClick={() => handleExportarPDF(compraSeleccionada)}
+                >
+                  <MaterialIcon name="picture_as_pdf" className="mr-2" />
+                  Exportar PDF
+                </Button>
+                <Button
+                  variant="secondary"
                   onClick={() => setShowDetalleModal(false)}
                 >
                   Cerrar
@@ -476,6 +556,13 @@ export default function VisualizarCompras() {
         onConfirm={handleConfirmarPago}
         compra={compraAPagar}
         loading={loading}
+      />
+
+      {/* Contenedor de notificaciones toast */}
+      <ToastContainer
+        toasts={toasts}
+        onClose={removeToast}
+        position="bottom-right"
       />
     </div>
   );

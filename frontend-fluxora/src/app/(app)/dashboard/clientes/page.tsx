@@ -37,8 +37,9 @@ const ClientesPage = () => {
   const [clienteAEliminar, setClienteAEliminar] =
     useState<ClienteResponse | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [clienteAEditar, setClienteAEditar] =
-    useState<ClienteResponse | null>(null);
+  const [clienteAEditar, setClienteAEditar] = useState<ClienteResponse | null>(
+    null
+  );
 
   // Cargar clientes al montar el componente
   useEffect(() => {
@@ -76,10 +77,15 @@ const ClientesPage = () => {
       };
 
       await crearCliente(clientData);
-      success("El cliente ha sido registrado exitosamente", "¡Cliente Registrado!");
+      success(
+        "El cliente ha sido registrado exitosamente",
+        "¡Cliente Registrado!"
+      );
     } catch (err) {
       showError(
-        err instanceof Error ? err.message : "Error desconocido al registrar el cliente",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al registrar el cliente",
         "Error al Registrar Cliente"
       );
     }
@@ -111,12 +117,17 @@ const ClientesPage = () => {
       };
 
       await editarCliente(clienteAEditar.id, clientData);
-      success("El cliente ha sido actualizado exitosamente", "¡Cliente Actualizado!");
+      success(
+        "El cliente ha sido actualizado exitosamente",
+        "¡Cliente Actualizado!"
+      );
       setShowEditModal(false);
       setClienteAEditar(null);
     } catch (err) {
       showError(
-        err instanceof Error ? err.message : "Error desconocido al actualizar el cliente",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al actualizar el cliente",
         "Error al Actualizar Cliente"
       );
     }
@@ -129,13 +140,18 @@ const ClientesPage = () => {
     if (!clienteAEliminar) return;
     try {
       await eliminarCliente(clienteAEliminar.id);
-      success("El cliente ha sido eliminado correctamente", "Cliente Eliminado");
+      success(
+        "El cliente ha sido eliminado correctamente",
+        "Cliente Eliminado"
+      );
       setShowDeleteModal(false);
       setClienteAEliminar(null);
     } catch (err) {
       console.error("Error al eliminar cliente:", err);
       showError(
-        err instanceof Error ? err.message : "Error desconocido al eliminar el cliente",
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al eliminar el cliente",
         "Error al Eliminar Cliente"
       );
       setShowDeleteModal(false);

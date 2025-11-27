@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMermas } from "@/hooks/useMermas";
 import DataTable from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 import { MermaProducto } from "@/types/inventario";
 
 export default function HistorialMermas() {
   const { mermas, loading, error, cargarMermas, clearError } = useMermas();
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     cargarMermas();
@@ -73,20 +75,37 @@ export default function HistorialMermas() {
     },
   ];
 
+  // Filtrar mermas por búsqueda
+  const mermasFiltradas = mermas.filter(
+    (merma) =>
+      merma.productoNombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      merma.motivo.toLowerCase().includes(busqueda.toLowerCase()) ||
+      merma.tipoMerma.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Historial de Mermas</h2>
-        <p className="text-gray-600">Registro completo de productos mermados</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Historial de Mermas
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Registro completo de productos mermados
+          </p>
+        </div>
       </div>
 
-      {/* Alertas */}
+      {/* Mostrar errores */}
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded flex justify-between items-center">
-          <span>{error}</span>
-          <button onClick={clearError} className="text-red-700 font-bold">
-            ✕
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <span className="block sm:inline">{error}</span>
+          <button
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+            onClick={clearError}
+          >
+            <MaterialIcon name="close" className="w-5 h-5" />
           </button>
         </div>
       )}
@@ -130,15 +149,22 @@ export default function HistorialMermas() {
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="bg-white rounded-lg shadow">
-        <DataTable
-          data={mermas}
-          columns={columns}
-          loading={loading}
-          emptyMessage="No hay mermas registradas"
-        />
-      </div>
+      {/* Tabla usando DataTable con búsqueda y paginación */}
+      <DataTable
+        data={mermasFiltradas}
+        columns={columns}
+        loading={loading}
+        searchValue={busqueda}
+        onSearch={setBusqueda}
+        searchPlaceholder="Buscar por producto, motivo o tipo..."
+        emptyMessage="No hay mermas registradas"
+        pagination={{
+          enabled: true,
+          serverSide: false,
+          defaultPageSize: 10,
+          pageSizeOptions: [5, 10, 25, 50],
+        }}
+      />
     </div>
   );
 }

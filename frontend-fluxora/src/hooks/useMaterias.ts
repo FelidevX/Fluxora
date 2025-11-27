@@ -4,6 +4,7 @@ import {
   MateriaPrimaDTO,
   LoteMateriaPrima,
 } from "@/types/inventario";
+import { useToast } from "@/hooks/useToast";
 
 interface UseMateriasResult {
   materias: MateriaPrima[];
@@ -28,6 +29,7 @@ export function useMaterias(): UseMateriasResult {
   const [onMateriaCreated, setOnMateriaCreated] = useState<
     (() => Promise<void>) | null
   >(null);
+  const toast = useToast();
 
   const cargarMaterias = useCallback(async () => {
     try {
@@ -46,9 +48,10 @@ export function useMaterias(): UseMateriasResult {
       setMaterias(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error al cargar materias primas:", err);
-      setError(
-        "No se pudo conectar con el servidor. Verifique que el microservicio esté ejecutándose."
-      );
+      const errorMsg =
+        "No se pudo conectar con el servidor. Verifique que el microservicio esté ejecutándose.";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error al cargar materias primas");
       setMaterias([]);
     } finally {
       setLoading(false);
@@ -86,13 +89,15 @@ export function useMaterias(): UseMateriasResult {
       }
 
       await cargarMaterias();
+      toast.success("Materia prima creada exitosamente", "Éxito");
 
       if (onMateriaCreated) await onMateriaCreated();
     } catch (err) {
       console.error("Error al crear materia prima:", err);
-      setError(
-        err instanceof Error ? err.message : "Error al crear la materia prima"
-      );
+      const errorMsg =
+        err instanceof Error ? err.message : "Error al crear la materia prima";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
     } finally {
       setLoading(false);
     }
@@ -112,9 +117,12 @@ export function useMaterias(): UseMateriasResult {
         throw new Error(`Error al eliminar materia prima: ${response.status}`);
 
       await cargarMaterias();
+      toast.success("Materia prima eliminada exitosamente", "Éxito");
     } catch (err) {
       console.error("Error al eliminar materia prima:", err);
-      setError("Error al eliminar la materia prima");
+      const errorMsg = "Error al eliminar la materia prima";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
     } finally {
       setLoading(false);
     }
@@ -143,9 +151,12 @@ export function useMaterias(): UseMateriasResult {
         );
 
       await cargarMaterias();
+      toast.success("Materia prima actualizada exitosamente", "Éxito");
     } catch (err) {
       console.error("Error al actualizar materia prima:", err);
-      setError("Error al actualizar la materia prima");
+      const errorMsg = "Error al actualizar la materia prima";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
     } finally {
       setLoading(false);
     }
@@ -176,9 +187,12 @@ export function useMaterias(): UseMateriasResult {
         throw new Error(`Error al crear lote: ${response.status}`);
 
       await cargarMaterias();
+      toast.success("Stock actualizado exitosamente", "Éxito");
     } catch (err) {
       console.error("Error al crear lote:", err);
-      setError("Error al crear lote para actualizar stock");
+      const errorMsg = "Error al crear lote para actualizar stock";
+      setError(errorMsg);
+      toast.error(errorMsg, "Error");
     } finally {
       setLoading(false);
     }

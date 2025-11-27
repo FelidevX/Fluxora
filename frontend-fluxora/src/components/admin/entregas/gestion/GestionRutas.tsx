@@ -38,6 +38,16 @@ export function GestionRutas({
     id_driver: "",
   });
 
+  // Hook para notificaciones toast
+  const {
+    toasts,
+    removeToast,
+    success,
+    error: showError,
+    warning,
+    info,
+  } = useToast();
+
   // Estados para asignar driver
   const [showAsignarModal, setShowAsignarModal] = useState(false);
   const [rutaSeleccionada, setRutaSeleccionada] = useState<RutaActiva | null>(
@@ -243,7 +253,7 @@ export function GestionRutas({
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas/${rutaAEliminar.id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/${rutaAEliminar.id}`,
         {
           method: "DELETE",
           headers: {

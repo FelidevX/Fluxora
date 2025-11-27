@@ -120,6 +120,12 @@ export const useReportes = () => {
         ...(filtros.idProducto && {
           idProducto: filtros.idProducto.toString(),
         }),
+        ...(filtros.tipoReporteInventario && {
+          tipoReporte: filtros.tipoReporteInventario,
+        }),
+        ...(filtros.incluirAnalisis !== undefined && {
+          incluirAnalisis: filtros.incluirAnalisis.toString(),
+        }),
       });
 
       const response = await fetch(

@@ -28,3 +28,16 @@ export interface ClienteResponse {
   latitud?: number;
   longitud?: number;
 }
+
+export interface ClienteConRutaDTO {
+  id: number;
+  nombre: string;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+  email: string;
+  precioCorriente: number;
+  precioEspecial: number;
+  rutaId: number;
+  rutaNombre: string;
+}

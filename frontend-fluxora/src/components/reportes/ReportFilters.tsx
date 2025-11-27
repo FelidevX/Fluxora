@@ -17,6 +17,9 @@ export default function ReportFilters({
   const [periodo, setPeriodo] = useState<PeriodoReporte>("diario");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
+  const [tipoReporteInventario, setTipoReporteInventario] =
+    useState("movimientos");
+  const [incluirAnalisis, setIncluirAnalisis] = useState(true);
 
   // Hook para notificaciones
   const { toasts, removeToast, warning } = useToast();
@@ -52,7 +55,10 @@ export default function ReportFilters({
     e?.preventDefault(); // Prevenir recarga de página
 
     if (!tipoSeleccionado) {
-      warning("Por favor selecciona un tipo de reporte", "Tipo de Reporte Requerido");
+      warning(
+        "Por favor selecciona un tipo de reporte",
+        "Tipo de Reporte Requerido"
+      );
       return;
     }
 
@@ -66,6 +72,11 @@ export default function ReportFilters({
       periodo,
       fechaInicio,
       fechaFin,
+      // Opciones específicas para reporte de inventario
+      ...(tipoSeleccionado === "inventario" && {
+        tipoReporteInventario,
+        incluirAnalisis,
+      }),
     };
 
     onGenerar(filtros);
@@ -136,6 +147,43 @@ export default function ReportFilters({
           </div>
         </div>
 
+        {/* Opciones específicas para reporte de inventario */}
+        {tipoSeleccionado === "inventario" && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tipo de Análisis
+              </label>
+              <select
+                value={tipoReporteInventario}
+                onChange={(e) => setTipoReporteInventario(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+              >
+                <option value="movimientos">Todos los movimientos</option>
+                <option value="bajoStock">Productos con bajo stock</option>
+                <option value="sinMovimiento">Productos sin movimiento</option>
+                <option value="altaMerma">Productos con alta merma</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="incluirAnalisis"
+                checked={incluirAnalisis}
+                onChange={(e) => setIncluirAnalisis(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label
+                htmlFor="incluirAnalisis"
+                className="text-sm font-medium text-gray-700"
+              >
+                Incluir análisis avanzado (rotación, mermas, estado del stock)
+              </label>
+            </div>
+          </>
+        )}
+
         {/* Botón generar */}
         <button
           type="button"
@@ -151,7 +199,6 @@ export default function ReportFilters({
           ) : (
             <>
               <span>Generar Reporte</span>
-              <span className="text-xl">📊</span>
             </>
           )}
         </button>

@@ -199,7 +199,7 @@ export default function LoteProductoModal({
 
       success("Producción registrada exitosamente", "¡Lote Creado!");
 
-      // Reset formulario
+      // Reset formulario pero mantener receta seleccionada y multiplicador
       setFormulario({
         cantidadProducida: 0,
         stockActual: 0,
@@ -208,8 +208,7 @@ export default function LoteProductoModal({
         fechaProduccion: currentDate || new Date().toISOString().split("T")[0],
         fechaVencimiento: "",
       });
-      setRecetaSeleccionada(null);
-      setMultiplicador(1);
+      // NO resetear recetaSeleccionada ni multiplicador para mantener la configuración
       setShowForm(false);
     } catch (err) {
       console.error("Error al crear lote:", err);

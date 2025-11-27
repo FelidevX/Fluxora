@@ -1,5 +1,6 @@
 package com.microservice.entrega.controller;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +54,46 @@ public class RutaController {
         result.put("origen", origenInfo);
 
         return result;
+    }
+
+    @GetMapping("/optimized-ortools/{id_ruta}/{fecha}")
+    public Map<String, Object> getOptimizedRouteORToolsForDate(
+            @PathVariable Long id_ruta, 
+            @PathVariable String fecha) {
+        try {
+            java.time.LocalDate fechaLocal = java.time.LocalDate.parse(fecha);
+            
+            // Obtener solo los clientes con programación de entregas para la fecha
+            List<ClienteDTO> clientesConProgramacion = rutaService.getClientesConProgramacion(id_ruta, fechaLocal);
+            
+            if (clientesConProgramacion.isEmpty()) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("orderedClients", new ArrayList<>());
+                result.put("osrmRoute", null);
+                result.put("message", "No hay entregas programadas para esta fecha");
+                return result;
+            }
+            
+            // Optimizar la ruta solo con esos clientes
+            List<ClienteDTO> orderedClients = rutaService.getOptimizedRouteORTools(id_ruta, clientesConProgramacion);
+            Ruta origen = rutaService.getOrigenRuta(id_ruta);
+            String osrmRoute = rutaService.getOsrmRoute(orderedClients, origen);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("orderedClients", orderedClients);
+            result.put("osrmRoute", osrmRoute);
+
+            Map<String, Object> origenInfo = new HashMap<>();
+            origenInfo.put("latitud", origen.getLatitud());
+            origenInfo.put("longitud", origen.getLongitud());
+            result.put("origen", origenInfo);
+
+            return result;
+        } catch (Exception e) {
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("error", "Error al optimizar la ruta: " + e.getMessage());
+            return errorResult;
+        }
     }
 
     @GetMapping("/test-optimization")
@@ -192,6 +233,28 @@ public class RutaController {
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al finalizar la ruta: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/cliente/{idCliente}/ruta")
+    public ResponseEntity<Map<String, Object>> getNombreRutaPorCliente(@PathVariable Long idCliente) {
+        try {
+            String nombreRuta = rutaService.getNombreRutaPorCliente(idCliente);
+            Map<String, Object> response = new HashMap<>();
+            
+            if (nombreRuta != null) {
+                response.put("nombreRuta", nombreRuta);
+                response.put("tieneRuta", true);
+            } else {
+                response.put("nombreRuta", "Sin ruta asignada");
+                response.put("tieneRuta", false);
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al obtener ruta del cliente: " + e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }

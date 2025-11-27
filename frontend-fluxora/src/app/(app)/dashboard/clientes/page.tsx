@@ -25,14 +25,7 @@ const ClientesPage = () => {
   } = useClientes();
 
   // Hook para notificaciones toast
-  const {
-    toasts,
-    removeToast,
-    success,
-    error: showError,
-    warning,
-    info,
-  } = useToast();
+  const { toasts, removeToast, success, error: showError, warning, info } = useToast();
 
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
@@ -138,8 +131,7 @@ const ClientesPage = () => {
         "Error al Actualizar Cliente"
       );
     }
-  };
-  const handleDelete = (cliente: ClienteResponse) => {
+  }; const handleDelete = (cliente: ClienteResponse) => {
     setClienteAEliminar(cliente);
     setShowDeleteModal(true);
   };
@@ -211,11 +203,6 @@ const ClientesPage = () => {
               />
             </svg>
           </button>
-
-          <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-            <MaterialIcon name="file_export" className="text-white mr-1" />{" "}
-            Exportar a Excel
-          </button>
         </div>
       </div>
 
@@ -272,19 +259,21 @@ const ClientesPage = () => {
               ),
             },
             {
-              key: "ultimaEntrega",
-              label: "Última entrega",
+              key: "precioCorriente",
+              label: "Precio Corriente",
               render: (c: ClienteResponse) => (
-                <span className="text-sm text-gray-800">{c.ultimaEntrega}</span>
+                <span className="text-sm font-semibold text-gray-700">
+                  ${c.precioCorriente?.toFixed(2) || "0.00"}
+                </span>
               ),
             },
             {
-              key: "estado",
-              label: "Estado",
+              key: "precioEspecial",
+              label: "Precio Especial",
               render: (c: ClienteResponse) => (
-                <Badge variant={c.estado === "activo" ? "success" : "warning"}>
-                  {c.estado === "activo" ? "Activo" : "Inactivo"}
-                </Badge>
+                <span className="text-sm font-semibold text-gray-700">
+                  ${c.precioEspecial?.toFixed(2) || "0.00"}
+                </span>
               ),
             },
           ]}
@@ -323,8 +312,17 @@ const ClientesPage = () => {
 
       {/* Modal de edición de cliente */}
       {showEditModal && clienteAEditar && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4"
+          onClick={() => {
+            setShowEditModal(false);
+            setClienteAEditar(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-900">
                 Editar Cliente
@@ -350,6 +348,8 @@ const ClientesPage = () => {
                   phone: clienteAEditar.contacto || "",
                   email: clienteAEditar.email || "",
                   address: clienteAEditar.direccion || "",
+                  latitude: clienteAEditar.latitud,
+                  longitude: clienteAEditar.longitud,
                   precioCorriente: clienteAEditar.precioCorriente || 1200,
                   precioEspecial: clienteAEditar.precioEspecial || 1500,
                 }}

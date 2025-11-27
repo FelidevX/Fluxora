@@ -23,6 +23,9 @@ export function GestionRutas({
   onRefresh,
   onVerDetalle,
 }: GestionRutasProps) {
+  // Hook para notificaciones toast
+  const { toasts, removeToast, success, error: showError, warning } = useToast();
+
   // Estados para el modal de creación
   const [showCrearModal, setShowCrearModal] = useState(false);
   const [loadingCreate, setLoadingCreate] = useState(false);
@@ -107,7 +110,7 @@ export function GestionRutas({
     id_driver: string;
   }) => {
     if (!rutaData.nombre.trim()) {
-      warning("El nombre de la ruta es obligatorio", "Validación");
+      warning("El nombre de la ruta es obligatorio", "Campo Requerido");
       return;
     }
 
@@ -166,7 +169,7 @@ export function GestionRutas({
     } catch (error) {
       console.error("Error al crear ruta:", error);
       showError(
-        error instanceof Error ? error.message : "Error desconocido",
+        error instanceof Error ? error.message : "Error desconocido al crear la ruta",
         "Error al Crear Ruta"
       );
     } finally {
@@ -211,10 +214,7 @@ export function GestionRutas({
       );
 
       if (response.ok) {
-        success(
-          "El driver ha sido asignado correctamente a la ruta",
-          "¡Driver Asignado!"
-        );
+        success("El driver ha sido asignado exitosamente a la ruta", "¡Driver Asignado!");
         setShowAsignarModal(false);
         setRutaSeleccionada(null);
         setDriverId("");
@@ -225,7 +225,7 @@ export function GestionRutas({
     } catch (error) {
       console.error("Error al asignar driver:", error);
       showError(
-        error instanceof Error ? error.message : "Error desconocido",
+        error instanceof Error ? error.message : "Error desconocido al asignar el driver",
         "Error al Asignar Driver"
       );
     }
@@ -264,7 +264,7 @@ export function GestionRutas({
       );
 
       if (response.ok) {
-        success("La ruta ha sido eliminada exitosamente", "¡Ruta Eliminada!");
+        success("La ruta ha sido eliminada correctamente", "Ruta Eliminada");
         setShowDeleteModal(false);
         setRutaAEliminar(null);
         onRefresh();
@@ -274,7 +274,7 @@ export function GestionRutas({
     } catch (error) {
       console.error("Error al eliminar ruta:", error);
       showError(
-        error instanceof Error ? error.message : "Error desconocido",
+        error instanceof Error ? error.message : "Error desconocido al eliminar la ruta",
         "Error al Eliminar Ruta"
       );
     } finally {

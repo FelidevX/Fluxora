@@ -432,4 +432,62 @@ public class RutaService {
             throw new RuntimeException("Error al finalizar la ruta: " + e.getMessage());
         }
     }
+
+    /**
+     * Obtiene el nombre de la ruta asociada a un cliente específico
+     * @param idCliente ID del cliente
+     * @return Nombre de la ruta o null si el cliente no tiene ruta asignada
+     */
+    public String getNombreRutaPorCliente(Long idCliente) {
+        try {
+            // Buscar todas las relaciones del cliente con rutas
+            List<Long> clientesAsignados = rutaClienteRepository.findAllClienteIds();
+            
+            if (!clientesAsignados.contains(idCliente)) {
+                return null; // Cliente sin ruta asignada
+            }
+
+            // Obtener todas las relaciones RutaCliente y buscar la del cliente
+            List<RutaCliente> todasRelaciones = rutaClienteRepository.findAll();
+            Optional<Long> idRuta = todasRelaciones.stream()
+                    .filter(rc -> rc.getId_cliente().equals(idCliente))
+                    .map(RutaCliente::getId_ruta)
+                    .findFirst();
+
+            if (idRuta.isEmpty()) {
+                return null;
+            }
+
+            // Obtener el nombre de la ruta
+            Optional<Ruta> ruta = rutaRepository.findById(idRuta.get());
+            return ruta.map(Ruta::getNombre).orElse(null);
+
+        } catch (Exception e) {
+            System.err.println("Error al obtener nombre de ruta para cliente " + idCliente + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<ClienteDTO> getClientesConProgramacion(Long id_ruta, LocalDate fecha) {
+        try {
+            // Obtener todas las programaciones de entregas para la ruta y fecha
+            List<ProgramacionEntrega> programaciones = programacionEntregaRepository
+                    .findByIdRutaAndFechaProgramada(id_ruta, fecha);
+            
+            // Extraer IDs únicos de clientes con programación
+            List<Long> idClientes = programaciones.stream()
+                    .map(ProgramacionEntrega::getId_cliente)
+                    .distinct()
+                    .collect(Collectors.toList());
+            
+            // Obtener información completa de los clientes
+            if (idClientes.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            return clienteServiceClient.getClientesByIds(idClientes);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener clientes con programación: " + e.getMessage());
+        }
+    }
 }

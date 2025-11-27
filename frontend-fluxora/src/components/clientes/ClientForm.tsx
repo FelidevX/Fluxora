@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import AddressAutocomplete from "../ui/AddressAutoComplete";
+import AddressSearchInput from "@/components/ui/AddressSearchInput";
+import { AddressResult } from "@/hooks/useAddressSearch";
 import Badge from "@/components/ui/Badge";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useToast } from "@/hooks/useToast";
@@ -56,7 +57,6 @@ const ClientForm: React.FC<ClientFormProps> = ({
     precioEspecial: initialData.precioEspecial || 1500,
   });
 
-  const [showMap, setShowMap] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -88,6 +88,15 @@ const ClientForm: React.FC<ClientFormProps> = ({
       latitude: lat,
       longitude: lng,
       address: address || prev.address,
+    }));
+  };
+
+  const handleAddressSelect = (result: AddressResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: result.display_name,
+      latitude: parseFloat(result.lat),
+      longitude: parseFloat(result.lon),
     }));
   };
 
@@ -291,60 +300,44 @@ const ClientForm: React.FC<ClientFormProps> = ({
 
         {/* Right: dirección y mapa */}
         <div className="space-y-4">
-          <label
-            htmlFor="address"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Dirección
-          </label>
-          <div className="space-y-3">
-            <AddressAutocomplete
-              value={formData.address}
-              onChange={handleAddressChange}
-              onLocationSelect={handleLocationSelect}
-              placeholder="Ej: Av. Argentina 203, Chillán"
-            />
+          <AddressSearchInput
+            value={formData.address}
+            onChange={handleAddressChange}
+            onSelectAddress={handleAddressSelect}
+            placeholder="Buscar dirección... Ej: Av. Argentina 203, Chillán"
+            label="Dirección"
+            required
+          />
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowMap((s) => !s)}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {showMap ? "Ocultar mapa" : "Seleccionar en mapa"}
-              </button>
-              <button
-                type="button"
-                onClick={getCurrentLocation}
-                disabled={isGeolocating}
-                className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
-              >
-                {isGeolocating ? "Obteniendo..." : "Mi ubicación"}
-              </button>
+          <div className="space-y-3 mt-3">
+
+            <button
+              type="button"
+              onClick={getCurrentLocation}
+              disabled={isGeolocating}
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 font-medium"
+            >
+              <MaterialIcon name={isGeolocating ? "refresh" : "my_location"} className={isGeolocating ? "animate-spin" : ""} />
+              <span>{isGeolocating ? "Obteniendo ubicación..." : "Obtener mi ubicación actual"}</span>
+            </button>
+
+            <div className="border border-gray-300 rounded-md overflow-hidden h-64">
+              <MapSelector
+                onLocationSelect={handleLocationSelect}
+                initialPosition={
+                  formData.latitude && formData.longitude
+                    ? [formData.latitude, formData.longitude]
+                    : undefined
+                }
+              />
             </div>
 
-            {formData.latitude && formData.longitude && (
-              <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded flex items-center gap-2">
-                <MaterialIcon name="location_on" className="text-green-600" />
-                <span>
-                  Coordenadas: {formData.latitude.toFixed(6)},{" "}
-                  {formData.longitude.toFixed(6)}
-                </span>
-              </div>
-            )}
-
-            {showMap && (
-              <div className="border border-gray-300 rounded-md overflow-hidden h-64">
-                <MapSelector
-                  onLocationSelect={handleLocationSelect}
-                  initialPosition={
-                    formData.latitude && formData.longitude
-                      ? [formData.latitude, formData.longitude]
-                      : undefined
-                  }
-                />
-              </div>
-            )}
+            <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded-lg flex items-start gap-2 border border-blue-200">
+              <MaterialIcon name="info" className="text-blue-600 flex-shrink-0 mt-0.5" />
+              <span className="leading-relaxed">
+                Selecciona en el mapa la ubicación exacta del cliente
+              </span>
+            </div>
           </div>
         </div>
 

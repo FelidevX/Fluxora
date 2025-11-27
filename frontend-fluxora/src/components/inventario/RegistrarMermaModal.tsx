@@ -160,8 +160,14 @@ export default function RegistrarMermaModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="sticky top-0 border-b px-6 py-4 flex justify-between items-center bg-red-50 z-10">
           <div className="flex items-center gap-2">
@@ -191,27 +197,24 @@ export default function RegistrarMermaModal({
                 <button
                   type="button"
                   onClick={() => setTipoMerma("MANUAL")}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    tipoMerma === "MANUAL"
+                  className={`p-4 border-2 rounded-lg transition-all ${tipoMerma === "MANUAL"
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-blue-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex flex-col items-center gap-2">
                     <MaterialIcon
                       name="edit"
-                      className={`text-3xl ${
-                        tipoMerma === "MANUAL"
+                      className={`text-3xl ${tipoMerma === "MANUAL"
                           ? "text-blue-600"
                           : "text-gray-400"
-                      }`}
+                        }`}
                     />
                     <span
-                      className={`font-medium ${
-                        tipoMerma === "MANUAL"
+                      className={`font-medium ${tipoMerma === "MANUAL"
                           ? "text-blue-900"
                           : "text-gray-600"
-                      }`}
+                        }`}
                     >
                       Manual
                     </span>
@@ -224,27 +227,24 @@ export default function RegistrarMermaModal({
                 <button
                   type="button"
                   onClick={() => setTipoMerma("AUTOMATICA")}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    tipoMerma === "AUTOMATICA"
+                  className={`p-4 border-2 rounded-lg transition-all ${tipoMerma === "AUTOMATICA"
                       ? "border-purple-500 bg-purple-50"
                       : "border-gray-200 hover:border-purple-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex flex-col items-center gap-2">
                     <MaterialIcon
                       name="auto_fix_high"
-                      className={`text-3xl ${
-                        tipoMerma === "AUTOMATICA"
+                      className={`text-3xl ${tipoMerma === "AUTOMATICA"
                           ? "text-purple-600"
                           : "text-gray-400"
-                      }`}
+                        }`}
                     />
                     <span
-                      className={`font-medium ${
-                        tipoMerma === "AUTOMATICA"
+                      className={`font-medium ${tipoMerma === "AUTOMATICA"
                           ? "text-purple-900"
                           : "text-gray-600"
-                      }`}
+                        }`}
                     >
                       Automática
                     </span>

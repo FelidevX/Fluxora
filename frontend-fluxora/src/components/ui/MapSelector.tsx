@@ -7,9 +7,9 @@ import 'leaflet/dist/leaflet.css';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
 interface MapSelectorProps {
@@ -17,7 +17,7 @@ interface MapSelectorProps {
     initialPosition?: [number, number];
 }
 
-//Componente para manejar clicks en el mmapa
+//Componente para manejar clicks en el mapa
 function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number, address?: string) => void }) {
     const [position, setPosition] = useState<[number, number] | null>(null);
 
@@ -28,15 +28,15 @@ function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, 
             onLocationSelect(lat, lng);
 
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.display_name) {
-                    onLocationSelect(lat, lng, data.display_name);
-                }
-            })
-            .catch(error => {
-                console.error('Error al obtener la dirección:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        onLocationSelect(lat, lng, data.display_name);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener la dirección:', error);
+                });
         },
     });
 
@@ -49,7 +49,7 @@ const MapSelector: React.FC<MapSelectorProps> = ({
     onLocationSelect,
     initialPosition
 }) => {
-    const [center, setCenter] = useState <[number, number]>(
+    const [center, setCenter] = useState<[number, number]>(
         initialPosition || [-36.60664, -72.10344] // Chillán, Chile
     );
 
@@ -60,7 +60,7 @@ const MapSelector: React.FC<MapSelectorProps> = ({
     }, [initialPosition]);
 
     return (
-        <div className='h-64 w-full'>
+        <div className='h-full w-full'>
             <MapContainer
                 center={center}
                 zoom={13}
@@ -76,10 +76,6 @@ const MapSelector: React.FC<MapSelectorProps> = ({
 
                 <LocationMarker onLocationSelect={onLocationSelect} />
             </MapContainer>
-
-            <div className='text-xs text-gray-500 mt-2 p-2 bg-gray-50'>
-                💡 Haz clic en el mapa para seleccionar una ubicación
-            </div>
         </div>
     );
 };

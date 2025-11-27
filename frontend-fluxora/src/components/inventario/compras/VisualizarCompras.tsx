@@ -188,11 +188,10 @@ export default function VisualizarCompras() {
       label: "Estado Pago",
       render: (compra: CompraMateriaPrimaResponse) => (
         <span
-          className={`text-xs px-2 py-1 rounded-full font-medium ${
-            compra.estadoPago === "PAGADO"
-              ? "bg-green-100 text-green-700"
-              : "bg-orange-100 text-orange-700"
-          }`}
+          className={`text-xs px-2 py-1 rounded-full font-medium ${compra.estadoPago === "PAGADO"
+            ? "bg-green-100 text-green-700"
+            : "bg-orange-100 text-orange-700"
+            }`}
         >
           {compra.estadoPago}
         </span>
@@ -359,8 +358,14 @@ export default function VisualizarCompras() {
 
       {/* Modal de Detalle */}
       {showDetalleModal && compraSeleccionada && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          onClick={() => setShowDetalleModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
               <div className="flex items-start justify-between">
                 <div>
@@ -477,12 +482,11 @@ export default function VisualizarCompras() {
                           </td>
                           <td className="px-4 py-3">
                             <span
-                              className={`font-medium ${
-                                (lote.stockActual ?? lote.cantidad) <
+                              className={`font-medium ${(lote.stockActual ?? lote.cantidad) <
                                 lote.cantidad
-                                  ? "text-orange-600"
-                                  : "text-green-600"
-                              }`}
+                                ? "text-orange-600"
+                                : "text-green-600"
+                                }`}
                             >
                               {lote.stockActual ?? lote.cantidad}
                             </span>
@@ -502,8 +506,8 @@ export default function VisualizarCompras() {
                           <td className="px-4 py-3 text-gray-900">
                             {lote.fechaVencimiento
                               ? new Date(
-                                  lote.fechaVencimiento
-                                ).toLocaleDateString("es-CL")
+                                lote.fechaVencimiento
+                              ).toLocaleDateString("es-CL")
                               : "-"}
                           </td>
                         </tr>

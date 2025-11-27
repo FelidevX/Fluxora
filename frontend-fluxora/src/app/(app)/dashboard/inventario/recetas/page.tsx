@@ -22,6 +22,7 @@ import ReparadorRecetas, {
 import Modal from "@/components/ui/Modal";
 import Link from "next/link";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import { RecetaPDFService } from "@/services/exportacion/recetaPdfService";
 
 export default function RecetasManager() {
   const { materias, setOnMateriaCreated } = useMaterias();
@@ -433,6 +434,34 @@ export default function RecetasManager() {
     },
   ];
 
+  // Función para exportar receta a PDF
+  const handleExportarPDF = async (receta: RecetaMaestra) => {
+    try {
+      await RecetaPDFService.exportarReceta(receta);
+      success(`PDF de "${receta.nombre}" generado correctamente`);
+    } catch (error) {
+      console.error("Error al exportar receta:", error);
+      showError("Error al generar el PDF de la receta");
+    }
+  };
+
+  // Función para exportar todas las recetas filtradas
+  const handleExportarTodasPDF = async () => {
+    try {
+      if (recetasFiltradas.length === 0) {
+        showError("No hay recetas para exportar");
+        return;
+      }
+      await RecetaPDFService.exportarCatalogoRecetas(recetasFiltradas);
+      success(
+        `Catálogo con ${recetasFiltradas.length} receta(s) generado correctamente`
+      );
+    } catch (error) {
+      console.error("Error al exportar catálogo:", error);
+      showError("Error al generar el catálogo de recetas");
+    }
+  };
+
   // Definir acciones de la tabla
   const actions = [
     {
@@ -440,6 +469,12 @@ export default function RecetasManager() {
       icon: "visibility",
       variant: "primary" as const,
       onClick: (receta: RecetaMaestra) => handleVerDetalle(receta),
+    },
+    {
+      label: "Exportar PDF",
+      icon: "picture_as_pdf",
+      variant: "success" as const,
+      onClick: (receta: RecetaMaestra) => handleExportarPDF(receta),
     },
     {
       label: "Editar",
@@ -504,8 +539,13 @@ export default function RecetasManager() {
           >
             {showForm ? "Cancelar" : "Crear Receta"}
           </Button>
-          <Button variant="secondary" icon="download">
-            Exportar
+          <Button
+            variant="secondary"
+            icon="picture_as_pdf"
+            onClick={handleExportarTodasPDF}
+            disabled={recetasFiltradas.length === 0}
+          >
+            Exportar a PDF ({recetasFiltradas.length})
           </Button>
           <Button
             variant="warning"
@@ -1066,6 +1106,13 @@ export default function RecetasManager() {
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  icon="picture_as_pdf"
+                  onClick={() => handleExportarPDF(recetaSeleccionada)}
+                >
+                  Exportar PDF
+                </Button>
                 <Button
                   variant="secondary"
                   onClick={() => setShowDetalleModal(false)}

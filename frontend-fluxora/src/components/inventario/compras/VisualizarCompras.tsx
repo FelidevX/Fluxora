@@ -200,6 +200,38 @@ export default function VisualizarCompras() {
     },
   ];
 
+  // Exportar compra a PDF
+  const handleExportarPDF = async (compra: CompraMateriaPrimaResponse) => {
+    try {
+      const { CompraPDFService } = await import(
+        "@/services/exportacion/compraPdfService"
+      );
+      await CompraPDFService.exportarCompra(compra);
+      success("PDF generado exitosamente", "¡Éxito!");
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      showError("Error al generar el PDF de la compra", "Error");
+    }
+  };
+
+  // Exportar múltiples compras
+  const handleExportarTodasPDF = async () => {
+    try {
+      if (comprasFiltradas.length === 0) {
+        showError("No hay compras para exportar", "Sin datos");
+        return;
+      }
+      const { CompraPDFService } = await import(
+        "@/services/exportacion/compraPdfService"
+      );
+      await CompraPDFService.exportarVariasCompras(comprasFiltradas);
+      success("PDF generado exitosamente", "¡Éxito!");
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      showError("Error al generar el PDF del reporte", "Error");
+    }
+  };
+
   // Definir acciones de la tabla
   const actions = [
     {
@@ -207,6 +239,13 @@ export default function VisualizarCompras() {
       icon: "visibility",
       variant: "primary" as const,
       onClick: (compra: CompraMateriaPrimaResponse) => handleVerDetalle(compra),
+    },
+    {
+      label: "Exportar PDF",
+      icon: "picture_as_pdf",
+      variant: "secondary" as const,
+      onClick: (compra: CompraMateriaPrimaResponse) =>
+        handleExportarPDF(compra),
     },
     {
       label: "Marcar como Pagado",
@@ -241,36 +280,49 @@ export default function VisualizarCompras() {
           </p>
         </div>
 
-        {/* Filtros rápidos */}
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-3">
+          {/* Botón exportar todas */}
           <Button
-            variant={filtroReciente === null ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(null)}
+            variant="secondary"
+            onClick={handleExportarTodasPDF}
+            disabled={comprasFiltradas.length === 0}
             className="text-sm"
           >
-            Todas
+            <MaterialIcon name="picture_as_pdf" className="mr-2" />
+            Exportar a PDF ({comprasFiltradas.length})
           </Button>
-          <Button
-            variant={filtroReciente === 7 ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(7)}
-            className="text-sm"
-          >
-            7 días
-          </Button>
-          <Button
-            variant={filtroReciente === 30 ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(30)}
-            className="text-sm"
-          >
-            30 días
-          </Button>
-          <Button
-            variant={filtroReciente === 90 ? "primary" : "secondary"}
-            onClick={() => handleFiltrarRecientes(90)}
-            className="text-sm"
-          >
-            90 días
-          </Button>
+
+          {/* Filtros rápidos */}
+          <div className="flex gap-2">
+            <Button
+              variant={filtroReciente === null ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(null)}
+              className="text-sm"
+            >
+              Todas
+            </Button>
+            <Button
+              variant={filtroReciente === 7 ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(7)}
+              className="text-sm"
+            >
+              7 días
+            </Button>
+            <Button
+              variant={filtroReciente === 30 ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(30)}
+              className="text-sm"
+            >
+              30 días
+            </Button>
+            <Button
+              variant={filtroReciente === 90 ? "primary" : "secondary"}
+              onClick={() => handleFiltrarRecientes(90)}
+              className="text-sm"
+            >
+              90 días
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -464,6 +516,13 @@ export default function VisualizarCompras() {
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => handleExportarPDF(compraSeleccionada)}
+                >
+                  <MaterialIcon name="picture_as_pdf" className="mr-2" />
+                  Exportar PDF
+                </Button>
                 <Button
                   variant="secondary"
                   onClick={() => setShowDetalleModal(false)}

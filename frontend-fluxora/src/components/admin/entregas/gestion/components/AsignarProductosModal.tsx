@@ -89,17 +89,23 @@ export function AsignarProductosModal({
 
   const handleSeleccionarProducto = (producto: ProductoConLotes) => {
     if (producto.lotes.length > 0) {
-      // Buscar el primer lote que no esté ya asignado
-      const loteDisponible = producto.lotes.find(
-        (lote) => !productosProgramados.some((pp) => pp.id_lote === lote.id)
-      );
+      // Seleccionar el lote más antiguo disponible (FIFO - First In, First Out)
+      const lotesDisponibles = producto.lotes
+        .filter((lote) => lote.stockActual > 0)
+        .sort(
+          (a, b) =>
+            new Date(a.fechaProduccion).getTime() -
+            new Date(b.fechaProduccion).getTime()
+        );
 
-      if (loteDisponible) {
+      if (lotesDisponibles.length > 0) {
+        const loteSeleccionado = lotesDisponibles[0];
+
         setProductosProgramados([
           ...productosProgramados,
           {
             id_producto: producto.id,
-            id_lote: loteDisponible.id,
+            id_lote: loteSeleccionado.id,
             nombreProducto: producto.nombre,
             categoria: producto.categoria,
             tipoProducto: producto.tipoProducto,
@@ -120,11 +126,8 @@ export function AsignarProductosModal({
   };
 
   const handleLoteChange = (idProducto: number, nuevoIdLote: number) => {
-    setProductosProgramados(
-      productosProgramados.map((p) =>
-        p.id_producto === idProducto ? { ...p, id_lote: nuevoIdLote } : p
-      )
-    );
+    // Función deshabilitada - el lote se asigna automáticamente
+    return;
   };
 
   const handleEliminarProducto = (idProducto: number) => {
@@ -273,20 +276,31 @@ export function AsignarProductosModal({
                         const producto = productosConLotes.find(
                           (p) => p.id === prod.id_producto
                         );
+                        const loteAsignado = producto?.lotes.find(
+                          (l) => l.id === prod.id_lote
+                        );
                         return (
                           <div
                             key={prod.id_producto}
                             className="p-3 hover:bg-gray-50"
                           >
                             <div className="flex justify-between items-start mb-2">
-                              <span className="text-sm font-medium text-gray-900">
-                                {prod.nombreProducto}
-                              </span>
+                              <div className="flex-1">
+                                <span className="text-sm font-medium text-gray-900 block">
+                                  {prod.nombreProducto}
+                                </span>
+                                {loteAsignado && (
+                                  <span className="text-xs text-gray-500">
+                                    Lote #{loteAsignado.id} -{" "}
+                                    {loteAsignado.stockActual}kg disponible
+                                  </span>
+                                )}
+                              </div>
                               <button
                                 onClick={() =>
                                   handleEliminarProducto(prod.id_producto)
                                 }
-                                className="text-red-600 hover:text-red-700"
+                                className="text-red-600 hover:text-red-700 ml-2"
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -304,43 +318,11 @@ export function AsignarProductosModal({
                               </button>
                             </div>
 
-                            {/* Selector de lote */}
-                            <select
-                              value={prod.id_lote}
-                              onChange={(e) =>
-                                handleLoteChange(
-                                  prod.id_producto,
-                                  Number(e.target.value)
-                                )
-                              }
-                              className="w-full px-2 py-1 text-xs text-black border border-gray-300 rounded mb-2"
-                            >
-                              {producto?.lotes
-                                .filter(
-                                  (lote) =>
-                                    // Mostrar solo el lote actual o lotes no asignados a otros productos
-                                    lote.id === prod.id_lote ||
-                                    !productosProgramados.some(
-                                      (pp) => pp.id_lote === lote.id
-                                    )
-                                )
-                                .map((lote) => (
-                                  <option key={lote.id} value={lote.id}>
-                                    Lote #{lote.id} - {lote.stockActual}kg
-                                    disponible
-                                  </option>
-                                ))}
-                            </select>
-
                             {/* Input de cantidad */}
                             <input
                               type="number"
                               min="0"
-                              max={
-                                producto?.lotes.find(
-                                  (l) => l.id === prod.id_lote
-                                )?.stockActual || 0
-                              }
+                              max={loteAsignado?.stockActual || 0}
                               step="1"
                               value={prod.cantidad_kg || ""}
                               onChange={(e) =>

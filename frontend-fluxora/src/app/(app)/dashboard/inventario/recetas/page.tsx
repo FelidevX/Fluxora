@@ -473,7 +473,7 @@ export default function RecetasManager() {
     {
       label: "Exportar PDF",
       icon: "picture_as_pdf",
-      variant: "success" as const,
+      variant: "secondary" as const,
       onClick: (receta: RecetaMaestra) => handleExportarPDF(receta),
     },
     {

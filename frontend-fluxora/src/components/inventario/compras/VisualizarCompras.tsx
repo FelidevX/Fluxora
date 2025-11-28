@@ -285,7 +285,7 @@ export default function VisualizarCompras() {
             variant="secondary"
             onClick={handleExportarTodasPDF}
             disabled={comprasFiltradas.length === 0}
-            className="text-sm"
+            className="text-sm cursor-pointer"
           >
             <MaterialIcon name="picture_as_pdf" className="mr-2" />
             Exportar a PDF ({comprasFiltradas.length})

@@ -18,124 +18,116 @@ export class RecetaPDFService {
     const margin = 15;
 
     // Colores corporativos
-    const primaryColor: [number, number, number] = [139, 92, 246]; // Purple-500
-    const secondaryColor: [number, number, number] = [243, 232, 255]; // Purple-100
+    const primaryColor: [number, number, number] = [37, 99, 235]; // Blue-600
+    const secondaryColor: [number, number, number] = [243, 244, 246]; // Gray-100
     const textDark: [number, number, number] = [31, 41, 55]; // Gray-800
 
     // ==================== ENCABEZADO ====================
     // Fondo del encabezado
     doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, pageWidth, 50, "F");
+    doc.rect(0, 0, pageWidth, 40, "F");
 
-    // Logo/Nombre de empresa
+    // Logo/Nombre de empresa (izquierda)
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(26);
+    doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.text("FLUXORA", margin, 20);
+    doc.text("FLUXORA", margin, 18);
 
-    // Subtítulo
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.text("Receta Maestra", margin, 28);
-
-    // Categoría
+    // Subtítulo empresa
     doc.setFontSize(9);
-    doc.setFillColor(255, 255, 255, 0.2);
-    doc.roundedRect(margin, 32, 35, 7, 2, 2, "F");
-    doc.text(receta.categoria, margin + 17.5, 36.5, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.text("Sistema de Gestión de Panadería", margin, 26);
 
-    // Título de la receta
+    // Título del documento (derecha)
+    const nombreX = pageWidth - margin;
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    const nombreX = pageWidth - margin;
-    doc.text(receta.nombre, nombreX, 22, { align: "right" });
+    doc.text("RECETA MAESTRA", nombreX, 18, { align: "right" });
 
-    // Fecha de creación
-    doc.setFontSize(9);
+    // Nombre de la receta
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(receta.nombre, nombreX, 26, { align: "right" });
+
+    // ==================== INFORMACIÓN BÁSICA ====================
+    let yPos = 50;
+
+    // Información en dos columnas
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...textDark);
+    
+    // Columna izquierda
+    doc.text("Categoría:", margin, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(receta.categoria, margin + 25, yPos);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Cantidad Base:", margin, yPos + 6);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${receta.cantidadBase} ${receta.unidadBase}`, margin + 25, yPos + 6);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Tiempo Prep.:", margin, yPos + 12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${receta.tiempoPreparacion} min`, margin + 25, yPos + 12);
+
+    // Columna derecha
+    const colRight = pageWidth / 2 + 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("Fecha Creación:", colRight, yPos);
     doc.setFont("helvetica", "normal");
     doc.text(
-      `Creado: ${new Date(receta.fechaCreacion).toLocaleDateString("es-ES")}`,
-      nombreX,
-      29,
-      { align: "right" }
+      new Date(receta.fechaCreacion).toLocaleDateString("es-ES"),
+      colRight + 30,
+      yPos
     );
 
-    // Estado
-    const estadoX = nombreX - 2;
+    doc.setFont("helvetica", "bold");
+    doc.text("Costo Estimado:", colRight, yPos + 6);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `$${(receta.precioEstimado || 0).toLocaleString("es-CL")}`,
+      colRight + 30,
+      yPos + 6
+    );
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Precio Venta:", colRight, yPos + 12);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `$${receta.precioUnidad.toLocaleString("es-CL")}`,
+      colRight + 30,
+      yPos + 12
+    );
+
+    // Estado (badge)
     const estadoText = receta.activa ? "ACTIVA" : "INACTIVA";
     const estadoColor: [number, number, number] = receta.activa
       ? [34, 197, 94]
       : [239, 68, 68];
-    doc.setFillColor(...estadoColor);
-    doc.roundedRect(estadoX - 25, 32, 27, 7, 2, 2, "F");
-    doc.text(estadoText, estadoX - 11.5, 36.5, { align: "center" });
-
-    // ==================== INFORMACIÓN BÁSICA ====================
-    let yPos = 60;
-
-    doc.setFontSize(13);
+    const estadoBgColor: [number, number, number] = receta.activa
+      ? [220, 252, 231]
+      : [254, 226, 226];
+    
+    doc.setFillColor(...estadoBgColor);
+    doc.roundedRect(pageWidth - margin - 28, yPos - 4, 28, 8, 2, 2, "F");
+    doc.setTextColor(...estadoColor);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...primaryColor);
-    doc.text("INFORMACIÓN GENERAL", margin, yPos);
+    doc.setFontSize(9);
+    doc.text(estadoText, pageWidth - margin - 14, yPos + 1, { align: "center" });
 
-    yPos += 3;
+    yPos += 20;
 
-    // Línea separadora
-    doc.setDrawColor(...primaryColor);
-    doc.setLineWidth(0.5);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-
-    yPos += 8;
-
-    // Tabla de información
-    const infoData = [
-      ["Cantidad Base:", `${receta.cantidadBase} ${receta.unidadBase}`],
-      ["Tiempo de Preparación:", `${receta.tiempoPreparacion} minutos`],
-      [
-        "Precio Estimado (Costo):",
-        `$${(receta.precioEstimado || 0).toLocaleString("es-CL")}`,
-      ],
-      [
-        `Precio de Venta (${receta.unidadBase}):`,
-        `$${receta.precioUnidad.toLocaleString("es-CL")}`,
-      ],
-    ];
-
-    autoTable(doc, {
-      startY: yPos,
-      head: [],
-      body: infoData,
-      theme: "plain",
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-      },
-      columnStyles: {
-        0: {
-          fontStyle: "bold",
-          textColor: textDark,
-          cellWidth: 55,
-        },
-        1: {
-          textColor: textDark,
-        },
-      },
-      margin: { left: margin, right: margin },
-    });
+    // Tabla de información adicional (si es necesaria)
+    const infoData: string[][] = [];
 
     // ==================== INGREDIENTES ====================
-    yPos = (doc as any).lastAutoTable.finalY + 15;
 
     doc.setTextColor(...primaryColor);
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
-    doc.text("INGREDIENTES", margin, yPos);
-
-    yPos += 3;
-
-    doc.setDrawColor(...primaryColor);
-    doc.setLineWidth(0.5);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
+    doc.text("DETALLE DE INGREDIENTES", margin, yPos);
 
     yPos += 5;
 
@@ -353,30 +345,36 @@ export class RecetaPDFService {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
-    const primaryColor: [number, number, number] = [139, 92, 246];
+    const primaryColor: [number, number, number] = [37, 99, 235]; // Blue-600
     const textDark: [number, number, number] = [31, 41, 55];
 
     // Encabezado
     doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, pageWidth, 35, "F");
+    doc.rect(0, 0, pageWidth, 40, "F");
 
+    // Logo/Nombre de empresa (izquierda)
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
+    doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.text("CATÁLOGO DE RECETAS", pageWidth / 2, 15, { align: "center" });
+    doc.text("FLUXORA", margin, 18);
 
+    // Subtítulo empresa
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Sistema de Gestión de Panadería", margin, 26);
+
+    // Título del documento (derecha)
+    const nombreX = pageWidth - margin;
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("CATÁLOGO DE RECETAS", nombreX, 18, { align: "right" });
+
+    // Información del catálogo
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Total de recetas: ${recetas.length}`, pageWidth / 2, 23, {
-      align: "center",
+    doc.text(`Total de recetas: ${recetas.length}`, nombreX, 26, {
+      align: "right",
     });
-
-    doc.text(
-      `Generado: ${new Date().toLocaleDateString("es-ES")}`,
-      pageWidth / 2,
-      29,
-      { align: "center" }
-    );
 
     // Tabla de recetas
     const tableData = recetas.map((receta) => [

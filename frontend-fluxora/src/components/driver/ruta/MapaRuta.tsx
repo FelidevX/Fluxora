@@ -220,15 +220,15 @@ export default function MapaRuta({ clientes, rutaGeometry, origen }: MapaRutaPro
   }, [clientes, rutaGeometry, origen]); // Añadir origen a las dependencias
 
   return (
-    <div className="relative">
+    <div className="relative z-0">
       <div 
         ref={mapRef} 
-        className="w-full h-80 md:h-96 bg-gray-100 rounded-lg shadow-inner"
+        className="w-full h-80 md:h-96 bg-gray-100 rounded-lg shadow-inner z-0"
         style={{ minHeight: '320px' }}
       />
       
       {/* Leyenda actualizada */}
-      <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg text-xs">
+      <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg text-xs z-10">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-4 h-4 bg-orange-500 rounded-full border-2 border-white"></div>
           <span className="text-gray-700">Base</span>
@@ -249,7 +249,7 @@ export default function MapaRuta({ clientes, rutaGeometry, origen }: MapaRutaPro
 
       {/* Indicador de carga */}
       {clientes.length === 0 && (
-        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
           <div className="text-center text-gray-500">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
             <p className="text-sm">Cargando mapa...</p>

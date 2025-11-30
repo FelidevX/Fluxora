@@ -34,7 +34,6 @@ export default function DriverLayout({
 
   useEffect(() => {
     const userData = getUserFromToken();
-    console.log("JWT payload Driver Layout:", userData);
 
     // Si no hay token, redirigir al login
     if (!userData) {
@@ -44,17 +43,16 @@ export default function DriverLayout({
     }
 
     // Si no es DRIVER, redirigir al dashboard
-    if (userData.role !== "DRIVER") {
-      console.log(
-        "Usuario no es DRIVER:",
-        userData.role,
-        "redirigiendo a dashboard"
-      );
+    if (userData.role === "ADMIN") {
       router.push("/dashboard");
       return;
     }
 
-    console.log("Usuario es DRIVER, acceso permitido");
+    if(userData.role === "PRODUCER") {
+      router.push("/dashboard/inventario");
+      return;
+    }
+
     setUser(userData);
     setLoading(false);
   }, [router]);

@@ -8,8 +8,9 @@ import ReportTable from "@/components/reportes/ReportTable";
 import ReportSummary from "@/components/reportes/ReportSummary";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-export default function ReportesPage() {
+function ReportesContent() {
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoReporte | null>(
     null
   );
@@ -354,5 +355,13 @@ export default function ReportesPage() {
         position="bottom-right"
       />
     </div>
+  );
+}
+
+export default function ReportesPage() {
+  return (
+    <ProtectedRoute requiredModule="reportes">
+      <ReportesContent />
+    </ProtectedRoute>
   );
 }

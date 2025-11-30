@@ -15,6 +15,9 @@ import { useEffect, useState } from "react";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useProductos } from "@/hooks/useProductos";
 import { useCompras } from "@/hooks/useCompras";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { usePermisos } from "@/hooks/usePermisos";
+import { useRouter } from "next/navigation";
 
 ChartJS.register(
   CategoryScale,
@@ -74,7 +77,9 @@ interface AlertaInventario {
   tipo: "materia" | "producto";
 }
 
-export default function DashboardHome() {
+function DashboardHome() {
+  const router = useRouter();
+  const { user, loading } = usePermisos();
   const [clients, setClients] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [materiaPrima, setMateriaPrima] = useState<MateriaPrima[]>([]);
@@ -639,3 +644,13 @@ export default function DashboardHome() {
     </div>
   );
 }
+
+function DashboardWrapper() {
+  return (
+    <ProtectedRoute requiredModule="dashboard">
+      <DashboardHome />
+    </ProtectedRoute>
+  );
+}
+
+export default DashboardWrapper;

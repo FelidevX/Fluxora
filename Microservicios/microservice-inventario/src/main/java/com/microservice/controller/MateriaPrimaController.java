@@ -2,6 +2,8 @@ package com.microservice.controller;
 
 import com.microservice.dto.MateriaPrimaDTO;
 import com.microservice.service.MateriaPrimaService;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -15,6 +17,7 @@ public class MateriaPrimaController {
         this.service = service;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @GetMapping
     public List<MateriaPrimaDTO> listar() {
         return service.findAll();

@@ -15,6 +15,18 @@ import { useEffect, useState } from "react";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useProductos } from "@/hooks/useProductos";
 import { useCompras } from "@/hooks/useCompras";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { usePermisos } from "@/hooks/usePermisos";
+import { useRouter } from "next/navigation";
+
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
 
 ChartJS.register(
   CategoryScale,
@@ -74,7 +86,9 @@ interface AlertaInventario {
   tipo: "materia" | "producto";
 }
 
-export default function DashboardHome() {
+function DashboardHome() {
+  const router = useRouter();
+  const { user, loading } = usePermisos();
   const [clients, setClients] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [materiaPrima, setMateriaPrima] = useState<MateriaPrima[]>([]);
@@ -101,13 +115,9 @@ export default function DashboardHome() {
   const fetchClients = async () => {
     setIsLoading(true);
     try {
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
@@ -129,13 +139,9 @@ export default function DashboardHome() {
   const fetchMateriasPrimas = async () => {
     setIsLoading(true);
     try {
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`,
@@ -152,17 +158,6 @@ export default function DashboardHome() {
       console.error("Error fetching materias primas:", error);
       setIsLoading(false);
     }
-  };
-
-  const getAuthToken = () => {
-    let token = localStorage.getItem("auth_token");
-    if (!token) {
-      throw new Error("No se encontró el token de autenticación");
-    }
-    if (token.startsWith("Bearer ")) {
-      token = token.substring(7);
-    }
-    return token;
   };
 
   const fetchEstadisticas = async () => {
@@ -639,3 +634,13 @@ export default function DashboardHome() {
     </div>
   );
 }
+
+function DashboardWrapper() {
+  return (
+    <ProtectedRoute requiredModule="dashboard">
+      <DashboardHome />
+    </ProtectedRoute>
+  );
+}
+
+export default DashboardWrapper;

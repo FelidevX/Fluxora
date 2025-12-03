@@ -1,4 +1,4 @@
-package com.microservice.cliente.config;
+package com.microservice.entrega.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,7 +9,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.microservice.cliente.security.JwtAuthenticationFilter;
+import com.microservice.entrega.security.JwtAuthenticationFilter;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,7 +25,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/clientes/test", "/test").permitAll() // Endpoint público para pruebas
+                        .requestMatchers("/entregas/test", "/test").permitAll() // Endpoint público para pruebas
                         .anyRequest().authenticated()) // Todo lo demás requiere autenticación
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> {

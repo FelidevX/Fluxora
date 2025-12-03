@@ -11,6 +11,7 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const ClientesPage = () => {
   const {
@@ -172,6 +173,7 @@ const ClientesPage = () => {
   };
 
   return (
+    <ProtectedRoute requiredModule="clientes">
     <div className="p-6 min-h-screen bg-gray-50">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -368,6 +370,7 @@ const ClientesPage = () => {
         position="bottom-right"
       />
     </div>
+    </ProtectedRoute>
   );
 };
 

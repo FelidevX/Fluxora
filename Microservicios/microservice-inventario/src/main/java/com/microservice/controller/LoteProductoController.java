@@ -5,6 +5,7 @@ import com.microservice.entity.LoteProducto;
 import com.microservice.dto.StockDisponibleDTO;
 import com.microservice.service.LoteProductoService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,18 +21,21 @@ public class LoteProductoController {
         this.loteProductoService = loteProductoService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @PostMapping("/{productoId}/lotes")
     public ResponseEntity<LoteProductoDTO> createLote(@PathVariable Long productoId, @RequestBody LoteProductoDTO dto) {
         LoteProductoDTO saved = loteProductoService.save(productoId, dto);
         return ResponseEntity.ok(saved);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @PutMapping("/{productoId}/lotes/{loteId}")
     public ResponseEntity<LoteProductoDTO> updateLote(@PathVariable Long productoId, @PathVariable Long loteId, @RequestBody LoteProductoDTO dto) {
         LoteProductoDTO updated = loteProductoService.update(loteId, dto);
         return ResponseEntity.ok(updated);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @DeleteMapping("/{productoId}/lotes/{loteId}")
     public ResponseEntity<Void> deleteLote(@PathVariable Long productoId, @PathVariable Long loteId) {
         loteProductoService.delete(loteId);

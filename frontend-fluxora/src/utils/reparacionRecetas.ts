@@ -30,7 +30,7 @@ export async function buscarMateriaPorNombre(
 ): Promise<MateriaPrima[]> {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/inventario/materias-primas/buscar/${encodeURIComponent(
+      `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/buscar/${encodeURIComponent(
         nombre
       )}`
     );
@@ -266,7 +266,7 @@ export async function repararTodasLasRecetasAutomaticamente(
   try {
     // Obtener todas las recetas de la API
     const response = await fetch(
-      "http://localhost:8080/api/inventario/recetas-maestras"
+      `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras`
     );
 
     if (!response.ok) {
@@ -302,7 +302,7 @@ export async function repararTodasLasRecetasAutomaticamente(
 
         // Actualizar la receta en la base de datos
         const updateResponse = await fetch(
-          `http://localhost:8080/api/inventario/recetas-maestras/${receta.id}`,
+          `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras/${receta.id}`,
           {
             method: "PUT",
             headers: {

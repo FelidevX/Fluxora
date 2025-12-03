@@ -3,6 +3,7 @@ package com.microservice.controller;
 import com.microservice.dto.LoteMateriaPrimaDTO;
 import com.microservice.service.LoteService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,12 +18,14 @@ public class LoteController {
         this.loteService = loteService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @PostMapping("/{materiaId}/lotes")
     public ResponseEntity<LoteMateriaPrimaDTO> createLote(@PathVariable Long materiaId, @RequestBody LoteMateriaPrimaDTO dto) {
         LoteMateriaPrimaDTO saved = loteService.save(materiaId, dto);
         return ResponseEntity.ok(saved);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @GetMapping("/{materiaId}/lotes")
     public ResponseEntity<List<LoteMateriaPrimaDTO>> listLotes(@PathVariable Long materiaId) {
         List<LoteMateriaPrimaDTO> list = loteService.listByMateria(materiaId);

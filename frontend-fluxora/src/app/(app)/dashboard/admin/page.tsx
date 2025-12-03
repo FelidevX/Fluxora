@@ -5,6 +5,7 @@ import DashboardCard from "@/components/ui/DashboardCard";
 import DashboardAdmin from "@/components/admin/dashboardAdmin";
 import UsuariosManager from "@/components/admin/usuarios/usuariosManager";
 import SistemaManager from "@/components/admin/sistema/SistemaManager";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 function AdminContent() {
   const searchParams = useSearchParams();
@@ -94,12 +95,14 @@ function AdminContent() {
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={
-          <div className="p-6 flex items-center justify-center min-h-[400px]">
-            <div className="text-gray-600"> Cargando dashboard...</div>
-          </div>
-        }>
-          <AdminContent />
-    </Suspense>
+    <ProtectedRoute requiredModule="admin">
+      <Suspense fallback={
+            <div className="p-6 flex items-center justify-center min-h-[400px]">
+              <div className="text-gray-600"> Cargando dashboard...</div>
+            </div>
+          }>
+            <AdminContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEstadisticas";
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
 import Card from "@/components/ui/Card";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 function InventarioContent() {
   const searchParams = useSearchParams();
@@ -79,14 +80,16 @@ function InventarioContent() {
 
 export default function InventarioPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-6 flex items-center justify-center min-h-[400px]">
-          <div className="text-gray-600">Cargando inventario...</div>
-        </div>
-      }
-    >
-      <InventarioContent />
-    </Suspense>
+    <ProtectedRoute requiredModule="inventario">
+      <Suspense
+        fallback={
+          <div className="p-6 flex items-center justify-center min-h-[400px]">
+            <div className="text-gray-600">Cargando inventario...</div>
+          </div>
+        }
+      >
+        <InventarioContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

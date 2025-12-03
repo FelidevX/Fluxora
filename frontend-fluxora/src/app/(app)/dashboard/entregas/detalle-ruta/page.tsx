@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import { RutaActiva, ClienteDTO } from "@/interfaces/entregas/entregas";
+import { useRutas } from "@/hooks/useRutas";
 
 // Importación dinámica del mapa para evitar SSR
 const MapaRuta = dynamic(() => import("@/components/driver/ruta/MapaRuta"), {
@@ -39,142 +40,87 @@ function DetalleRutaContent() {
   const router = useRouter();
   const rutaId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(true);
   const [rutaData, setRutaData] = useState<RutaDetalleData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loadingLocal, setLoadingLocal] = useState(true);
+  const [errorLocal, setErrorLocal] = useState<string | null>(null);
+  
+  const { 
+    loading, 
+    error, 
+    fetchRutaDetalle, 
+    calcularRutaOSRM 
+  } = useRutas();
 
   useEffect(() => {
     if (!rutaId) {
-      setError("No se proporcionó ID de ruta");
-      setLoading(false);
+      setLoadingLocal(false);
       return;
     }
 
-    fetchRutaDetalle();
+    loadRutaDetalle();
   }, [rutaId]);
 
-  const fetchRutaDetalle = async () => {
-    setLoading(true);
-    setError(null);
+  const loadRutaDetalle = async () => {
+    if (!rutaId) return;
+
+    setLoadingLocal(true);
+    setErrorLocal(null);
 
     try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
+      // Obtener detalle completo de la ruta con progreso
+      const rutaCompleta = await fetchRutaDetalle(rutaId);
 
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      // Obtener todas las rutas activas y filtrar por ID
-      const rutasResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-activas`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!rutasResponse.ok) {
-        throw new Error("Error al cargar las rutas activas");
-      }
-
-      const rutasActivas = await rutasResponse.json();
-      const ruta: RutaActiva | undefined = rutasActivas.find(
-        (r: RutaActiva) => r.id === parseInt(rutaId!)
-      );
-
-      if (!ruta) {
-        throw new Error("Ruta no encontrada");
-      }
-
-      // Obtener clientes de la ruta usando el endpoint correcto
-      const clientesResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/clientes/${rutaId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!clientesResponse.ok) {
-        throw new Error("Error al cargar los clientes de la ruta");
-      }
-
-      const clientes: ClienteDTO[] = await clientesResponse.json();
-
-      // Obtener información del driver si está asignado
-      let driver = null;
-      if (ruta.id_driver) {
-        try {
-          const driverResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios/${ruta.id_driver}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (driverResponse.ok) {
-            driver = await driverResponse.json();
-          }
-        } catch (err) {
-          console.warn("No se pudo cargar la información del driver");
-        }
-      }
-
-      // Calcular ruta optimizada con OSRM si hay clientes
-      let osrmRoute = null;
+      // Configurar origen
       const origen = {
         latitud: -36.612523,
         longitud: -72.082921,
       };
 
-      if (clientes.length > 0) {
-        try {
-          // Construir coordenadas para OSRM
-          const coordinates = [
-            `${origen.longitud},${origen.latitud}`,
-            ...clientes.map((c) => `${c.longitud},${c.latitud}`),
-            `${origen.longitud},${origen.latitud}`, // Volver al origen
-          ].join(";");
-
-          const osrmResponse = await fetch(
-            `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson`
-          );
-
-          if (osrmResponse.ok) {
-            const osrmData = await osrmResponse.json();
-            osrmRoute = JSON.stringify(osrmData);
-          }
-        } catch (err) {
-          console.warn("No se pudo calcular la ruta optimizada");
-        }
-      }
+      // Calcular ruta optimizada con OSRM
+      const osrmData = await calcularRutaOSRM(rutaCompleta.clientes, origen);
 
       setRutaData({
-        ruta,
-        orderedClients: clientes,
-        osrmRoute: osrmRoute || JSON.stringify({ routes: [] }),
+        ruta: rutaCompleta,
+        orderedClients: rutaCompleta.clientes,
+        osrmRoute: JSON.stringify(osrmData),
         origen,
-        driver,
+        driver: rutaCompleta.driver,
       });
+      setErrorLocal(null);
     } catch (err) {
       console.error("Error al cargar detalle de ruta:", err);
-      setError(err instanceof Error ? err.message : "Error al cargar la ruta");
+      setErrorLocal(error || "Error al cargar la información de la ruta");
     } finally {
-      setLoading(false);
+      setLoadingLocal(false);
     }
   };
 
-  if (loading) {
+  // Mostrar error solo si no se proporcionó ID
+  if (!rutaId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <MaterialIcon name="error" className="text-6xl" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Error al cargar la ruta
+          </h2>
+          <p className="text-gray-600 mb-4">No se proporcionó ID de ruta</p>
+          <Link
+            href="/dashboard/entregas/rutas"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <MaterialIcon name="arrow_back" className="mr-2" />
+            Volver a Rutas
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar loading mientras está cargando
+  if (loadingLocal) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -185,7 +131,8 @@ function DetalleRutaContent() {
     );
   }
 
-  if (error || !rutaData) {
+  // Mostrar error si hubo un error O si no hay datos después de cargar
+  if (errorLocal || !rutaData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="text-center">
@@ -195,14 +142,23 @@ function DetalleRutaContent() {
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Error al cargar la ruta
           </h2>
-          <p className="text-gray-600 mb-4">{error || "Ruta no encontrada"}</p>
-          <Link
-            href="/dashboard/entregas/rutas"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <MaterialIcon name="arrow_back" className="mr-2" />
-            Volver a Rutas
-          </Link>
+          <p className="text-gray-600 mb-4">{errorLocal || "No se pudo cargar la información de la ruta"}</p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={loadRutaDetalle}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <MaterialIcon name="refresh" className="mr-2" />
+              Reintentar
+            </button>
+            <Link
+              href="/dashboard/entregas/rutas"
+              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              <MaterialIcon name="arrow_back" className="mr-2" />
+              Volver
+            </Link>
+          </div>
         </div>
       </div>
     );

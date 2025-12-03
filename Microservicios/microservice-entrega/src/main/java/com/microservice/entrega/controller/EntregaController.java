@@ -7,11 +7,14 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.entrega.dto.ClienteDTO;
@@ -31,12 +34,14 @@ public class EntregaController {
     private EntregaService entregaService;
 
     // Obtener todas las rutas activas con sus clientes
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/rutas-activas")
     public List<Map<String, Object>> getRutasActivas() {
         return entregaService.getRutasActivas();
     }
 
     // Registrar entrega a un cliente
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @PostMapping("/registrar")
     public ResponseEntity<Map<String, Object>> registrarEntrega(@RequestBody RegistroEntregaDTO registroEntregaDTO) {
         try {
@@ -73,14 +78,16 @@ public class EntregaController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
-
+    
     // Obtener historial de entregas de un cliente
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/cliente/{id}/historial")
     public List<RegistroEntrega> getHistorialEntregas(@PathVariable Long id) {
         return entregaService.getHistorialEntregasCliente(id);
     }
 
     // Asignar driver a una ruta
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/asignar-driver")
     public ResponseEntity<String> asignarDriver(@RequestBody Map<String, Object> datos) {
         try {
@@ -95,12 +102,14 @@ public class EntregaController {
     }
 
     // Obtener rutas programadas por fecha específica
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/rutas-por-fecha/{fecha}")
     public List<Map<String, Object>> getRutasProgramadasPorFecha(@PathVariable String fecha) {
         return entregaService.getRutasProgramadasPorFecha(fecha);
     }
 
     // Actualizar programación individual de un cliente
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @PostMapping("/actualizar-programacion-cliente")
     public ResponseEntity<String> actualizarProgramacionCliente(@RequestBody Map<String, Object> datos) {
         try {
@@ -119,6 +128,7 @@ public class EntregaController {
     }
 
     // Crear nueva ruta
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/crear-ruta")
     public ResponseEntity<String> crearRuta(@RequestBody Map<String, Object> datosRuta) {
         try {
@@ -129,6 +139,8 @@ public class EntregaController {
         }
     }
 
+    // Obtener entregas por idPedido
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/pedido/{idPedido}")
     public ResponseEntity<List<RegistroEntrega>> getEntregasByIdPedido(@PathVariable Long idPedido) {
         try {
@@ -141,6 +153,7 @@ public class EntregaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/pedidos")
     public ResponseEntity<List<SesionReparto>> obtenerPedidos() {
         try {
@@ -153,6 +166,7 @@ public class EntregaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @PostMapping("/programar-entrega")
     public ResponseEntity<String> programarEntrega(@RequestBody Map<String, Object> datosProgramacion) {
         try {
@@ -168,6 +182,7 @@ public class EntregaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/programacion/{idRuta}/{fecha}")
     public ResponseEntity<List<ProgramacionEntrega>> getProgramacionPorRutaYFecha(@PathVariable Long idRuta, @PathVariable String fecha) {
         try {
@@ -180,7 +195,8 @@ public class EntregaController {
     }
 
     // Eliminar todas las relaciones de un cliente (antes de eliminar el cliente)
-    @org.springframework.web.bind.annotation.DeleteMapping("/cliente/{idCliente}/relaciones")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/cliente/{idCliente}/relaciones")
     public ResponseEntity<String> eliminarRelacionesCliente(@PathVariable Long idCliente) {
         System.out.println("Solicitud para eliminar relaciones del cliente ID: " + idCliente);
         try {
@@ -192,7 +208,8 @@ public class EntregaController {
     }
 
     // Eliminar una ruta completa
-    @org.springframework.web.bind.annotation.DeleteMapping("/rutas/{idRuta}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/rutas/{idRuta}")
     public ResponseEntity<String> eliminarRuta(@PathVariable Long idRuta) {
         System.out.println("Solicitud para eliminar ruta ID: " + idRuta);
         try {
@@ -204,6 +221,7 @@ public class EntregaController {
     }
 
     // Obtener estadísticas para el dashboard
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/estadisticas-dashboard")
     public ResponseEntity<Map<String, Object>> obtenerEstadisticasDashboard() {
         try {
@@ -217,11 +235,12 @@ public class EntregaController {
     }
 
     // Generar reporte de entregas
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/reporte-entregas")
     public ResponseEntity<Map<String, Object>> generarReporteEntregas(
-            @org.springframework.web.bind.annotation.RequestParam String fechaInicio,
-            @org.springframework.web.bind.annotation.RequestParam String fechaFin,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) Long idRuta) {
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin,
+            @RequestParam(required = false) Long idRuta) {
         try {
             LocalDate inicio = LocalDate.parse(fechaInicio);
             LocalDate fin = LocalDate.parse(fechaFin);
@@ -237,10 +256,11 @@ public class EntregaController {
     }
 
     // Generar reporte de ventas
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/reporte-ventas")
     public ResponseEntity<Map<String, Object>> generarReporteVentas(
-            @org.springframework.web.bind.annotation.RequestParam String fechaInicio,
-            @org.springframework.web.bind.annotation.RequestParam String fechaFin) {
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin) {
         try {
             LocalDate inicio = LocalDate.parse(fechaInicio);
             LocalDate fin = LocalDate.parse(fechaFin);

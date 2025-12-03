@@ -135,7 +135,7 @@ export default function GestionMateriasPrimas() {
   const fetchLotes = async (materiaId: number) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${materiaId}/lotes`
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${materiaId}/lotes`
       );
       if (!res.ok) throw new Error("Error al obtener lotes");
       const data = await res.json();

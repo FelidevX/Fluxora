@@ -48,7 +48,7 @@ export function useMaterias(): UseMateriasResult {
       const token = getAuthToken();
 
       const response = await fetch(
-        "http://localhost:8080/api/inventario/materias-primas",
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`,
         {
           method: "GET",
           headers: {
@@ -89,7 +89,7 @@ export function useMaterias(): UseMateriasResult {
       };
 
       const response = await fetch(
-        "http://localhost:8080/api/inventario/materias-primas",
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`,
         {
           method: "POST",
           headers: { 
@@ -129,7 +129,7 @@ export function useMaterias(): UseMateriasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${id}`,
         { 
           method: "DELETE",
           headers: {
@@ -163,7 +163,7 @@ export function useMaterias(): UseMateriasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${id}`,
         {
           method: "PUT",
           headers: { 
@@ -205,7 +205,7 @@ export function useMaterias(): UseMateriasResult {
       };
 
       const response = await fetch(
-        `http://localhost:8080/api/inventario/materias-primas/${id}/lotes`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${id}/lotes`,
         {
           method: "POST",
           headers: { 

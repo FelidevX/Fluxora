@@ -31,7 +31,7 @@ export function useRecetas() {
 
       const token = getAuthToken();
       const response = await fetch(
-        "http://localhost:8080/api/inventario/recetas-maestras",
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -65,7 +65,7 @@ export function useRecetas() {
 
       const token = getAuthToken();
       const response = await fetch(
-        "http://localhost:8080/api/inventario/recetas-maestras",
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras`,
         {
           method: "POST",
           headers: {
@@ -106,7 +106,7 @@ export function useRecetas() {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras/${id}`,
         {
           method: "DELETE",
           headers: {
@@ -143,7 +143,7 @@ export function useRecetas() {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras/${id}`,
         {
           method: "PUT",
           headers: {
@@ -187,7 +187,7 @@ export function useRecetas() {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}/toggle-activa`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras/${id}/toggle-activa`,
         {
           method: "PATCH",
           headers: {

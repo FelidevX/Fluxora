@@ -43,7 +43,7 @@ export function useCompras(): UseComprasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        "http://localhost:8080/api/inventario/compras",
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/compras`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ export function useCompras(): UseComprasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        "http://localhost:8080/api/inventario/compras",
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/compras`,
         {
           method: "POST",
           headers: { 
@@ -117,7 +117,7 @@ export function useCompras(): UseComprasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/compras/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -147,7 +147,7 @@ export function useCompras(): UseComprasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/proveedor/${encodeURIComponent(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/compras/proveedor/${encodeURIComponent(
           proveedor
         )}`,
         {
@@ -179,7 +179,7 @@ export function useCompras(): UseComprasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/recientes?dias=${dias}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/compras/recientes?dias=${dias}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -209,7 +209,7 @@ export function useCompras(): UseComprasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/compras/${id}`,
         { 
           method: "DELETE",
           headers: {
@@ -242,7 +242,7 @@ export function useCompras(): UseComprasResult {
 
       const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/${id}/estado-pago?estadoPago=PAGADO`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/compras/${id}/estado-pago?estadoPago=PAGADO`,
         {
           method: "PUT",
           headers: {

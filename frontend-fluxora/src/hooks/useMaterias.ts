@@ -6,6 +6,15 @@ import {
 } from "@/types/inventario";
 import { useToast } from "@/hooks/useToast";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface UseMateriasResult {
   materias: MateriaPrima[];
   loading: boolean;
@@ -35,12 +44,18 @@ export function useMaterias(): UseMateriasResult {
     try {
       setLoading(true);
       setError(null);
+      
+      const token = getAuthToken();
 
       const response = await fetch(
-        "http://localhost:8080/api/inventario/materias-primas"
-      );
-
-      if (!response.ok) {
+        "http://localhost:8080/api/inventario/materias-primas",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );      if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -67,6 +82,7 @@ export function useMaterias(): UseMateriasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const payload = {
         nombre: materia.nombre,
         unidad: materia.unidad,
@@ -76,7 +92,10 @@ export function useMaterias(): UseMateriasResult {
         "http://localhost:8080/api/inventario/materias-primas",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(payload),
         }
       );
@@ -108,9 +127,15 @@ export function useMaterias(): UseMateriasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `http://localhost:8080/api/inventario/materias-primas/${id}`,
-        { method: "DELETE" }
+        { 
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok)
@@ -136,11 +161,15 @@ export function useMaterias(): UseMateriasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `http://localhost:8080/api/inventario/materias-primas/${id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(materia),
         }
       );
@@ -168,6 +197,7 @@ export function useMaterias(): UseMateriasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const lote: Partial<LoteMateriaPrima> = {
         cantidad: nuevaCantidad,
         costoUnitario: 0,
@@ -178,7 +208,10 @@ export function useMaterias(): UseMateriasResult {
         `http://localhost:8080/api/inventario/materias-primas/${id}/lotes`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(lote),
         }
       );

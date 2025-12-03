@@ -5,6 +5,15 @@ import {
 } from "@/types/inventario";
 import { useToast } from "@/hooks/useToast";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface UseComprasResult {
   compras: CompraMateriaPrimaResponse[];
   loading: boolean;
@@ -32,8 +41,14 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        "http://localhost:8080/api/inventario/compras"
+        "http://localhost:8080/api/inventario/compras",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -59,11 +74,15 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         "http://localhost:8080/api/inventario/compras",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(compra),
         }
       );
@@ -96,8 +115,14 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/${id}`
+        `http://localhost:8080/api/inventario/compras/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -120,10 +145,16 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `http://localhost:8080/api/inventario/compras/proveedor/${encodeURIComponent(
           proveedor
-        )}`
+        )}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -146,8 +177,14 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/compras/recientes?dias=${dias}`
+        `http://localhost:8080/api/inventario/compras/recientes?dias=${dias}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -170,9 +207,15 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `http://localhost:8080/api/inventario/compras/${id}`,
-        { method: "DELETE" }
+        { 
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -197,12 +240,14 @@ export function useCompras(): UseComprasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `http://localhost:8080/api/inventario/compras/${id}/estado-pago?estadoPago=PAGADO`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );

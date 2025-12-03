@@ -1,6 +1,15 @@
 import { useState, useCallback, useEffect } from "react";
 import { Producto, ProductoDTO, LoteProducto } from "@/types/inventario";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface UseProductosResult {
   productos: Producto[];
   loading: boolean;
@@ -42,7 +51,12 @@ export function useProductos(): UseProductosResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(API_BASE);
+      const token = getAuthToken();
+      const response = await fetch(API_BASE, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -68,9 +82,13 @@ export function useProductos(): UseProductosResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(API_BASE, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(producto),
       });
 
@@ -101,9 +119,13 @@ export function useProductos(): UseProductosResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(producto),
       });
 
@@ -126,7 +148,13 @@ export function useProductos(): UseProductosResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const token = getAuthToken();
+      const response = await fetch(`${API_BASE}/${id}`, { 
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         if (response.status === 400 || response.status === 409) {
@@ -158,7 +186,12 @@ export function useProductos(): UseProductosResult {
 
   const cargarLotes = async (productoId: number): Promise<LoteProducto[]> => {
     try {
-      const response = await fetch(`${API_BASE}/${productoId}/lotes`);
+      const token = getAuthToken();
+      const response = await fetch(`${API_BASE}/${productoId}/lotes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Error al cargar lotes: ${response.status}`);
@@ -180,9 +213,13 @@ export function useProductos(): UseProductosResult {
     try {
       setLoading(true);
 
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE}/${productoId}/lotes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(lote),
       });
 
@@ -224,11 +261,15 @@ export function useProductos(): UseProductosResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `${API_BASE}/${productoId}/lotes/${loteId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(lote),
         }
       );
@@ -252,10 +293,14 @@ export function useProductos(): UseProductosResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `${API_BASE}/${productoId}/lotes/${loteId}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -285,7 +330,12 @@ export function useProductos(): UseProductosResult {
 
   const obtenerStockTotal = async (productoId: number): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE}/${productoId}/stock-total`);
+      const token = getAuthToken();
+      const response = await fetch(`${API_BASE}/${productoId}/stock-total`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Error al obtener stock total: ${response.status}`);

@@ -10,6 +10,15 @@ import { ProgramacionEntregas } from "@/components/admin/entregas/gestion/Progra
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Link from "next/dist/client/link";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 export default function GestionRutasPage() {
   const [rutas, setRutas] = useState<RutaActiva[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,13 +30,12 @@ export default function GestionRutasPage() {
   const fetchRutas = async () => {
     setLoading(true);
     try {
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       if (!token) {
         console.warn("No auth token found");
         setRutas([]);
         return;
       }
-      if (token.startsWith("Bearer ")) token = token.substring(7);
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-activas`,

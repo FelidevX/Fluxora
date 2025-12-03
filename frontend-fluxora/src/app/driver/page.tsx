@@ -9,6 +9,15 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface Cliente {
   id: number;
   nombre: string;
@@ -80,12 +89,8 @@ export default function DriverHomePage() {
   // Función para cargar entregas del pedido actual
   const cargarEntregasRealizadas = async () => {
     try {
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       if (!token) return;
-      
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedidoId}`,
@@ -120,15 +125,11 @@ export default function DriverHomePage() {
 
   const fetchRutaOptimizada = async () => {
     try {
-      let token = localStorage.getItem('auth_token');
+      const token = getAuthToken();
 
       if(!token) {
         setError('No autenticado. Por favor, inicia sesión.');
         return;
-      }
-
-      if (token.startsWith('Bearer ')) {
-        token = token.substring(7);
       }
 
       const userData = getUserFromToken();
@@ -240,15 +241,11 @@ export default function DriverHomePage() {
     }
 
     try {
-      let token = localStorage.getItem('auth_token');
+      const token = getAuthToken();
 
       if (!token) {
         warning("No autenticado. Por favor, inicia sesión.", "Sesión Requerida");
         return;
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
       }
 
       const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
@@ -281,14 +278,10 @@ export default function DriverHomePage() {
   const handleIniciarRuta = async () => {
     setIniciandoRuta(true);
     try {
-      let token = localStorage.getItem('auth_token');
+      const token = getAuthToken();
 
       if (!token) {
         throw new Error("No se encontró el token de autenticación.");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
       }
 
       const response = await fetch(

@@ -1,6 +1,15 @@
 import { useState, useCallback } from "react";
 import { ClienteDTO, ClienteResponse } from "@/types/Clientes";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface UseClientesResult {
   clientes: ClienteResponse[];
   loading: boolean;
@@ -22,13 +31,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
@@ -65,13 +70,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
@@ -105,13 +106,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes/${id}`,
@@ -145,13 +142,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes/${id}`,

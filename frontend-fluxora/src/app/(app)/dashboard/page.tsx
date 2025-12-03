@@ -19,6 +19,15 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { usePermisos } from "@/hooks/usePermisos";
 import { useRouter } from "next/navigation";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -106,13 +115,9 @@ function DashboardHome() {
   const fetchClients = async () => {
     setIsLoading(true);
     try {
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
@@ -134,13 +139,9 @@ function DashboardHome() {
   const fetchMateriasPrimas = async () => {
     setIsLoading(true);
     try {
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas`,
@@ -157,17 +158,6 @@ function DashboardHome() {
       console.error("Error fetching materias primas:", error);
       setIsLoading(false);
     }
-  };
-
-  const getAuthToken = () => {
-    let token = localStorage.getItem("auth_token");
-    if (!token) {
-      throw new Error("No se encontró el token de autenticación");
-    }
-    if (token.startsWith("Bearer ")) {
-      token = token.substring(7);
-    }
-    return token;
   };
 
   const fetchEstadisticas = async () => {

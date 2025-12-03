@@ -5,6 +5,15 @@ import {
   MermaAutomaticaDTO,
 } from "@/types/inventario";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface UseMermasResult {
   mermas: MermaProducto[];
   loading: boolean;
@@ -26,8 +35,14 @@ export function useMermas(): UseMermasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/mermas`
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/mermas`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -50,11 +65,15 @@ export function useMermas(): UseMermasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/mermas/manual`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(merma),
         }
       );
@@ -86,12 +105,16 @@ export function useMermas(): UseMermasResult {
       setError(null);
 
       const payload: MermaAutomaticaDTO = { motivo };
+      const token = getAuthToken();
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/mermas/automatica`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(payload),
         }
       );
@@ -126,8 +149,14 @@ export function useMermas(): UseMermasResult {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/mermas/producto/${productoId}`
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/mermas/producto/${productoId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {

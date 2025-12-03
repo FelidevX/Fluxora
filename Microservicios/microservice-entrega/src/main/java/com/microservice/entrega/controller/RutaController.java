@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +38,7 @@ public class RutaController {
         this.usuarioServiceClient = usuarioServiceClient;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/optimized-ortools/{id_ruta}")
     public Map<String, Object> getOptimizedRouteORTools(@PathVariable Long id_ruta) {
         List<ClienteDTO> clientes = rutaService.getClientesDeRuta(id_ruta);
@@ -55,7 +57,7 @@ public class RutaController {
 
         return result;
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/optimized-ortools/{id_ruta}/{fecha}")
     public Map<String, Object> getOptimizedRouteORToolsForDate(
             @PathVariable Long id_ruta, 
@@ -96,67 +98,31 @@ public class RutaController {
         }
     }
 
-    @GetMapping("/test-optimization")
-    public ResponseEntity<Map<String, Object>> testRouteOptimization() {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            List<ClienteDTO> testClientes = Arrays.asList(
-                    createTestCliente(1L, "Cliente A", -34.6037, -58.3816), // Buenos Aires
-                    createTestCliente(2L, "Cliente B", -34.6118, -58.3960), // Palermo
-                    createTestCliente(3L, "Cliente C", -34.5875, -58.3974), // Recoleta
-                    createTestCliente(4L, "Cliente D", -34.6092, -58.3731) // Puerto Madero
-            );
-
-            result.put("testClientes", testClientes);
-
-            List<ClienteDTO> optimizedRoute = rutaService.getOptimizedRouteORTools(1L, testClientes);
-            result.put("optimizedRoute", optimizedRoute);
-
-            Ruta origen = rutaService.getOrigenRuta(1L);
-            result.put("origen", origen);
-
-            String osrmRoute = rutaService.getOsrmRoute(optimizedRoute, origen);
-            result.put("osrmRoute", osrmRoute);
-
-            result.put("status", "SUCCESS");
-            result.put("message", "Optimización exitosa");
-        } catch (Exception e) {
-            result.put("status", "ERROR");
-            result.put("message", "Error al optimizar la ruta" + e.getMessage());
-            result.put("error", e.getClass().getSimpleName());
-        }
-        return ResponseEntity.ok(result);
-    }
-
-    private ClienteDTO createTestCliente(Long id, String nombre, Double latitud, Double longitud) {
-        ClienteDTO cliente = new ClienteDTO();
-        cliente.setId(id);
-        cliente.setNombre(nombre);
-        cliente.setLatitud(latitud);
-        cliente.setLongitud(longitud);
-        return cliente;
-    }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/clientes/{id_ruta}")
     public List<ClienteDTO> getClientesDeRuta(@PathVariable Long id_ruta) {
         return rutaService.getClientesDeRuta(id_ruta);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public List<Ruta> getAllRutas() {
         return rutaService.getAllRutas();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/clientes-sin-ruta")
     public List<ClienteDTO> getClientesSinRuta() {
         return rutaService.getClientesSinRuta();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/clientes-con-ruta")
     public List<ClienteConRutaDTO> getClientesConRuta() {
         return rutaService.getClientesConRuta();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/asignar-cliente")
     public ResponseEntity<String> asignarClienteARuta(@RequestBody Map<String, Long> request) {
         try {
@@ -170,6 +136,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/reasignar-cliente")
     public ResponseEntity<String> reasignarClienteARuta(@RequestBody Map<String, Long> request) {
         try {
@@ -183,6 +150,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id_ruta}")
     public ResponseEntity<String> deleteRuta(@PathVariable Long id_ruta) {
         try {
@@ -193,6 +161,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/driver/{driverId}")
     public ResponseEntity<Map<String, Object>> getRutaIdByDriver(@PathVariable Long driverId) {
         try {
@@ -207,6 +176,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @PostMapping("/iniciar/{id_ruta}")
     public ResponseEntity<Map<String, Object>> iniciarRuta(@PathVariable Long id_ruta) {
         try {
@@ -223,6 +193,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @PostMapping("/finalizar/{id_ruta}")
     public ResponseEntity<Map<String, Object>> finalizarRuta(@PathVariable Long id_ruta) {
         try {
@@ -237,6 +208,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/cliente/{idCliente}/ruta")
     public ResponseEntity<Map<String, Object>> getNombreRutaPorCliente(@PathVariable Long idCliente) {
         try {

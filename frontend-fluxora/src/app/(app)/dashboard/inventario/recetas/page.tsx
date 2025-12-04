@@ -371,10 +371,10 @@ export default function RecetasManager() {
       label: "Receta",
       render: (receta: RecetaMaestra) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-xs md:text-sm font-medium text-gray-900">
             {receta.nombre}
           </div>
-          <div className="text-sm text-gray-500">{receta.descripcion}</div>
+          <div className="text-xs md:text-sm text-gray-500">{receta.descripcion}</div>
         </div>
       ),
     },
@@ -391,7 +391,7 @@ export default function RecetasManager() {
       key: "cantidad",
       label: "Cantidad Base",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {receta.cantidadBase} {receta.unidadBase}
         </span>
       ),
@@ -400,7 +400,7 @@ export default function RecetasManager() {
       key: "precio",
       label: "Precio Estimado",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {formatCLP(receta.precioEstimado || 0)}
         </span>
       ),
@@ -409,7 +409,7 @@ export default function RecetasManager() {
       key: "precioUnidad",
       label: "Precio / unidad",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {formatCLP(receta.precioUnidad || 0)}
         </span>
       ),
@@ -418,7 +418,7 @@ export default function RecetasManager() {
       key: "tiempo",
       label: "Tiempo",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {receta.tiempoPreparacion} min
         </span>
       ),
@@ -427,7 +427,7 @@ export default function RecetasManager() {
       key: "ingredientes",
       label: "Ingredientes",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {receta.ingredientes.length} ingredientes
         </span>
       ),
@@ -503,7 +503,7 @@ export default function RecetasManager() {
   );
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 max-w-full overflow-x-hidden space-y-6">
       <div className="mb-4">
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
@@ -514,13 +514,13 @@ export default function RecetasManager() {
         </Link>
       </div>
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Gestión de Recetas
           </h1>
-          <div className="flex items-center text-gray-600 mt-1">
-            <MaterialIcon name="calendar_today" className="mr-1" />
+          <div className="flex items-center text-gray-600 mt-1 text-sm">
+            <MaterialIcon name="calendar_today" className="mr-1 text-lg" />
             <span>
               {new Date().toLocaleDateString("es-ES", {
                 weekday: "long",
@@ -531,11 +531,12 @@ export default function RecetasManager() {
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <Button
             variant="success"
             icon="add"
             onClick={() => setShowForm(!showForm)}
+            className="w-full sm:w-auto text-sm"
           >
             {showForm ? "Cancelar" : "Crear Receta"}
           </Button>
@@ -544,15 +545,19 @@ export default function RecetasManager() {
             icon="picture_as_pdf"
             onClick={handleExportarTodasPDF}
             disabled={recetasFiltradas.length === 0}
+            className="w-full sm:w-auto text-sm"
           >
-            Exportar a PDF ({recetasFiltradas.length})
+            <span className="hidden md:inline">Exportar a PDF ({recetasFiltradas.length})</span>
+            <span className="md:hidden">PDF ({recetasFiltradas.length})</span>
           </Button>
           <Button
             variant="warning"
             icon="build"
             onClick={handleOpenRepairModal}
+            className="w-full sm:w-auto text-sm"
           >
-            Reparar recetas manualmente
+            <span className="hidden md:inline">Reparar recetas manualmente</span>
+            <span className="md:hidden">Reparar</span>
           </Button>
         </div>
       </div>
@@ -579,20 +584,20 @@ export default function RecetasManager() {
       {/* Modal de Crear Receta */}
       {showForm && (
         <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
           onClick={() => setShowForm(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900">
                     Crear Nueva Receta
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Complete la información de la receta y agregue los
                     ingredientes necesarios
                   </p>
@@ -606,7 +611,7 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-6">
               {/* Información básica */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
@@ -863,15 +868,16 @@ export default function RecetasManager() {
               </div>
             </form>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex gap-3 justify-end">
-                <Button variant="secondary" onClick={() => setShowForm(false)}>
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                <Button variant="secondary" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
                 <Button
                   variant="success"
                   onClick={handleSubmit}
                   disabled={loading}
+                  className="w-full sm:w-auto"
                 >
                   {loading ? "Creando..." : "Crear Receta"}
                 </Button>
@@ -945,14 +951,14 @@ export default function RecetasManager() {
       {/* Modal de Ver Detalle */}
       {showDetalleModal && recetaSeleccionada && (
         <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
           onClick={() => setShowDetalleModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -1104,18 +1110,20 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex gap-3 justify-end">
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   variant="secondary"
                   icon="picture_as_pdf"
                   onClick={() => handleExportarPDF(recetaSeleccionada)}
+                  className="w-full sm:w-auto"
                 >
                   Exportar PDF
                 </Button>
                 <Button
                   variant="secondary"
                   onClick={() => setShowDetalleModal(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cerrar
                 </Button>
@@ -1128,17 +1136,17 @@ export default function RecetasManager() {
       {/* Modal de Editar */}
       {showEditModal && recetaAEditar && (
         <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
           onClick={() => {
             setShowEditModal(false);
             setRecetaAEditar(null);
           }}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -1160,7 +1168,7 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmitEdicion} className="p-6 space-y-6">
+            <form onSubmit={handleSubmitEdicion} className="p-4 md:p-6 space-y-6">
               {/* Información básica */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
@@ -1417,14 +1425,15 @@ export default function RecetasManager() {
               </div>
             </form>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex gap-3 justify-end">
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   variant="secondary"
                   onClick={() => {
                     setShowEditModal(false);
                     setRecetaAEditar(null);
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Cancelar
                 </Button>
@@ -1432,6 +1441,7 @@ export default function RecetasManager() {
                   variant="success"
                   onClick={handleSubmitEdicion}
                   disabled={loading}
+                  className="w-full sm:w-auto"
                 >
                   {loading ? "Actualizando..." : "Actualizar Receta"}
                 </Button>

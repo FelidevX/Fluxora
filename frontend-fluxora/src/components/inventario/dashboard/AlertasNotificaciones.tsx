@@ -157,9 +157,11 @@ export default function AlertasNotificaciones() {
             Alertas y Notificaciones
           </h2>
         </div>
-        <Badge variant={alertas.length > 0 ? "danger" : "success"}>
-          {alertas.length} alerta(s)
-        </Badge>
+        <div className="text-center">
+          <Badge variant={alertas.length > 0 ? "danger" : "success"}>
+            {alertas.length} alerta(s)
+          </Badge>
+        </div>
       </div>
 
       {alertas.length === 0 ? (

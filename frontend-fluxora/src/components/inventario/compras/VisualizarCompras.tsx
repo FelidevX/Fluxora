@@ -267,9 +267,9 @@ export default function VisualizarCompras() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-x-hidden">
       {/* Header con filtros */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Historial de Compras
@@ -285,14 +285,14 @@ export default function VisualizarCompras() {
             variant="secondary"
             onClick={handleExportarTodasPDF}
             disabled={comprasFiltradas.length === 0}
-            className="text-sm cursor-pointer"
+            className="text-sm cursor-pointer whitespace-nowrap"
           >
             <MaterialIcon name="picture_as_pdf" className="mr-2" />
             Exportar a PDF ({comprasFiltradas.length})
           </Button>
 
           {/* Filtros rápidos */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={filtroReciente === null ? "primary" : "secondary"}
               onClick={() => handleFiltrarRecientes(null)}
@@ -359,20 +359,20 @@ export default function VisualizarCompras() {
       {/* Modal de Detalle */}
       {showDetalleModal && compraSeleccionada && (
         <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
           onClick={() => setShowDetalleModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg shadow-xl max-w-full md:max-w-3xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900">
                     Detalle de Compra
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     {compraSeleccionada.tipoDoc} {compraSeleccionada.numDoc}
                   </p>
                 </div>
@@ -385,9 +385,9 @@ export default function VisualizarCompras() {
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-6">
               {/* Información General */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Proveedor
@@ -400,7 +400,7 @@ export default function VisualizarCompras() {
                   <label className="text-sm font-medium text-gray-500">
                     Fecha de Compra
                   </label>
-                  <p className="text-base text-gray-900">
+                  <p className="text-sm md:text-base text-gray-900">
                     {new Date(
                       compraSeleccionada.fechaCompra
                     ).toLocaleDateString("es-CL", {
@@ -441,32 +441,32 @@ export default function VisualizarCompras() {
 
               {/* Lotes */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                <h4 className="text-base md:text-lg font-semibold text-gray-900 mb-3">
                   Lotes ({compraSeleccionada.lotes.length})
                 </h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto -mx-4 md:mx-0">
+                  <table className="w-full text-left text-xs md:text-sm min-w-[800px]">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-gray-700 font-medium">
+                        <th className="px-2 md:px-4 py-3 text-gray-700 font-medium">
                           Materia Prima
                         </th>
-                        <th className="px-4 py-3 text-gray-700 font-medium">
+                        <th className="px-2 md:px-4 py-3 text-gray-700 font-medium">
                           Cantidad
                         </th>
-                        <th className="px-4 py-3 text-gray-700 font-medium">
+                        <th className="px-2 md:px-4 py-3 text-gray-700 font-medium">
                           Stock Actual
                         </th>
-                        <th className="px-4 py-3 text-gray-700 font-medium">
+                        <th className="px-2 md:px-4 py-3 text-gray-700 font-medium">
                           Costo Unit.
                         </th>
-                        <th className="px-4 py-3 text-gray-700 font-medium">
+                        <th className="px-2 md:px-4 py-3 text-gray-700 font-medium">
                           Subtotal
                         </th>
-                        <th className="px-4 py-3 text-gray-700 font-medium">
+                        <th className="px-2 md:px-4 py-3 text-gray-700 font-medium">
                           N° Lote
                         </th>
-                        <th className="px-4 py-3 text-gray-700 font-medium">
+                        <th className="px-2 md:px-4 py-3 text-gray-700 font-medium">
                           Vencimiento
                         </th>
                       </tr>
@@ -474,13 +474,13 @@ export default function VisualizarCompras() {
                     <tbody className="divide-y divide-gray-200">
                       {compraSeleccionada.lotes.map((lote, index) => (
                         <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-gray-900">
+                          <td className="px-2 md:px-4 py-3 text-gray-900">
                             {lote.materiaPrimaNombre}
                           </td>
-                          <td className="px-4 py-3 text-gray-900">
+                          <td className="px-2 md:px-4 py-3 text-gray-900">
                             {lote.cantidad}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-2 md:px-4 py-3">
                             <span
                               className={`font-medium ${(lote.stockActual ?? lote.cantidad) <
                                 lote.cantidad
@@ -491,19 +491,19 @@ export default function VisualizarCompras() {
                               {lote.stockActual ?? lote.cantidad}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-gray-900">
+                          <td className="px-2 md:px-4 py-3 text-gray-900">
                             ${lote.costoUnitario.toLocaleString("es-CL")}
                           </td>
-                          <td className="px-4 py-3 text-gray-900 font-semibold">
+                          <td className="px-2 md:px-4 py-3 text-gray-900 font-semibold">
                             $
                             {(
                               lote.cantidad * lote.costoUnitario
                             ).toLocaleString("es-CL")}
                           </td>
-                          <td className="px-4 py-3 text-gray-900">
+                          <td className="px-2 md:px-4 py-3 text-gray-900">
                             {lote.numeroLote || "-"}
                           </td>
-                          <td className="px-4 py-3 text-gray-900">
+                          <td className="px-2 md:px-4 py-3 text-gray-900">
                             {lote.fechaVencimiento
                               ? new Date(
                                 lote.fechaVencimiento
@@ -518,11 +518,12 @@ export default function VisualizarCompras() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex gap-3 justify-end">
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   variant="secondary"
                   onClick={() => handleExportarPDF(compraSeleccionada)}
+                  className="w-full sm:w-auto"
                 >
                   <MaterialIcon name="picture_as_pdf" className="mr-2" />
                   Exportar PDF
@@ -530,6 +531,7 @@ export default function VisualizarCompras() {
                 <Button
                   variant="secondary"
                   onClick={() => setShowDetalleModal(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cerrar
                 </Button>

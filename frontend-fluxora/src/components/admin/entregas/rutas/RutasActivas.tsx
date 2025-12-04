@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 
 // Nuevas interfaces para el sistema de programación por fecha
 interface RutaProgramadaPorFecha {
@@ -151,16 +152,9 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
 
   if (rutas.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 px-4">
         <div className="mx-auto h-12 w-12 text-gray-400">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9m0 8V9m0 0V7"
-            />
-          </svg>
+          <MaterialIcon name="route" className="text-5xl" />
         </div>
         <h3 className="mt-2 text-sm font-medium text-gray-900">
           No hay rutas activas
@@ -168,24 +162,12 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
         <p className="mt-1 text-sm text-gray-500">
           No se encontraron rutas con entregas pendientes.
         </p>
-        <div className="mt-6 space-x-4">
+        <div className="mt-6">
           <button
             onClick={onRefresh}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
           >
-            <svg
-              className="h-4 w-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
+            <MaterialIcon name="refresh" className="mr-2" />
             Actualizar
           </button>
         </div>
@@ -212,40 +194,31 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-full overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
         <h2 className="text-lg font-medium text-gray-900">
           Programación de Rutas por Fecha
         </h2>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <label className="block text-sm font-medium text-gray-700">
+        <p className="text-sm text-gray-500">
+          Información correspondiente a cada ruta en la fecha seleccionada
+        </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+            <label className="block text-sm font-medium text-gray-700 whitespace-nowrap">
               Fecha:
             </label>
             <input
               type="date"
               value={fechaSeleccionada}
               onChange={(e) => handleFechaChange(e.target.value)}
-              className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-500"
+              className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-500 w-full sm:w-auto"
             />
           </div>
           <button
             onClick={() => fetchRutasPorFecha(fechaSeleccionada)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 w-full sm:w-auto whitespace-nowrap"
           >
-            <svg
-              className="h-4 w-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
+            <MaterialIcon name="refresh" className="mr-2" />
             Actualizar
           </button>
         </div>
@@ -264,16 +237,9 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
 
       {/* Mostrar rutas programadas por fecha */}
       {!loadingFecha && rutasPorFecha.length === 0 && (
-        <div className="text-center py-12">
+        <div className="text-center py-12 px-4">
           <div className="mx-auto h-12 w-12 text-gray-400">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a2 2 0 012 2v1l-10 10-4 4H3a2 2 0 01-2-2v-4l4-4 10-10v-1a2 2 0 012-2z"
-              />
-            </svg>
+            <MaterialIcon name="event_busy" className="text-5xl" />
           </div>
           <h3 className="mt-2 text-sm font-medium text-gray-900">
             No hay rutas programadas
@@ -294,69 +260,33 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
               className="bg-white border border-gray-200 rounded-lg shadow-sm"
             >
               {/* Header de la ruta */}
-              <div className="p-4 border-b border-gray-100">
-                <div className="flex items-center justify-between">
+              <div className="p-3 md:p-4 border-b border-gray-100">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-5 h-5 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9m0 8V9m0 0V7"
-                        />
-                      </svg>
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <MaterialIcon name="route" className="text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">
+                      <h3 className="font-semibold text-gray-800 text-sm md:text-base">
                         {rutaProgramada.ruta.nombre}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs md:text-sm text-gray-500">
                         {rutaProgramada.ruta.id_driver ? (
                           <span className="flex items-center gap-1">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                              />
-                            </svg>
+                            <MaterialIcon name="person" className="text-sm" />
                             Driver #{rutaProgramada.ruta.id_driver}
                           </span>
                         ) : (
                           <span className="text-orange-600 flex items-center gap-1">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                              />
-                            </svg>
+                            <MaterialIcon name="warning" className="text-sm" />
                             Sin asignar (Ver Gestión)
                           </span>
                         )}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">Total clientes</p>
+                  <div className="text-left sm:text-right">
+                    <p className="text-xs md:text-sm text-gray-500">Total clientes</p>
                     <p className="font-semibold text-gray-800">
                       {rutaProgramada.totalClientes}
                     </p>
@@ -365,7 +295,7 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
               </div>
 
               {/* Lista de clientes */}
-              <div className="p-4">
+              <div className="p-3 md:p-4">
                 <div className="space-y-3">
                   {rutaProgramada.clientes &&
                   rutaProgramada.clientes.length > 0 ? (
@@ -373,16 +303,16 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
                       (clienteData: any, clienteIndex: number) => (
                         <div
                           key={clienteIndex}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                               <span className="text-blue-600 font-semibold text-sm">
                                 {clienteData?.rutaCliente?.orden || 1}
                               </span>
                             </div>
-                            <div>
-                              <p className="font-medium text-gray-800">
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-800 text-sm md:text-base truncate">
                                 {clienteData?.cliente?.nombre ||
                                   (clienteData?.cliente as any)
                                     ?.nombreNegocio ||
@@ -390,15 +320,15 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
                                     clienteData?.cliente?.id || "N/A"
                                   }`}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-xs md:text-sm text-gray-500 truncate">
                                 {clienteData?.cliente?.direccion ||
                                   "Dirección no disponible"}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-3 sm:gap-4 pl-11 sm:pl-0">
+                            <div className="text-left sm:text-right">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm">
                                 <div>
                                   <span className="text-gray-600">
                                     Kg corriente:{" "}
@@ -434,18 +364,18 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
 
                 {/* Totales de la ruta */}
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-800">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <span className="font-medium text-gray-800 text-sm md:text-base">
                       Totales de la ruta:
                     </span>
-                    <div className="flex items-center gap-6">
-                      <div className="text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                      <div className="text-xs md:text-sm">
                         <span className="text-gray-600">Total corriente: </span>
                         <span className="font-semibold text-blue-600">
                           {rutaProgramada.totalKgCorriente || 0} kg
                         </span>
                       </div>
-                      <div className="text-sm">
+                      <div className="text-xs md:text-sm">
                         <span className="text-gray-600">Total especial: </span>
                         <span className="font-semibold text-green-600">
                           {rutaProgramada.totalKgEspecial || 0} kg

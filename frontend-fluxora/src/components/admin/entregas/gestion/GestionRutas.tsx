@@ -9,6 +9,7 @@ import { AsignarDriverModal } from "@/components/admin/entregas/gestion/componen
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 
 interface GestionRutasProps {
   rutas: RutaActiva[];
@@ -273,8 +274,8 @@ export function GestionRutas({
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-full overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
         <div>
           <h2 className="text-lg font-medium text-gray-900">
             Gestión de Rutas
@@ -285,21 +286,9 @@ export function GestionRutas({
         </div>
         <button
           onClick={() => setShowCrearModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 w-full sm:w-auto whitespace-nowrap"
         >
-          <svg
-            className="h-4 w-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
+          <MaterialIcon name="add" className="mr-2" />
           Crear Nueva Ruta
         </button>
       </div>

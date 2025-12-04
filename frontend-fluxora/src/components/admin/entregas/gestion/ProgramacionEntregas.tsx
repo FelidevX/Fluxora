@@ -302,7 +302,7 @@ export function ProgramacionEntregas({
     : rutasProgramadas;
 
   return (
-    <div>
+    <div className="max-w-full overflow-x-hidden">
       <div className="mb-6">
         <h2 className="text-lg font-medium text-gray-900 mb-2">
           Programación de Entregas

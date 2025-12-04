@@ -397,7 +397,7 @@ export function AsignarClientes() {
           type="checkbox"
           checked={clientesSeleccionados.includes(cliente.id)}
           onChange={() => toggleClienteSeleccionado(cliente.id)}
-          className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+          className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
         />
       ),
       className: "w-12",
@@ -406,14 +406,14 @@ export function AsignarClientes() {
       key: "nombre",
       label: "Nombre",
       render: (cliente: Cliente) => (
-        <span className="font-medium text-gray-900">{cliente.nombre}</span>
+        <span className="font-medium text-gray-900 text-sm">{cliente.nombre}</span>
       ),
     },
     {
       key: "direccion",
       label: "Dirección",
       render: (cliente: Cliente) => (
-        <span className="text-gray-600">{cliente.direccion}</span>
+        <span className="text-gray-600 text-sm">{cliente.direccion}</span>
       ),
     },
   ];
@@ -428,7 +428,7 @@ export function AsignarClientes() {
           type="checkbox"
           checked={clientesAsignadosSeleccionados.includes(cliente.id)}
           onChange={() => toggleClienteAsignadoSeleccionado(cliente.id)}
-          className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
       ),
       className: "w-12",
@@ -437,19 +437,19 @@ export function AsignarClientes() {
       key: "nombre",
       label: "Nombre",
       render: (cliente: ClienteConRutaDTO) => (
-        <span className="font-medium text-gray-900">{cliente.nombre}</span>
+        <span className="font-medium text-gray-900 text-sm">{cliente.nombre}</span>
       ),
     },
     {
       key: "direccion",
       label: "Dirección",
       render: (cliente: ClienteConRutaDTO) => (
-        <span className="text-gray-600">{cliente.direccion}</span>
+        <span className="text-gray-600 text-sm">{cliente.direccion}</span>
       ),
     },
     {
       key: "ruta",
-      label: "Ruta Asignada",
+      label: "Ruta",
       render: (cliente: ClienteConRutaDTO) => (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
           {cliente.rutaNombre}
@@ -484,28 +484,30 @@ export function AsignarClientes() {
 
   return (
     <Fragment>
-      <div className="mb-6">
-        <h2 className="text-lg font-medium text-gray-900">Asignar Clientes</h2>
-        <p className="text-sm text-gray-500">
-          Administra la asignación de clientes a rutas de entrega.
-        </p>
-      </div>
+      <div className="max-w-full overflow-x-hidden">
+        <div className="mb-6">
+          <h2 className="text-lg font-medium text-gray-900">Asignar Clientes</h2>
+          <p className="text-sm text-gray-500">
+            Administra la asignación de clientes a rutas de entrega.
+          </p>
+        </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-6 overflow-x-auto">
+          <nav className="-mb-px flex space-x-4 md:space-x-8 min-w-max">
           <button
             onClick={() => setActiveTab("sin-asignar")}
             className={`${
               activeTab === "sin-asignar"
                 ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center`}
+            } whitespace-nowrap py-3 md:py-4 px-1 border-b-2 font-medium text-xs md:text-sm transition-colors flex items-center`}
           >
-            <MaterialIcon name="person_add" className="mr-2" />
-            Clientes sin Asignar
+            <MaterialIcon name="person_add" className="mr-1 md:mr-2 text-base md:text-xl" />
+            <span className="hidden sm:inline">Clientes sin Asignar</span>
+            <span className="sm:hidden">Sin Asignar</span>
             {clientesSinAsignar.length > 0 && (
-              <span className="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2.5 rounded-full text-xs font-medium">
+              <span className="ml-1 md:ml-2 bg-blue-100 text-blue-600 py-0.5 px-1.5 md:px-2.5 rounded-full text-xs font-medium">
                 {clientesSinAsignar.length}
               </span>
             )}
@@ -516,12 +518,13 @@ export function AsignarClientes() {
               activeTab === "asignados"
                 ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center`}
+            } whitespace-nowrap py-3 md:py-4 px-1 border-b-2 font-medium text-xs md:text-sm transition-colors flex items-center`}
           >
-            <MaterialIcon name="assignment_ind" className="mr-2" />
-            Clientes Asignados
+            <MaterialIcon name="assignment_ind" className="mr-1 md:mr-2 text-base md:text-xl" />
+            <span className="hidden sm:inline">Clientes Asignados</span>
+            <span className="sm:hidden">Asignados</span>
             {clientesAsignados.length > 0 && (
-              <span className="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2.5 rounded-full text-xs font-medium">
+              <span className="ml-1 md:ml-2 bg-blue-100 text-blue-600 py-0.5 px-1.5 md:px-2.5 rounded-full text-xs font-medium">
                 {clientesAsignados.length}
               </span>
             )}
@@ -531,11 +534,11 @@ export function AsignarClientes() {
 
       {/* Contenido de tabs */}
       {activeTab === "sin-asignar" && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-2">
+        <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               {clientesSinAsignar.length > 0 && (
-                <Button variant="primary" onClick={toggleSeleccionarTodos}>
+                <Button variant="primary" onClick={toggleSeleccionarTodos} className="w-full sm:w-auto text-sm">
                   <MaterialIcon
                     name={
                       clientesSeleccionados.length ===
@@ -545,14 +548,16 @@ export function AsignarClientes() {
                     }
                     className="mr-2"
                   />
-                  {clientesSeleccionados.length ===
-                  clientesSinAsignarFiltrados.length
-                    ? "Deseleccionar Todos"
-                    : "Seleccionar Todos"}
+                  <span className="md:inline">
+                    {clientesSeleccionados.length ===
+                    clientesSinAsignarFiltrados.length
+                      ? "Deseleccionar Todos"
+                      : "Seleccionar Todos"}
+                  </span>
                 </Button>
               )}
               {clientesSeleccionados.length > 0 && (
-                <Button variant="success" onClick={handleAsignarClientes}>
+                <Button variant="success" onClick={handleAsignarClientes} className="w-full sm:w-auto text-sm">
                   <MaterialIcon name="add_road" className="mr-2" />
                   Asignar a Ruta ({clientesSeleccionados.length})
                 </Button>
@@ -579,12 +584,12 @@ export function AsignarClientes() {
       )}
 
       {activeTab === "asignados" && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-2 items-center">
+        <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-6">
+          <div className="flex flex-col gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               {/* Filtro por ruta */}
-              <div className="flex items-center gap-2">
-                <MaterialIcon name="filter_list" className="text-gray-600" />
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <MaterialIcon name="filter_list" className="text-gray-600 flex-shrink-0" />
                 <select
                   value={filtroRuta}
                   onChange={(e) =>
@@ -594,7 +599,7 @@ export function AsignarClientes() {
                         : Number(e.target.value)
                     )
                   }
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
                 >
                   <option value="todas">Todas las rutas</option>
                   {rutas.map((ruta) => (
@@ -605,33 +610,38 @@ export function AsignarClientes() {
                 </select>
               </div>
 
-              {clientesAsignados.length > 0 && (
-                <Button
-                  variant="primary"
-                  onClick={toggleSeleccionarTodosAsignados}
-                >
-                  <MaterialIcon
-                    name={
-                      clientesAsignadosSeleccionados.length ===
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {clientesAsignados.length > 0 && (
+                  <Button
+                    variant="primary"
+                    onClick={toggleSeleccionarTodosAsignados}
+                    className="w-full sm:w-auto text-sm"
+                  >
+                    <MaterialIcon
+                      name={
+                        clientesAsignadosSeleccionados.length ===
+                        clientesAsignadosFiltrados.length
+                          ? "check_box"
+                          : "check_box_outline_blank"
+                      }
+                      className="mr-2"
+                    />
+                    <span className="md:inline">
+                      {clientesAsignadosSeleccionados.length ===
                       clientesAsignadosFiltrados.length
-                        ? "check_box"
-                        : "check_box_outline_blank"
-                    }
-                    className="mr-2"
-                  />
-                  {clientesAsignadosSeleccionados.length ===
-                  clientesAsignadosFiltrados.length
-                    ? "Deseleccionar Todos"
-                    : "Seleccionar Todos"}
-                </Button>
-              )}
+                        ? "Deseleccionar Todos"
+                        : "Seleccionar Todos"}
+                    </span>
+                  </Button>
+                )}
 
-              {clientesAsignadosSeleccionados.length > 0 && (
-                <Button variant="warning" onClick={handleReasignarMultiple}>
-                  <MaterialIcon name="swap_horiz" className="mr-2" />
-                  Reasignar ({clientesAsignadosSeleccionados.length})
-                </Button>
-              )}
+                {clientesAsignadosSeleccionados.length > 0 && (
+                  <Button variant="warning" onClick={handleReasignarMultiple} className="w-full sm:w-auto text-sm">
+                    <MaterialIcon name="swap_horiz" className="mr-2" />
+                    Reasignar ({clientesAsignadosSeleccionados.length})
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -842,6 +852,7 @@ export function AsignarClientes() {
         onClose={removeToast}
         position="bottom-right"
       />
+      </div>
     </Fragment>
   );
 }

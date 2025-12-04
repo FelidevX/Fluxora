@@ -27,7 +27,7 @@ function MateriasContent() {
   }, [searchParams]);
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6 mt-12 md:mt-0">
       <div className="flex items-center justify-between mb-4">
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"

@@ -23,12 +23,12 @@ function InventarioContent() {
 
   if (activeView === "overview") {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Gestión de Inventario y Producción
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             Sistema completo de materias primas, recetas, producción e
             inventario
           </p>

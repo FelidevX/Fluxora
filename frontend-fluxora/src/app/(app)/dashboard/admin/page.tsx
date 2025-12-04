@@ -26,12 +26,12 @@ function AdminContent() {
 
   if (activeView === "overview") {
     return (
-      <div className="p-6 min-h-screen bg-gray-50">
+      <div className="p-4 md:p-6 min-h-screen bg-gray-50 mt-12 md:mt-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Panel de Administración
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             Administra usuarios, roles y configuración del sistema
           </p>
         </div>
@@ -62,7 +62,7 @@ function AdminContent() {
 
   if (activeView === "usuarios") {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
         <div className="mb-6">
           <button
             onClick={() => setActiveView("overview")}
@@ -78,7 +78,7 @@ function AdminContent() {
 
   if (activeView === "sistema") {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
         <div className="mb-6">
           <button
             onClick={() => setActiveView("overview")}

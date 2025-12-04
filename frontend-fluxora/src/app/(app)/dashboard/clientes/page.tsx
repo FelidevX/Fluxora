@@ -174,7 +174,7 @@ const ClientesPage = () => {
 
   return (
     <ProtectedRoute requiredModule="clientes">
-    <div className="p-4 md:p-6 max-w-full overflow-x-hidden min-h-screen bg-gray-50">
+    <div className="p-4 md:p-6 max-w-full overflow-x-hidden min-h-screen bg-gray-50 mt-12 md:mt-0">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-800">

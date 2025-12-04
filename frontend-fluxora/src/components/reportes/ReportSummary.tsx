@@ -115,22 +115,22 @@ export default function ReportSummary({ resumen, tipo }: ReportSummaryProps) {
   const metricas = getMetricas();
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6 mb-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-4 md:p-6 mb-4 md:mb-6">
+      <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
         <span>Resumen del Reporte</span>
       </h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {metricas.map((metrica, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg p-4 shadow-sm border border-gray-100"
+            className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-100"
           >
             <div className="flex items-center gap-2 mb-1">
               <p className="text-xs text-gray-600 font-medium">
                 {metrica.label}
               </p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{metrica.value}</p>
+            <p className="text-lg md:text-2xl font-bold text-gray-900">{metrica.value}</p>
           </div>
         ))}
       </div>

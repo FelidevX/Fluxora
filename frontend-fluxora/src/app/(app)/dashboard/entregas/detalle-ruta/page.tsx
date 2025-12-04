@@ -172,7 +172,7 @@ function DetalleRutaContent() {
   const tiempoEstimado = JSON.parse(osrmRoute)?.routes?.[0]?.duration / 60 || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 mt-12 md:mt-0">
       <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header con breadcrumb */}
         <div className="mb-2 sm:mb-4">

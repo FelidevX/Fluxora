@@ -293,10 +293,10 @@ function DashboardHome() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6 mt-12 md:mt-0">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Panel de Inicio</h1>
-        <div className="flex items-center gap-2 text-gray-600">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Panel de Inicio</h1>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Resumen general</span>
           <span className="text-sm text-gray-400">|</span>
           <span className="text-sm">{formattedDate}</span>

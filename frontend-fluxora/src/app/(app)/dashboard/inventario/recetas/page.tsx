@@ -151,27 +151,61 @@ export default function RecetasManager() {
     setIngredientes(nuevosIngredientes);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
+    console.log("=== INICIANDO CREACIÓN DE RECETA ===");
+    console.log("Formulario:", formulario);
+    console.log("Ingredientes:", ingredientes);
 
-    if (
-      !formulario.nombre ||
-      !formulario.descripcion ||
-      ingredientes.length === 0
-    ) {
+    // Validar campos básicos
+    if (!formulario.nombre) {
+      showError("Por favor ingrese el nombre de la receta", "Campo requerido");
+      return;
+    }
+
+    if (!formulario.descripcion) {
+      showError(
+        "Por favor ingrese la descripción de la receta",
+        "Campo requerido"
+      );
+      return;
+    }
+
+    if (ingredientes.length === 0) {
+      showError(
+        "Debe agregar al menos un ingrediente a la receta",
+        "Ingredientes requeridos"
+      );
       return;
     }
 
     // Validar que todos los ingredientes tengan materia prima seleccionada
-    const ingredientesIncompletos = ingredientes.some(
-      (ing) => ing.materiaPrimaId === 0 || ing.cantidadNecesaria <= 0
+    const ingredientesSinMateria = ingredientes.find(
+      (ing) => ing.materiaPrimaId === 0
     );
 
-    if (ingredientesIncompletos) {
+    if (ingredientesSinMateria) {
+      showError(
+        "Todos los ingredientes deben tener una materia prima seleccionada",
+        "Ingredientes incompletos"
+      );
+      return;
+    }
+
+    const ingredientesSinCantidad = ingredientes.find(
+      (ing) => ing.cantidadNecesaria <= 0
+    );
+
+    if (ingredientesSinCantidad) {
+      showError(
+        "Todos los ingredientes deben tener una cantidad mayor a 0",
+        "Cantidades inválidas"
+      );
       return;
     }
 
     try {
+      console.log("Preparando datos de receta...");
       const nuevaReceta: RecetaMaestraDTO = {
         ...formulario,
         ingredientes: ingredientes.map((ing) => {
@@ -183,7 +217,9 @@ export default function RecetasManager() {
         }),
       };
 
+      console.log("Receta a crear:", nuevaReceta);
       await crearReceta(nuevaReceta);
+      console.log("Receta creada exitosamente");
       success("Receta creada exitosamente", "¡Éxito!");
 
       // Limpiar formulario
@@ -200,8 +236,11 @@ export default function RecetasManager() {
       setIngredientes([]);
       setShowForm(false);
     } catch (err) {
-      console.error(err);
-      showError("Error al crear la receta", "Error");
+      console.error("Error completo al crear receta:", err);
+      showError(
+        err instanceof Error ? err.message : "Error al crear la receta",
+        "Error"
+      );
     }
   };
 
@@ -374,7 +413,9 @@ export default function RecetasManager() {
           <div className="text-xs md:text-sm font-medium text-gray-900">
             {receta.nombre}
           </div>
-          <div className="text-xs md:text-sm text-gray-500">{receta.descripcion}</div>
+          <div className="text-xs md:text-sm text-gray-500">
+            {receta.descripcion}
+          </div>
         </div>
       ),
     },
@@ -547,7 +588,9 @@ export default function RecetasManager() {
             disabled={recetasFiltradas.length === 0}
             className="w-full sm:w-auto text-sm"
           >
-            <span className="hidden md:inline">Exportar a PDF ({recetasFiltradas.length})</span>
+            <span className="hidden md:inline">
+              Exportar a PDF ({recetasFiltradas.length})
+            </span>
             <span className="md:hidden">PDF ({recetasFiltradas.length})</span>
           </Button>
           <Button
@@ -556,7 +599,9 @@ export default function RecetasManager() {
             onClick={handleOpenRepairModal}
             className="w-full sm:w-auto text-sm"
           >
-            <span className="hidden md:inline">Reparar recetas manualmente</span>
+            <span className="hidden md:inline">
+              Reparar recetas manualmente
+            </span>
             <span className="md:hidden">Reparar</span>
           </Button>
         </div>
@@ -870,7 +915,11 @@ export default function RecetasManager() {
 
             <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                <Button variant="secondary" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowForm(false)}
+                  className="w-full sm:w-auto"
+                >
                   Cancelar
                 </Button>
                 <Button
@@ -1168,7 +1217,10 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmitEdicion} className="p-4 md:p-6 space-y-6">
+            <form
+              onSubmit={handleSubmitEdicion}
+              className="p-4 md:p-6 space-y-6"
+            >
               {/* Información básica */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input

@@ -134,19 +134,29 @@ export default function GestionMateriasPrimas() {
 
   const fetchLotes = async (materiaId: number) => {
     try {
+      let token = localStorage.getItem("auth_token");
+
+      if (token?.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${materiaId}/lotes`
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${materiaId}/lotes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (!res.ok) throw new Error("Error al obtener lotes");
       const data = await res.json();
       // Filtrar solo lotes con stock_actual > 0
       const lotesConStock = Array.isArray(data)
         ? data.filter((lote: any) => {
-          // Usar stockActual si existe, sino usar cantidad como fallback
-          const stock =
-            lote.stockActual !== undefined ? lote.stockActual : lote.cantidad;
-          return stock > 0;
-        })
+            // Usar stockActual si existe, sino usar cantidad como fallback
+            const stock =
+              lote.stockActual !== undefined ? lote.stockActual : lote.cantidad;
+            return stock > 0;
+          })
         : [];
       setLotes(lotesConStock);
     } catch (err) {
@@ -182,7 +192,9 @@ export default function GestionMateriasPrimas() {
       key: "unidad",
       label: "Unidad",
       render: (materia: MateriaPrima) => (
-        <span className="text-xs md:text-sm text-gray-900">{materia.unidad || ""}</span>
+        <span className="text-xs md:text-sm text-gray-900">
+          {materia.unidad || ""}
+        </span>
       ),
     },
     {
@@ -286,7 +298,11 @@ export default function GestionMateriasPrimas() {
             </div>
 
             <div className="md:col-span-2 flex flex-col sm:flex-row gap-2">
-              <Button type="submit" variant="success" className="w-full sm:w-auto text-sm">
+              <Button
+                type="submit"
+                variant="success"
+                className="w-full sm:w-auto text-sm"
+              >
                 Guardar
               </Button>
               <Button
@@ -351,7 +367,10 @@ export default function GestionMateriasPrimas() {
                   onClick={handleCancelStock}
                   className="text-gray-400 hover:text-gray-600 flex-shrink-0"
                 >
-                  <MaterialIcon name="close" className="w-5 h-5 md:w-6 md:h-6" />
+                  <MaterialIcon
+                    name="close"
+                    className="w-5 h-5 md:w-6 md:h-6"
+                  />
                 </button>
               </div>
             </div>
@@ -371,11 +390,15 @@ export default function GestionMateriasPrimas() {
                           <span className="sm:hidden">Compra</span>
                         </th>
                         <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium">
-                          <span className="hidden sm:inline">Fecha Vencimiento</span>
+                          <span className="hidden sm:inline">
+                            Fecha Vencimiento
+                          </span>
                           <span className="sm:hidden">Venc.</span>
                         </th>
                         <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium text-right">
-                          <span className="hidden sm:inline">Cantidad Original</span>
+                          <span className="hidden sm:inline">
+                            Cantidad Original
+                          </span>
                           <span className="sm:hidden">Original</span>
                         </th>
                         <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium text-right">
@@ -383,7 +406,9 @@ export default function GestionMateriasPrimas() {
                           <span className="sm:hidden">Stock</span>
                         </th>
                         <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium text-right">
-                          <span className="hidden sm:inline">Costo Unitario</span>
+                          <span className="hidden sm:inline">
+                            Costo Unitario
+                          </span>
                           <span className="sm:hidden">Costo</span>
                         </th>
                       </tr>
@@ -405,8 +430,8 @@ export default function GestionMateriasPrimas() {
                             <td className="py-2 md:py-3 px-2 md:px-4 text-gray-900">
                               {lote.fechaCompra
                                 ? new Date(lote.fechaCompra).toLocaleDateString(
-                                  "es-CL"
-                                )
+                                    "es-CL"
+                                  )
                                 : "-"}
                             </td>
                             <td className="py-2 md:py-3 px-2 md:px-4">
@@ -418,7 +443,9 @@ export default function GestionMateriasPrimas() {
                                 </span>
                               ) : (
                                 <span className="text-gray-400 text-xs">
-                                  <span className="hidden sm:inline">Sin vencimiento</span>
+                                  <span className="hidden sm:inline">
+                                    Sin vencimiento
+                                  </span>
                                   <span className="sm:hidden">-</span>
                                 </span>
                               )}
@@ -429,10 +456,11 @@ export default function GestionMateriasPrimas() {
                             <td className="py-2 md:py-3 px-2 md:px-4 text-right">
                               <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1">
                                 <span
-                                  className={`font-semibold ${porcentajeConsumido > 50
-                                    ? "text-orange-600"
-                                    : "text-green-600"
-                                    }`}
+                                  className={`font-semibold ${
+                                    porcentajeConsumido > 50
+                                      ? "text-orange-600"
+                                      : "text-green-600"
+                                  }`}
                                 >
                                   {stockActual} {materiaAActualizar?.unidad}
                                 </span>
@@ -446,9 +474,9 @@ export default function GestionMateriasPrimas() {
                             <td className="py-2 md:py-3 px-2 md:px-4 text-right text-gray-900">
                               {typeof lote.costoUnitario === "number"
                                 ? lote.costoUnitario.toLocaleString("es-CL", {
-                                  style: "currency",
-                                  currency: "CLP",
-                                })
+                                    style: "currency",
+                                    currency: "CLP",
+                                  })
                                 : "-"}
                             </td>
                           </tr>
@@ -475,7 +503,11 @@ export default function GestionMateriasPrimas() {
 
             <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex gap-3 justify-end">
-                <Button variant="secondary" onClick={handleCancelStock} className="w-full sm:w-auto text-sm">
+                <Button
+                  variant="secondary"
+                  onClick={handleCancelStock}
+                  className="w-full sm:w-auto text-sm"
+                >
                   Cerrar
                 </Button>
               </div>

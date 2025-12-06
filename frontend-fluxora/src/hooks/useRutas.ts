@@ -303,7 +303,7 @@ export function useRutas() {
         const data = await response.json();
         return {
           orderedClients: data.orderedClients,
-          osrmRoute: JSON.parse(data.osrmRoute),
+          osrmRoute: data.osrmRoute,
           origen: data.origen,
         };
       } catch (err) {

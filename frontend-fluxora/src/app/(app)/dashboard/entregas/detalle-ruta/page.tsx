@@ -76,7 +76,7 @@ function DetalleRutaContent() {
       setRutaData({
         ruta: rutaCompleta,
         orderedClients: rutaOptimizada.orderedClients,
-        osrmRoute: JSON.stringify(rutaOptimizada.osrmRoute),
+        osrmRoute: rutaOptimizada.osrmRoute,
         origen: rutaOptimizada.origen,
         driver: rutaCompleta.driver,
       });

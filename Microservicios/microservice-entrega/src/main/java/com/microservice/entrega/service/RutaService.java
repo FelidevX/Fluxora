@@ -68,6 +68,7 @@ public class RutaService {
         List<ClienteDTO> clientesOrdenados = new ArrayList<>(clientes);
         clientesOrdenados.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
 
+        System.out.println("Clientes ordenados por ID: " + clientesOrdenados);
         // Se construye la matriz de distancias
         int size = clientesOrdenados.size() + 1;
         Ruta origen = getOrigenRuta(id_ruta);
@@ -181,7 +182,11 @@ public class RutaService {
     public List<ClienteDTO> getClientesDeRuta(Long id_ruta) {
         List<RutaCliente> rutaCliente = rutaClienteRepository.findById_ruta(id_ruta);
         List<Long> idClientes = rutaCliente.stream().map(RutaCliente::getId_cliente).toList();
-        return clienteServiceClient.getClientesByIds(idClientes);
+        List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(idClientes);
+        
+        // Ordenar por ID para consistencia
+        clientes.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+        return clientes;
     }
 
     public List<Ruta> getAllRutas() {
@@ -489,7 +494,11 @@ public class RutaService {
                 return new ArrayList<>();
             }
             
-            return clienteServiceClient.getClientesByIds(idClientes);
+            List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(idClientes);
+            
+            // Ordenar por ID para consistencia
+            clientes.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+            return clientes;
         } catch (Exception e) {
             throw new RuntimeException("Error al obtener clientes con programación: " + e.getMessage());
         }

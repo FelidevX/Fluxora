@@ -107,7 +107,7 @@ export default function DriverHomePage() {
   // Función para cargar entregas del pedido actual
   const cargarEntregasRealizadas = async () => {
     try {
-      const token = getAuthToken();
+      let token = getAuthToken();
       if (!token) return;
 
       if (token.startsWith("Bearer ")) {
@@ -184,7 +184,7 @@ export default function DriverHomePage() {
 
       // Paso 2: Obtener la programación de entregas del día
       const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
-      
+
       const programacionResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programacion/${rutaId}/${today}`,
         {
@@ -195,7 +195,7 @@ export default function DriverHomePage() {
       );
 
       if (!programacionResponse.ok) {
-        throw new Error('Error al obtener la programación de entregas');
+        throw new Error("Error al obtener la programación de entregas");
       }
 
       const programacionData = await programacionResponse.json();
@@ -207,10 +207,13 @@ export default function DriverHomePage() {
         new Set(programacionData.map((p: any) => p.id_cliente))
       );
 
-      console.log('Clientes con entregas programadas para hoy:', clientesConEntregas);
+      console.log(
+        "Clientes con entregas programadas para hoy:",
+        clientesConEntregas
+      );
 
       if (clientesConEntregas.length === 0) {
-        setError('No hay entregas programadas para hoy.');
+        setError("No hay entregas programadas para hoy.");
         setLoading(false);
         return;
       }
@@ -220,19 +223,19 @@ export default function DriverHomePage() {
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}/${today}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      
-      if (!response.ok) throw new Error('Error al cargar la ruta');
-      
+
+      if (!response.ok) throw new Error("Error al cargar la ruta");
+
       const data = await response.json();
-      console.log('Datos de ruta optimizada recibidos:', data);
-      
+      console.log("Datos de ruta optimizada recibidos:", data);
+
       // Verificar si hay un mensaje de error o sin entregas
       if (data.message || data.orderedClients.length === 0) {
-        setError(data.message || 'No hay entregas programadas para hoy.');
+        setError(data.message || "No hay entregas programadas para hoy.");
         setLoading(false);
         return;
       }
@@ -609,9 +612,7 @@ export default function DriverHomePage() {
 
       {/* Contenido de las pantallas */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === "ruta" && (
-          <PantallaRuta rutaData={rutaData} programacion={programacion} />
-        )}
+        {activeTab === "ruta" && <PantallaRuta rutaData={rutaData} />}
         {activeTab === "clientes" && rutaData && (
           <PantallaClientes
             orderedClients={rutaData.orderedClients}

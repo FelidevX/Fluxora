@@ -64,14 +64,18 @@ public class RutaService {
 
     public List<ClienteDTO> getOptimizedRouteORTools(Long id_ruta, List<ClienteDTO> clientes) {
 
+        // Ordenar clientes por ID para garantizar consistencia en el orden de entrada
+        List<ClienteDTO> clientesOrdenados = new ArrayList<>(clientes);
+        clientesOrdenados.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+
         // Se construye la matriz de distancias
-        int size = clientes.size() + 1;
+        int size = clientesOrdenados.size() + 1;
         Ruta origen = getOrigenRuta(id_ruta);
 
-        List<double[]> locations = new ArrayList();
+        List<double[]> locations = new ArrayList<>();
         locations.add(new double[] { origen.getLatitud(), origen.getLongitud() });
 
-        for (ClienteDTO c : clientes) {
+        for (ClienteDTO c : clientesOrdenados) {
             locations.add(new double[] { c.getLatitud(), c.getLongitud() });
         }
 
@@ -99,7 +103,7 @@ public class RutaService {
             while (!routing.isEnd(index)) {
                 int nodeIndex = manager.indexToNode(index);
                 if (nodeIndex != 0) {
-                    orderedClients.add(clientes.get(nodeIndex - 1));
+                    orderedClients.add(clientesOrdenados.get(nodeIndex - 1));
                 }
                 index = solution.value(routing.nextVar(index));
             }

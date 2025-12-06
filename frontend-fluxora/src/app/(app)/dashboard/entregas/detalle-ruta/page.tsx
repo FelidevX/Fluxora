@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import { RutaActiva, ClienteDTO } from "@/interfaces/entregas/entregas";
+import { useRutas } from "@/hooks/useRutas";
 
 // Importación dinámica del mapa para evitar SSR
 const MapaRuta = dynamic(() => import("@/components/driver/ruta/MapaRuta"), {
@@ -39,142 +40,81 @@ function DetalleRutaContent() {
   const router = useRouter();
   const rutaId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(true);
   const [rutaData, setRutaData] = useState<RutaDetalleData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loadingLocal, setLoadingLocal] = useState(true);
+  const [errorLocal, setErrorLocal] = useState<string | null>(null);
+  
+  const { 
+    loading, 
+    error, 
+    fetchRutaDetalle, 
+    fetchRutaOptimizada 
+  } = useRutas();
 
   useEffect(() => {
     if (!rutaId) {
-      setError("No se proporcionó ID de ruta");
-      setLoading(false);
+      setLoadingLocal(false);
       return;
     }
 
-    fetchRutaDetalle();
+    loadRutaDetalle();
   }, [rutaId]);
 
-  const fetchRutaDetalle = async () => {
-    setLoading(true);
-    setError(null);
+  const loadRutaDetalle = async () => {
+    if (!rutaId) return;
+
+    setLoadingLocal(true);
+    setErrorLocal(null);
 
     try {
-      let token = localStorage.getItem("auth_token");
-      if (!token) {
-        throw new Error("No se encontró el token de autenticación");
-      }
+      // Obtener detalle completo de la ruta con progreso
+      const rutaCompleta = await fetchRutaDetalle(rutaId);
 
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
-      // Obtener todas las rutas activas y filtrar por ID
-      const rutasResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-activas`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!rutasResponse.ok) {
-        throw new Error("Error al cargar las rutas activas");
-      }
-
-      const rutasActivas = await rutasResponse.json();
-      const ruta: RutaActiva | undefined = rutasActivas.find(
-        (r: RutaActiva) => r.id === parseInt(rutaId!)
-      );
-
-      if (!ruta) {
-        throw new Error("Ruta no encontrada");
-      }
-
-      // Obtener clientes de la ruta usando el endpoint correcto
-      const clientesResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/clientes/${rutaId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!clientesResponse.ok) {
-        throw new Error("Error al cargar los clientes de la ruta");
-      }
-
-      const clientes: ClienteDTO[] = await clientesResponse.json();
-
-      // Obtener información del driver si está asignado
-      let driver = null;
-      if (ruta.id_driver) {
-        try {
-          const driverResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE}/api/usuarios/usuarios/${ruta.id_driver}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (driverResponse.ok) {
-            driver = await driverResponse.json();
-          }
-        } catch (err) {
-          console.warn("No se pudo cargar la información del driver");
-        }
-      }
-
-      // Calcular ruta optimizada con OSRM si hay clientes
-      let osrmRoute = null;
-      const origen = {
-        latitud: -36.612523,
-        longitud: -72.082921,
-      };
-
-      if (clientes.length > 0) {
-        try {
-          // Construir coordenadas para OSRM
-          const coordinates = [
-            `${origen.longitud},${origen.latitud}`,
-            ...clientes.map((c) => `${c.longitud},${c.latitud}`),
-            `${origen.longitud},${origen.latitud}`, // Volver al origen
-          ].join(";");
-
-          const osrmResponse = await fetch(
-            `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson`
-          );
-
-          if (osrmResponse.ok) {
-            const osrmData = await osrmResponse.json();
-            osrmRoute = JSON.stringify(osrmData);
-          }
-        } catch (err) {
-          console.warn("No se pudo calcular la ruta optimizada");
-        }
-      }
+      // Obtener ruta optimizada desde el backend (con OR-Tools)
+      const rutaOptimizada = await fetchRutaOptimizada(rutaId);
 
       setRutaData({
-        ruta,
-        orderedClients: clientes,
-        osrmRoute: osrmRoute || JSON.stringify({ routes: [] }),
-        origen,
-        driver,
+        ruta: rutaCompleta,
+        orderedClients: rutaOptimizada.orderedClients,
+        osrmRoute: rutaOptimizada.osrmRoute,
+        origen: rutaOptimizada.origen,
+        driver: rutaCompleta.driver,
       });
+      setErrorLocal(null);
     } catch (err) {
       console.error("Error al cargar detalle de ruta:", err);
-      setError(err instanceof Error ? err.message : "Error al cargar la ruta");
+      setErrorLocal(error || "Error al cargar la información de la ruta");
     } finally {
-      setLoading(false);
+      setLoadingLocal(false);
     }
   };
 
-  if (loading) {
+  // Mostrar error solo si no se proporcionó ID
+  if (!rutaId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <MaterialIcon name="error" className="text-6xl" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Error al cargar la ruta
+          </h2>
+          <p className="text-gray-600 mb-4">No se proporcionó ID de ruta</p>
+          <Link
+            href="/dashboard/entregas/rutas"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <MaterialIcon name="arrow_back" className="mr-2" />
+            Volver a Rutas
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar loading mientras está cargando
+  if (loadingLocal) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -185,7 +125,8 @@ function DetalleRutaContent() {
     );
   }
 
-  if (error || !rutaData) {
+  // Mostrar error si hubo un error O si no hay datos después de cargar
+  if (errorLocal || !rutaData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="text-center">
@@ -195,14 +136,23 @@ function DetalleRutaContent() {
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Error al cargar la ruta
           </h2>
-          <p className="text-gray-600 mb-4">{error || "Ruta no encontrada"}</p>
-          <Link
-            href="/dashboard/entregas/rutas"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <MaterialIcon name="arrow_back" className="mr-2" />
-            Volver a Rutas
-          </Link>
+          <p className="text-gray-600 mb-4">{errorLocal || "No se pudo cargar la información de la ruta"}</p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={loadRutaDetalle}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <MaterialIcon name="refresh" className="mr-2" />
+              Reintentar
+            </button>
+            <Link
+              href="/dashboard/entregas/rutas"
+              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              <MaterialIcon name="arrow_back" className="mr-2" />
+              Volver
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -216,55 +166,56 @@ function DetalleRutaContent() {
   const tiempoEstimado = JSON.parse(osrmRoute)?.routes?.[0]?.duration / 60 || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 mt-12 md:mt-0">
+      <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header con breadcrumb */}
-        <div className="mb-4">
+        <div className="mb-2 sm:mb-4">
           <Link
             href="/dashboard/entregas/rutas"
-            className="text-blue-600 hover:text-blue-800 flex items-center font-bold cursor-pointer"
+            className="text-blue-600 hover:text-blue-800 flex items-center font-bold cursor-pointer text-sm sm:text-base"
           >
             <MaterialIcon name="arrow_back" className="mr-1" />
-            <span>Volver a Gestión de Rutas</span>
+            <span className="hidden sm:inline">Volver a Gestión de Rutas</span>
+            <span className="sm:hidden">Volver</span>
           </Link>
         </div>
 
         {/* Título y estadísticas principales */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">
                 {ruta.nombre}
               </h1>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
                 <div className="flex items-center gap-1">
-                  <MaterialIcon name="location_on" className="text-blue-600" />
+                  <MaterialIcon name="location_on" className="text-blue-600 text-base sm:text-lg" />
                   <span>{orderedClients.length} clientes</span>
                 </div>
                 {driver && (
                   <div className="flex items-center gap-1">
-                    <MaterialIcon name="person" className="text-green-600" />
-                    <span>{driver.nombre}</span>
+                    <MaterialIcon name="person" className="text-green-600 text-base sm:text-lg" />
+                    <span className="truncate max-w-[150px] sm:max-w-none">{driver.nombre}</span>
                   </div>
                 )}
                 {!driver && (
                   <div className="flex items-center gap-1">
                     <MaterialIcon
                       name="person_off"
-                      className="text-orange-600"
+                      className="text-orange-600 text-base sm:text-lg"
                     />
-                    <span>Sin driver asignado</span>
+                    <span>Sin driver</span>
                   </div>
                 )}
               </div>
             </div>
-            <div className="flex gap-2">
-              <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-center">
-                <div className="text-2xl font-bold">{ruta.progreso || 0}%</div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="bg-blue-100 text-blue-800 px-3 sm:px-4 py-2 rounded-lg text-center flex-1 sm:flex-initial">
+                <div className="text-xl sm:text-2xl font-bold">{ruta.progreso || 0}%</div>
                 <div className="text-xs">Progreso</div>
               </div>
-              <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-center">
-                <div className="text-2xl font-bold">
+              <div className="bg-green-100 text-green-800 px-3 sm:px-4 py-2 rounded-lg text-center flex-1 sm:flex-initial">
+                <div className="text-xl sm:text-2xl font-bold">
                   {ruta.entregasCompletadas || 0}/{ruta.totalClientes || 0}
                 </div>
                 <div className="text-xs">Entregas</div>
@@ -274,45 +225,45 @@ function DetalleRutaContent() {
 
           {/* Estadísticas de ruta */}
           {distanciaTotal > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-100 p-3 rounded-lg">
+                <div className="bg-purple-100 p-2 sm:p-3 rounded-lg flex-shrink-0">
                   <MaterialIcon
                     name="route"
-                    className="text-purple-600 text-2xl"
+                    className="text-purple-600 text-xl sm:text-2xl"
                   />
                 </div>
-                <div>
-                  <div className="text-sm text-gray-600">Distancia Total</div>
-                  <div className="text-lg font-semibold text-gray-900">
+                <div className="min-w-0">
+                  <div className="text-xs sm:text-sm text-gray-600">Distancia Total</div>
+                  <div className="text-base sm:text-lg font-semibold text-gray-900">
                     {distanciaTotal.toFixed(1)} km
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-orange-100 p-3 rounded-lg">
+                <div className="bg-orange-100 p-2 sm:p-3 rounded-lg flex-shrink-0">
                   <MaterialIcon
                     name="schedule"
-                    className="text-orange-600 text-2xl"
+                    className="text-orange-600 text-xl sm:text-2xl"
                   />
                 </div>
-                <div>
-                  <div className="text-sm text-gray-600">Tiempo Estimado</div>
-                  <div className="text-lg font-semibold text-gray-900">
+                <div className="min-w-0">
+                  <div className="text-xs sm:text-sm text-gray-600">Tiempo Estimado</div>
+                  <div className="text-base sm:text-lg font-semibold text-gray-900">
                     {Math.round(tiempoEstimado)} min
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="bg-cyan-100 p-3 rounded-lg">
+              <div className="flex items-center gap-3 sm:col-span-2 md:col-span-1">
+                <div className="bg-cyan-100 p-2 sm:p-3 rounded-lg flex-shrink-0">
                   <MaterialIcon
                     name="speed"
-                    className="text-cyan-600 text-2xl"
+                    className="text-cyan-600 text-xl sm:text-2xl"
                   />
                 </div>
-                <div>
-                  <div className="text-sm text-gray-600">Velocidad Media</div>
-                  <div className="text-lg font-semibold text-gray-900">
+                <div className="min-w-0">
+                  <div className="text-xs sm:text-sm text-gray-600">Velocidad Media</div>
+                  <div className="text-base sm:text-lg font-semibold text-gray-900">
                     {tiempoEstimado > 0
                       ? (distanciaTotal / (tiempoEstimado / 60)).toFixed(1)
                       : "0"}{" "}
@@ -326,13 +277,13 @@ function DetalleRutaContent() {
 
         {/* Mapa */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <div className="p-3 sm:p-4 border-b border-gray-200">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
               <MaterialIcon name="map" className="text-blue-600" />
               Visualización de Ruta
             </h2>
           </div>
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             {orderedClients.length > 0 ? (
               <MapaRuta
                 clientes={orderedClients}
@@ -340,10 +291,10 @@ function DetalleRutaContent() {
                 origen={origen}
               />
             ) : (
-              <div className="bg-gray-100 rounded-lg h-96 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <MaterialIcon name="location_off" className="text-6xl mb-2" />
-                  <p>No hay clientes asignados a esta ruta</p>
+              <div className="bg-gray-100 rounded-lg h-64 sm:h-80 md:h-96 flex items-center justify-center">
+                <div className="text-center text-gray-500 px-4">
+                  <MaterialIcon name="location_off" className="text-4xl sm:text-6xl mb-2" />
+                  <p className="text-sm sm:text-base">No hay clientes asignados a esta ruta</p>
                 </div>
               </div>
             )}
@@ -352,11 +303,12 @@ function DetalleRutaContent() {
 
         {/* Lista de clientes */}
         {orderedClients.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <MaterialIcon name="list" className="text-blue-600" />
-                Orden de Visitas ({orderedClients.length})
+                <span className="hidden sm:inline">Orden de Visitas ({orderedClients.length})</span>
+                <span className="sm:hidden">Visitas ({orderedClients.length})</span>
               </h2>
             </div>
 
@@ -364,13 +316,13 @@ function DetalleRutaContent() {
               {orderedClients.map((cliente, index) => (
                 <div
                   key={cliente.id}
-                  className="bg-gray-50 hover:bg-gray-100 p-4 rounded-lg border border-gray-200 transition-all"
+                  className="bg-gray-50 hover:bg-gray-100 p-3 sm:p-4 rounded-lg border border-gray-200 transition-all"
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
                     {/* Número de orden */}
                     <div
                       className={`
-                      flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white text-base font-bold shadow-md
+                      flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md
                       ${
                         index === 0
                           ? "bg-green-500"
@@ -385,56 +337,56 @@ function DetalleRutaContent() {
 
                     {/* Información del cliente */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 text-lg mb-1">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-4">
+                        <div className="flex-1 min-w-0 w-full">
+                          <h3 className="font-semibold text-gray-900 text-base sm:text-lg mb-1 break-words">
                             {cliente.nombreNegocio || cliente.nombre}
                           </h3>
-                          <div className="space-y-1 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
+                          <div className="space-y-1 text-xs sm:text-sm text-gray-600">
+                            <div className="flex items-start gap-2">
                               <MaterialIcon
                                 name="location_on"
-                                className="text-gray-400 text-base"
+                                className="text-gray-400 text-sm sm:text-base flex-shrink-0 mt-0.5"
                               />
-                              <span>{cliente.direccion}</span>
+                              <span className="break-words">{cliente.direccion}</span>
                             </div>
                             {cliente.contacto && (
                               <div className="flex items-center gap-2">
                                 <MaterialIcon
                                   name="phone"
-                                  className="text-gray-400 text-base"
+                                  className="text-gray-400 text-sm sm:text-base flex-shrink-0"
                                 />
-                                <span>{cliente.contacto}</span>
+                                <span className="break-all">{cliente.contacto}</span>
                               </div>
                             )}
                             {cliente.email && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-start gap-2">
                                 <MaterialIcon
                                   name="email"
-                                  className="text-gray-400 text-base"
+                                  className="text-gray-400 text-sm sm:text-base flex-shrink-0 mt-0.5"
                                 />
-                                <span>{cliente.email}</span>
+                                <span className="break-all">{cliente.email}</span>
                               </div>
                             )}
                           </div>
                         </div>
 
                         {/* Badges de estado */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-row sm:flex-col gap-2">
                           {index === 0 && (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
                               <MaterialIcon
                                 name="play_arrow"
-                                className="text-sm mr-1"
+                                className="text-xs sm:text-sm mr-1"
                               />
                               Inicio
                             </span>
                           )}
                           {index === orderedClients.length - 1 && (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 whitespace-nowrap">
                               <MaterialIcon
                                 name="flag"
-                                className="text-sm mr-1"
+                                className="text-xs sm:text-sm mr-1"
                               />
                               Final
                             </span>
@@ -450,12 +402,12 @@ function DetalleRutaContent() {
         )}
 
         {/* Información adicional */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <MaterialIcon name="info" className="text-blue-600" />
             Información Adicional
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div>
               <span className="text-gray-600">ID de Ruta:</span>
               <span className="ml-2 font-medium text-gray-900">#{ruta.id}</span>
@@ -480,9 +432,9 @@ function DetalleRutaContent() {
             </div>
             {driver && (
               <>
-                <div>
+                <div className="col-span-1 sm:col-span-2 lg:col-span-1">
                   <span className="text-gray-600">Driver Asignado:</span>
-                  <span className="ml-2 font-medium text-gray-900">
+                  <span className="ml-2 font-medium text-gray-900 break-words">
                     {driver.nombre}
                   </span>
                 </div>

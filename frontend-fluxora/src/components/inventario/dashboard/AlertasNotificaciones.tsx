@@ -9,7 +9,7 @@ import Badge from "@/components/ui/Badge";
 
 interface Alerta {
   id: string;
-  tipo: "stock_bajo" | "sin_receta" | "materia_agotada" | "producto_vencido";
+  tipo: "stock_bajo" | "sin_receta" | "materia_agotada" | "producto_vencido" | "producto_agotado";
   titulo: string;
   mensaje: string;
   prioridad: "alta" | "media" | "baja";
@@ -38,7 +38,7 @@ export default function AlertasNotificaciones() {
     // Alertas de stock bajo en materias primas
     materias.forEach((materia) => {
       const cantidad = materia.cantidad ?? 0;
-      
+
       if (cantidad > 0 && cantidad < 5) {
         nuevasAlertas.push({
           id: `stock-materia-${materia.id}`,
@@ -61,6 +61,17 @@ export default function AlertasNotificaciones() {
           titulo: "Stock Bajo - Producto",
           mensaje: `${producto.nombre}: solo quedan ${stockTotal} unidades`,
           prioridad: stockTotal < 2 ? "alta" : "media",
+          timestamp: new Date(),
+        });
+      }
+
+      if (stockTotal === 0) {
+        nuevasAlertas.push({
+          id: `agotado-${producto.id}`,
+          tipo: "producto_agotado",
+          titulo: "Producto Agotado",
+          mensaje: `${producto.nombre} está completamente agotado`,
+          prioridad: "alta",
           timestamp: new Date(),
         });
       }
@@ -121,6 +132,8 @@ export default function AlertasNotificaciones() {
     switch (tipo) {
       case "stock_bajo":
         return "inventory_2";
+      case "producto_agotado":
+        return "inventory_2";
       case "sin_receta":
         return "restaurant_menu";
       case "materia_agotada":
@@ -144,9 +157,11 @@ export default function AlertasNotificaciones() {
             Alertas y Notificaciones
           </h2>
         </div>
-        <Badge variant={alertas.length > 0 ? "danger" : "success"}>
-          {alertas.length} alerta(s)
-        </Badge>
+        <div className="text-center">
+          <Badge variant={alertas.length > 0 ? "danger" : "success"}>
+            {alertas.length} alerta(s)
+          </Badge>
+        </div>
       </div>
 
       {alertas.length === 0 ? (
@@ -176,9 +191,6 @@ export default function AlertasNotificaciones() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Prioridad
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tiempo
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -188,13 +200,12 @@ export default function AlertasNotificaciones() {
                     <div className="flex items-center gap-2">
                       <MaterialIcon
                         name={getTipoIcon(alerta.tipo)}
-                        className={`w-5 h-5 ${
-                          alerta.prioridad === "alta"
-                            ? "text-red-500"
-                            : alerta.prioridad === "media"
+                        className={`w-5 h-5 ${alerta.prioridad === "alta"
+                          ? "text-red-500"
+                          : alerta.prioridad === "media"
                             ? "text-yellow-500"
                             : "text-blue-500"
-                        }`}
+                          }`}
                       />
                       <span className="text-sm text-gray-900">
                         {alerta.tipo.replace("_", " ")}
@@ -215,9 +226,6 @@ export default function AlertasNotificaciones() {
                     <Badge variant={getPrioridadColor(alerta.prioridad) as any}>
                       {alerta.prioridad.toUpperCase()}
                     </Badge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    Ahora
                   </td>
                 </tr>
               ))}

@@ -64,14 +64,18 @@ public class RutaService {
 
     public List<ClienteDTO> getOptimizedRouteORTools(Long id_ruta, List<ClienteDTO> clientes) {
 
+        // Ordenar clientes por ID para garantizar consistencia en el orden de entrada
+        List<ClienteDTO> clientesOrdenados = new ArrayList<>(clientes);
+        clientesOrdenados.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+
         // Se construye la matriz de distancias
-        int size = clientes.size() + 1;
+        int size = clientesOrdenados.size() + 1;
         Ruta origen = getOrigenRuta(id_ruta);
 
-        List<double[]> locations = new ArrayList();
+        List<double[]> locations = new ArrayList<>();
         locations.add(new double[] { origen.getLatitud(), origen.getLongitud() });
 
-        for (ClienteDTO c : clientes) {
+        for (ClienteDTO c : clientesOrdenados) {
             locations.add(new double[] { c.getLatitud(), c.getLongitud() });
         }
 
@@ -99,7 +103,7 @@ public class RutaService {
             while (!routing.isEnd(index)) {
                 int nodeIndex = manager.indexToNode(index);
                 if (nodeIndex != 0) {
-                    orderedClients.add(clientes.get(nodeIndex - 1));
+                    orderedClients.add(clientesOrdenados.get(nodeIndex - 1));
                 }
                 index = solution.value(routing.nextVar(index));
             }
@@ -177,7 +181,11 @@ public class RutaService {
     public List<ClienteDTO> getClientesDeRuta(Long id_ruta) {
         List<RutaCliente> rutaCliente = rutaClienteRepository.findById_ruta(id_ruta);
         List<Long> idClientes = rutaCliente.stream().map(RutaCliente::getId_cliente).toList();
-        return clienteServiceClient.getClientesByIds(idClientes);
+        List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(idClientes);
+        
+        // Ordenar por ID para consistencia
+        clientes.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+        return clientes;
     }
 
     public List<Ruta> getAllRutas() {
@@ -430,6 +438,68 @@ public class RutaService {
             System.err.println("Error al finalizar ruta: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Error al finalizar la ruta: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Obtiene el nombre de la ruta asociada a un cliente específico
+     * @param idCliente ID del cliente
+     * @return Nombre de la ruta o null si el cliente no tiene ruta asignada
+     */
+    public String getNombreRutaPorCliente(Long idCliente) {
+        try {
+            // Buscar todas las relaciones del cliente con rutas
+            List<Long> clientesAsignados = rutaClienteRepository.findAllClienteIds();
+            
+            if (!clientesAsignados.contains(idCliente)) {
+                return null; // Cliente sin ruta asignada
+            }
+
+            // Obtener todas las relaciones RutaCliente y buscar la del cliente
+            List<RutaCliente> todasRelaciones = rutaClienteRepository.findAll();
+            Optional<Long> idRuta = todasRelaciones.stream()
+                    .filter(rc -> rc.getId_cliente().equals(idCliente))
+                    .map(RutaCliente::getId_ruta)
+                    .findFirst();
+
+            if (idRuta.isEmpty()) {
+                return null;
+            }
+
+            // Obtener el nombre de la ruta
+            Optional<Ruta> ruta = rutaRepository.findById(idRuta.get());
+            return ruta.map(Ruta::getNombre).orElse(null);
+
+        } catch (Exception e) {
+            System.err.println("Error al obtener nombre de ruta para cliente " + idCliente + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<ClienteDTO> getClientesConProgramacion(Long id_ruta, LocalDate fecha) {
+        try {
+            // Obtener todas las programaciones de entregas para la ruta y fecha
+            List<ProgramacionEntrega> programaciones = programacionEntregaRepository
+                    .findByIdRutaAndFechaProgramada(id_ruta, fecha);
+            
+            // Extraer IDs únicos de clientes con programación
+            List<Long> idClientes = programaciones.stream()
+                    .map(ProgramacionEntrega::getId_cliente)
+                    .distinct()
+                    .collect(Collectors.toList());
+            
+            // Obtener información completa de los clientes
+            if (idClientes.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(idClientes);
+            
+            // Ordenar por ID para consistencia
+            clientes.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+            return clientes;
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener clientes con programación: " + e.getMessage());
         }
     }
 }

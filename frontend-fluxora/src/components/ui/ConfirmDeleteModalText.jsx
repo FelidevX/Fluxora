@@ -35,7 +35,10 @@ const ConfirmDeleteModalText = ({
       <div className="absolute inset-0" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div
+        className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="p-6 border-b border-gray-200 sticky top-0 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3">

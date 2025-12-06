@@ -9,6 +9,15 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface Cliente {
   id: number;
   nombre: string;
@@ -98,7 +107,7 @@ export default function DriverHomePage() {
   // Función para cargar entregas del pedido actual
   const cargarEntregasRealizadas = async () => {
     try {
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       if (!token) return;
 
       if (token.startsWith("Bearer ")) {
@@ -173,8 +182,11 @@ export default function DriverHomePage() {
       const rutaId = rutaData.rutaId;
       setRutaId(rutaId);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}`,
+      // Paso 2: Obtener la programación de entregas del día
+      const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+      
+      const programacionResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/programacion/${rutaId}/${today}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -182,10 +194,49 @@ export default function DriverHomePage() {
         }
       );
 
-      if (!response.ok) throw new Error("Error al cargar la ruta");
+      if (!programacionResponse.ok) {
+        throw new Error('Error al obtener la programación de entregas');
+      }
 
+      const programacionData = await programacionResponse.json();
+      console.log("Programación obtenida:", programacionData);
+      setProgramacion(programacionData);
+
+      // Paso 3: Extraer IDs únicos de clientes con entregas programadas
+      const clientesConEntregas = Array.from(
+        new Set(programacionData.map((p: any) => p.id_cliente))
+      );
+
+      console.log('Clientes con entregas programadas para hoy:', clientesConEntregas);
+
+      if (clientesConEntregas.length === 0) {
+        setError('No hay entregas programadas para hoy.');
+        setLoading(false);
+        return;
+      }
+
+      // Paso 4: Optimizar la ruta solo con los clientes que tienen entregas programadas
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}/${today}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      
+      if (!response.ok) throw new Error('Error al cargar la ruta');
+      
       const data = await response.json();
-      console.log("Datos de ruta recibidos:", data);
+      console.log('Datos de ruta optimizada recibidos:', data);
+      
+      // Verificar si hay un mensaje de error o sin entregas
+      if (data.message || data.orderedClients.length === 0) {
+        setError(data.message || 'No hay entregas programadas para hoy.');
+        setLoading(false);
+        return;
+      }
+
       setRutaData(data);
 
       // Convertir los clientes de la ruta a entregas
@@ -231,10 +282,6 @@ export default function DriverHomePage() {
         return;
       }
 
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
       const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
 
       const response = await fetch(
@@ -273,10 +320,6 @@ export default function DriverHomePage() {
 
       if (!token) {
         throw new Error("No se encontró el token de autenticación.");
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
       }
 
       const response = await fetch(

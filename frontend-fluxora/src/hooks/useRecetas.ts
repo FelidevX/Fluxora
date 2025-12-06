@@ -4,6 +4,15 @@ import { useState, useEffect } from "react";
 import { RecetaMaestra, RecetaMaestraDTO } from "@/types/produccion";
 import { useToast } from "@/hooks/useToast";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 export function useRecetas() {
   const [recetas, setRecetas] = useState<RecetaMaestra[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,8 +29,14 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        "http://localhost:8080/api/inventario/recetas-maestras"
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -48,12 +63,14 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        "http://localhost:8080/api/inventario/recetas-maestras",
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(nuevaReceta),
         }
@@ -87,10 +104,14 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras/${id}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -120,12 +141,14 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras/${id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(recetaActualizada),
         }
@@ -162,10 +185,14 @@ export function useRecetas() {
       setLoading(true);
       setError(null);
 
+      const token = getAuthToken();
       const response = await fetch(
-        `http://localhost:8080/api/inventario/recetas-maestras/${id}/toggle-activa`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/recetas-maestras/${id}/toggle-activa`,
         {
           method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 

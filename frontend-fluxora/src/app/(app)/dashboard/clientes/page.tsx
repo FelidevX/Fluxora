@@ -11,6 +11,7 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const ClientesPage = () => {
   const {
@@ -25,14 +26,7 @@ const ClientesPage = () => {
   } = useClientes();
 
   // Hook para notificaciones toast
-  const {
-    toasts,
-    removeToast,
-    success,
-    error: showError,
-    warning,
-    info,
-  } = useToast();
+  const { toasts, removeToast, success, error: showError, warning, info } = useToast();
 
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
@@ -138,8 +132,7 @@ const ClientesPage = () => {
         "Error al Actualizar Cliente"
       );
     }
-  };
-  const handleDelete = (cliente: ClienteResponse) => {
+  }; const handleDelete = (cliente: ClienteResponse) => {
     setClienteAEliminar(cliente);
     setShowDeleteModal(true);
   };
@@ -180,48 +173,31 @@ const ClientesPage = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <div className="flex justify-between items-center mb-6">
+    <ProtectedRoute requiredModule="clientes">
+    <div className="p-4 md:p-6 max-w-full overflow-x-hidden min-h-screen bg-gray-50 mt-12 md:mt-0">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">
             Gestión de clientes
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             {" Gestiona clienes y rutas de reparto "}
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => setShowForm((s) => !s)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
           >
             <span className="mr-2">Nuevo Cliente</span>
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 5v14M5 12h14"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
-          <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-            <MaterialIcon name="file_export" className="text-white mr-1" />{" "}
-            Exportar a Excel
+            <MaterialIcon name="add" />
           </button>
         </div>
       </div>
 
       {/* Panel de formulario similar a Materias: aparece al hacer click en Nuevo Cliente */}
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-md text-black mb-6">
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md text-black mb-6">
           <ClientForm
             onSubmit={(data) => {
               handleClientSubmit(data);
@@ -241,7 +217,7 @@ const ClientesPage = () => {
               key: "nombre",
               label: "Cliente",
               render: (c: ClienteResponse) => (
-                <span className="text-sm font-medium text-gray-800">
+                <span className="text-xs md:text-sm font-medium text-gray-800">
                   {c.nombre}
                 </span>
               ),
@@ -250,14 +226,14 @@ const ClientesPage = () => {
               key: "contacto",
               label: "Contacto",
               render: (c: ClienteResponse) => (
-                <span className="text-sm text-gray-800">{c.contacto}</span>
+                <span className="text-xs md:text-sm text-gray-800">{c.contacto}</span>
               ),
             },
             {
               key: "direccion",
               label: "Dirección",
               render: (c: ClienteResponse) => (
-                <span className="text-sm text-gray-800">
+                <span className="text-xs md:text-sm text-gray-800">
                   {c.direccion.length > 40
                     ? c.direccion.slice(0, 40) + "..."
                     : c.direccion}
@@ -272,19 +248,21 @@ const ClientesPage = () => {
               ),
             },
             {
-              key: "ultimaEntrega",
-              label: "Última entrega",
+              key: "precioCorriente",
+              label: "Precio Corriente",
               render: (c: ClienteResponse) => (
-                <span className="text-sm text-gray-800">{c.ultimaEntrega}</span>
+                <span className="text-xs md:text-sm font-semibold text-gray-700">
+                  ${c.precioCorriente?.toFixed(2) || "0.00"}
+                </span>
               ),
             },
             {
-              key: "estado",
-              label: "Estado",
+              key: "precioEspecial",
+              label: "Precio Especial",
               render: (c: ClienteResponse) => (
-                <Badge variant={c.estado === "activo" ? "success" : "warning"}>
-                  {c.estado === "activo" ? "Activo" : "Inactivo"}
-                </Badge>
+                <span className="text-xs md:text-sm font-semibold text-gray-700">
+                  ${c.precioEspecial?.toFixed(2) || "0.00"}
+                </span>
               ),
             },
           ]}
@@ -323,10 +301,19 @@ const ClientesPage = () => {
 
       {/* Modal de edición de cliente */}
       {showEditModal && clienteAEditar && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4"
+          onClick={() => {
+            setShowEditModal(false);
+            setClienteAEditar(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex justify-between items-center">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900">
                 Editar Cliente
               </h2>
               <button
@@ -339,7 +326,7 @@ const ClientesPage = () => {
                 <MaterialIcon name="close" className="text-2xl" />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <ClientForm
                 onSubmit={(data) => {
                   handleClientEditSubmit(data);
@@ -350,6 +337,8 @@ const ClientesPage = () => {
                   phone: clienteAEditar.contacto || "",
                   email: clienteAEditar.email || "",
                   address: clienteAEditar.direccion || "",
+                  latitude: clienteAEditar.latitud,
+                  longitude: clienteAEditar.longitud,
                   precioCorriente: clienteAEditar.precioCorriente || 1200,
                   precioEspecial: clienteAEditar.precioEspecial || 1500,
                 }}
@@ -368,6 +357,7 @@ const ClientesPage = () => {
         position="bottom-right"
       />
     </div>
+    </ProtectedRoute>
   );
 };
 

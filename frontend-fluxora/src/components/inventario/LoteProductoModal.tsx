@@ -215,8 +215,7 @@ export default function LoteProductoModal({
 
       // Determinar el título y mensaje según el error
       let errorTitle = "Error al Crear Lote";
-      let errorMessage =
-        "Error al crear el lote. Por favor, inténtelo de nuevo.";
+      let errorMessage = "Error al crear el lote. Por favor, inténtelo de nuevo.";
 
       if (err instanceof Error) {
         errorMessage = err.message;
@@ -274,16 +273,22 @@ export default function LoteProductoModal({
   const stockTotal = lotes.reduce((sum, lote) => sum + lote.stockActual, 0);
 
   return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg shadow-xl max-w-full md:max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+        <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-3 md:py-4 flex justify-between items-center z-10">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-lg md:text-2xl font-bold text-gray-800">
               Registrar Producción
             </h2>
-            <p className="text-gray-600">{producto.nombre}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm md:text-base text-gray-600">{producto.nombre}</p>
+            <p className="text-xs md:text-sm text-gray-500">
               Stock actual: <span className="font-semibold">{stockTotal}</span>{" "}
               unidades
             </p>
@@ -292,46 +297,46 @@ export default function LoteProductoModal({
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
           >
-            <MaterialIcon name="close" className="text-2xl" />
+            <MaterialIcon name="close" className="text-xl md:text-2xl" />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {/* Lotes existentes */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-gray-700">
+            <h3 className="text-base md:text-lg font-semibold mb-3 text-gray-700">
               Lotes existentes
             </h3>
             {loading && lotes.length === 0 ? (
-              <p className="text-gray-500">Cargando lotes...</p>
+              <p className="text-gray-500 text-sm">Cargando lotes...</p>
             ) : lotes.length === 0 ? (
-              <p className="text-gray-500">
+              <p className="text-gray-500 text-sm">
                 No hay lotes registrados para este producto
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <table className="w-full text-xs md:text-sm min-w-[700px]">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 text-left text-gray-600">
-                        Fecha producción
+                      <th className="px-2 md:px-4 py-2 text-left text-gray-600">
+                        Fecha prod.
                       </th>
-                      <th className="px-4 py-2 text-right text-gray-600">
-                        Cantidad prod.
+                      <th className="px-2 md:px-4 py-2 text-right text-gray-600">
+                        Cant. prod.
                       </th>
-                      <th className="px-4 py-2 text-right text-gray-600">
-                        Stock actual
+                      <th className="px-2 md:px-4 py-2 text-right text-gray-600">
+                        Stock
                       </th>
-                      <th className="px-4 py-2 text-right text-gray-600">
+                      <th className="px-2 md:px-4 py-2 text-right text-gray-600">
                         Costo Total
                       </th>
-                      <th className="px-4 py-2 text-right text-gray-600">
+                      <th className="px-2 md:px-4 py-2 text-right text-gray-600">
                         Costo unit.
                       </th>
-                      <th className="px-4 py-2 text-left text-gray-600">
+                      <th className="px-2 md:px-4 py-2 text-left text-gray-600">
                         Vencimiento
                       </th>
-                      <th className="px-4 py-2"></th>
+                      <th className="px-2 md:px-4 py-2"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -340,16 +345,16 @@ export default function LoteProductoModal({
                         key={lote.id}
                         className="border-b hover:bg-gray-50 text-gray-600"
                       >
-                        <td className="px-4 py-2">
+                        <td className="px-2 md:px-4 py-2">
                           {new Date(lote.fechaProduccion).toLocaleDateString()}
                         </td>
-                        <td className="px-4 py-2 text-right">
+                        <td className="px-2 md:px-4 py-2 text-right">
                           {lote.cantidadProducida}
                         </td>
-                        <td className="px-4 py-2 text-right">
+                        <td className="px-2 md:px-4 py-2 text-right">
                           {lote.stockActual}
                         </td>
-                        <td className="px-4 py-2 text-right font-semibold text-green-700">
+                        <td className="px-2 md:px-4 py-2 text-right font-semibold text-green-700">
                           $
                           {(lote.costoProduccionTotal || 0).toLocaleString(
                             "es-CL",
@@ -359,24 +364,24 @@ export default function LoteProductoModal({
                             }
                           )}
                         </td>
-                        <td className="px-4 py-2 text-right text-gray-600">
+                        <td className="px-2 md:px-4 py-2 text-right text-gray-600">
                           $
                           {(lote.costoUnitario || 0).toLocaleString("es-CL", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
                         </td>
-                        <td className="px-4 py-2">
+                        <td className="px-2 md:px-4 py-2">
                           {lote.fechaVencimiento
                             ? new Date(
-                                lote.fechaVencimiento
-                              ).toLocaleDateString()
+                              lote.fechaVencimiento
+                            ).toLocaleDateString()
                             : "-"}
                         </td>
-                        <td className="px-4 py-2">
+                        <td className="px-2 md:px-4 py-2">
                           <button
                             onClick={() => handleDelete(lote)}
-                            className="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
+                            className="p-1 md:p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
                             title="Eliminar lote"
                           >
                             <MaterialIcon name="delete" />
@@ -395,7 +400,7 @@ export default function LoteProductoModal({
             <Button
               onClick={() => setShowForm(true)}
               variant="primary"
-              className="mb-4"
+              className="mb-4 w-full sm:w-auto"
             >
               <MaterialIcon name="add" className="mr-2" />
               Registrar Nueva Producción
@@ -406,9 +411,9 @@ export default function LoteProductoModal({
           {showForm && (
             <form
               onSubmit={handleSubmit}
-              className="border rounded-lg p-4 bg-gray-50"
+              className="border rounded-lg p-3 md:p-4 bg-gray-50"
             >
-              <h4 className="font-semibold mb-4 text-gray-700">
+              <h4 className="font-semibold mb-4 text-sm md:text-base text-gray-700">
                 Nueva producción
               </h4>
 
@@ -569,8 +574,8 @@ export default function LoteProductoModal({
                             const porcentaje =
                               formulario.costoProduccionTotal > 0
                                 ? (costoIngrediente /
-                                    formulario.costoProduccionTotal) *
-                                  100
+                                  formulario.costoProduccionTotal) *
+                                100
                                 : 0;
 
                             return (
@@ -664,11 +669,12 @@ export default function LoteProductoModal({
               </div>
 
               {/* Botones de acción */}
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-col sm:flex-row gap-2 mt-4">
                 <Button
                   type="button"
                   onClick={() => setShowForm(false)}
                   variant="secondary"
+                  className="w-full sm:flex-1"
                 >
                   Cancelar
                 </Button>
@@ -676,12 +682,13 @@ export default function LoteProductoModal({
                   type="submit"
                   variant="primary"
                   disabled={loading || !recetaSeleccionada}
+                  className="w-full sm:flex-1"
                 >
                   {loading
                     ? "Registrando..."
                     : !recetaSeleccionada
-                    ? "Requiere receta asociada"
-                    : "Registrar Producción"}
+                      ? "Requiere receta asociada"
+                      : "Registrar Producción"}
                 </Button>
               </div>
             </form>
@@ -690,9 +697,9 @@ export default function LoteProductoModal({
 
         {/* Mensaje de error (mantenerlo para errores del hook) */}
         {error && (
-          <div className="px-6 pb-4">
+          <div className="px-4 md:px-6 pb-4">
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-              <span className="block sm:inline">{error}</span>
+              <span className="block sm:inline text-sm">{error}</span>
               <button
                 className="absolute top-0 bottom-0 right-0 px-4 py-3"
                 onClick={clearError}
@@ -712,17 +719,16 @@ export default function LoteProductoModal({
         title="Eliminar Lote de Producción"
         message={
           loteAEliminar &&
-          loteAEliminar.stockActual !== loteAEliminar.cantidadProducida
+            loteAEliminar.stockActual !== loteAEliminar.cantidadProducida
             ? "Este lote ya ha sido utilizado parcialmente. ¿Está seguro de que desea eliminarlo? Esta acción no se puede deshacer."
             : "¿Está seguro de que desea eliminar este lote? Esta acción no se puede deshacer."
         }
         itemName={
           loteAEliminar
             ? `Lote del ${new Date(
-                loteAEliminar.fechaProduccion
-              ).toLocaleDateString("es-CL")} - Stock: ${
-                loteAEliminar.stockActual
-              }/${loteAEliminar.cantidadProducida}`
+              loteAEliminar.fechaProduccion
+            ).toLocaleDateString("es-CL")} - Stock: ${loteAEliminar.stockActual
+            }/${loteAEliminar.cantidadProducida}`
             : undefined
         }
         requireConfirmation={

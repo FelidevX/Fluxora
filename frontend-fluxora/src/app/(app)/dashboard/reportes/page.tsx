@@ -8,8 +8,9 @@ import ReportTable from "@/components/reportes/ReportTable";
 import ReportSummary from "@/components/reportes/ReportSummary";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-export default function ReportesPage() {
+function ReportesContent() {
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoReporte | null>(
     null
   );
@@ -269,21 +270,21 @@ export default function ReportesPage() {
   };
 
   return (
-    <div className="p-6  mx-auto">
+    <div className="p-4 md:p-6 max-w-full overflow-x-hidden mx-auto mt-12 md:mt-0">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Reportes</h1>
-        <p className="text-gray-600">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Reportes</h1>
+        <p className="text-sm text-gray-600">
           Genera reportes detallados de entregas, ventas, inventario y clientes
         </p>
       </div>
 
       {/* Selección de tipo de reporte */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      <div className="mb-6 md:mb-8">
+        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
           Selecciona el tipo de reporte
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {tiposReportes.map((reporte) => (
             <ReportCard
               key={reporte.tipo}
@@ -300,7 +301,7 @@ export default function ReportesPage() {
 
       {/* Filtros */}
       {tipoSeleccionado && (
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <ReportFilters
             onGenerar={handleGenerarReporte}
             tipoSeleccionado={tipoSeleccionado}
@@ -311,8 +312,8 @@ export default function ReportesPage() {
 
       {/* Error */}
       {error && (
-        <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">❌ {error}</p>
+        <div className="mb-6 md:mb-8 bg-red-50 border border-red-200 rounded-lg p-3 md:p-4">
+          <p className="text-sm md:text-base text-red-800 font-medium">❌ {error}</p>
         </div>
       )}
 
@@ -340,8 +341,8 @@ export default function ReportesPage() {
       {datosReporte &&
         datosReporte.datos &&
         datosReporte.datos.length === 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
-            <p className="text-yellow-800 text-lg">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 md:p-8 text-center">
+            <p className="text-sm md:text-base text-yellow-800">
               ℹ️ No se encontraron datos para el periodo seleccionado
             </p>
           </div>
@@ -354,5 +355,13 @@ export default function ReportesPage() {
         position="bottom-right"
       />
     </div>
+  );
+}
+
+export default function ReportesPage() {
+  return (
+    <ProtectedRoute requiredModule="reportes">
+      <ReportesContent />
+    </ProtectedRoute>
   );
 }

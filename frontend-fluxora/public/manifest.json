@@ -2,7 +2,7 @@
   "name": "Fluxora Driver",
   "short_name": "Fluxora",
   "description": "Aplicación para conductores de entregas",
-  "start_url": "/driver",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#3b82f6",
   "theme_color": "#1d4ed8",
@@ -23,5 +23,5 @@
   ],
   "categories": ["logistics", "delivery", "business"],
   "lang": "es",
-  "scope": "/driver"
+  "scope": "/"
 }

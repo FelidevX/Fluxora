@@ -5,6 +5,7 @@ import com.microservice.dto.CompraMateriaPrimaResponseDTO;
 import com.microservice.service.CompraMateriaPrimaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class CompraMateriaPrimaController {
         this.compraService = compraService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @PostMapping
     public ResponseEntity<CompraMateriaPrimaResponseDTO> crearCompra(@RequestBody CompraMateriaPrimaDTO dto) {
         try {
@@ -29,12 +31,14 @@ public class CompraMateriaPrimaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @GetMapping
     public ResponseEntity<List<CompraMateriaPrimaResponseDTO>> listarCompras() {
         List<CompraMateriaPrimaResponseDTO> compras = compraService.listarCompras();
         return ResponseEntity.ok(compras);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @GetMapping("/{id}")
     public ResponseEntity<CompraMateriaPrimaResponseDTO> obtenerCompraPorId(@PathVariable Long id) {
         try {
@@ -45,18 +49,21 @@ public class CompraMateriaPrimaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @GetMapping("/proveedor/{proveedor}")
     public ResponseEntity<List<CompraMateriaPrimaResponseDTO>> buscarPorProveedor(@PathVariable String proveedor) {
         List<CompraMateriaPrimaResponseDTO> compras = compraService.buscarPorProveedor(proveedor);
         return ResponseEntity.ok(compras);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @GetMapping("/num-doc/{numDoc}")
     public ResponseEntity<List<CompraMateriaPrimaResponseDTO>> buscarPorNumDoc(@PathVariable String numDoc) {
         List<CompraMateriaPrimaResponseDTO> compras = compraService.buscarPorNumDoc(numDoc);
         return ResponseEntity.ok(compras);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @GetMapping("/recientes")
     public ResponseEntity<List<CompraMateriaPrimaResponseDTO>> obtenerComprasRecientes(
             @RequestParam(defaultValue = "30") int dias) {
@@ -64,6 +71,7 @@ public class CompraMateriaPrimaController {
         return ResponseEntity.ok(compras);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRODUCER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarCompra(@PathVariable Long id) {
         try {
@@ -74,6 +82,7 @@ public class CompraMateriaPrimaController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/estado-pago")
     public ResponseEntity<CompraMateriaPrimaResponseDTO> actualizarEstadoPago(
             @PathVariable Long id,

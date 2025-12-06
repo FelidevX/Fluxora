@@ -1,12 +1,14 @@
 import Card from "@/components/ui/Card";
 import DashboardEstadisticasEntregas from "@/components/admin/entregas/DashboardEstadisticasEntregas";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export default function EntregasPage() {
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <ProtectedRoute requiredModule="entregas">
+      <div className="min-h-screen bg-gray-100 p-4 md:p-6 mt-12 md:mt-0">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Pedidos y Rutas</h1>
-        <p className="text-gray-600">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Pedidos y Rutas</h1>
+        <p className="text-sm text-gray-600">
           Accesos rápidos a los pedidos y la gestión de rutas.
         </p>
       </div>
@@ -38,5 +40,6 @@ export default function EntregasPage() {
         <DashboardEstadisticasEntregas />
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

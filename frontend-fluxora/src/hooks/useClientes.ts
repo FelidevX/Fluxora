@@ -1,6 +1,15 @@
 import { useState, useCallback } from "react";
 import { ClienteDTO, ClienteResponse } from "@/types/Clientes";
 
+// Helper para obtener el token normalizado
+const getAuthToken = (): string => {
+  let token = localStorage.getItem("auth_token");
+  if (token?.startsWith("Bearer ")) {
+    token = token.substring(7);
+  }
+  return token || "";
+};
+
 interface UseClientesResult {
   clientes: ClienteResponse[];
   loading: boolean;
@@ -22,13 +31,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
@@ -39,7 +44,16 @@ export function useClientes(): UseClientesResult {
       }
 
       const data = await response.json();
-      setClientes(Array.isArray(data) ? data : []);
+      
+      // Mapear los datos del backend al formato esperado por el frontend
+      const clientesMapeados = (Array.isArray(data) ? data : []).map((cliente: any) => ({
+        ...cliente,
+        ruta: cliente.nombreRuta || "Sin ruta asignada",
+        ultimaEntrega: cliente.ultimaEntrega || "Sin entregas",
+        estado: cliente.estado || "activo",
+      }));
+      
+      setClientes(clientesMapeados);
     } catch (err) {
       console.error("Error al cargar clientes:", err);
       setError(
@@ -56,13 +70,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes`,
@@ -96,13 +106,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes/${id}`,
@@ -136,13 +142,9 @@ export function useClientes(): UseClientesResult {
       setLoading(true);
       setError(null);
 
-      let token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
 
       if (!token) throw new Error("No se encontró el token de autenticación");
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/clientes/clientes/${id}`,

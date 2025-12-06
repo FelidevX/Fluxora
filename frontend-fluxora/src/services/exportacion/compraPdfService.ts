@@ -70,7 +70,7 @@ export class CompraPDFService {
       ],
       [
         "Estado de Pago:",
-        compra.estadoPago === "PAGADO" ? "✓ Pagado" : "⚠ Pendiente",
+        compra.estadoPago === "PAGADO" ? "Pagado" : "Pendiente",
       ],
       ["Total de Lotes:", compra.totalLotes.toString()],
       [

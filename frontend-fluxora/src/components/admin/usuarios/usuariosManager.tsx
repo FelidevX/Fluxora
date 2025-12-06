@@ -251,16 +251,16 @@ const UsuariosManager: React.FC = () => {
   };
 
   return (
-    <div className=" mx-auto p-4">
+    <div className="max-w-full overflow-x-hidden">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
               Gestión de Usuarios
             </h1>
-            <div className="flex items-center text-gray-600 mt-1">
-              <MaterialIcon name="calendar_today" className=" mr-1" />
+            <div className="flex items-center text-gray-600 mt-1 text-sm">
+              <MaterialIcon name="calendar_today" className="mr-1 text-lg" />
               <span>{currentDateFormatted}</span>
             </div>
           </div>
@@ -268,13 +268,14 @@ const UsuariosManager: React.FC = () => {
             variant="primary"
             icon="add"
             onClick={() => setShowForm(!showForm)}
+            className="w-full sm:w-auto"
           >
-            Nuevo usuario
+            <span className="sm:inline">Nuevo usuario</span>
           </Button>
         </div>
         {showForm && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow-md mb-6">
+            <h2 className="text-base md:text-lg font-semibold mb-4 text-gray-700">
               Nuevo Usuario
             </h2>
             <form
@@ -345,14 +346,15 @@ const UsuariosManager: React.FC = () => {
                   ))}
                 </select>
               </div>
-              <div className="md:col-span-2 flex gap-2 mt-2">
-                <Button type="submit" variant="success">
+              <div className="md:col-span-2 flex flex-col sm:flex-row gap-2 mt-2">
+                <Button type="submit" variant="success" className="w-full sm:w-auto">
                   Guardar
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={() => setShowForm(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cancelar
                 </Button>
@@ -376,7 +378,7 @@ const UsuariosManager: React.FC = () => {
                   key: "nombre",
                   label: "Nombre",
                   render: (u: any) => (
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs md:text-sm font-medium text-gray-900">
                       {u.nombre}
                     </span>
                   ),
@@ -385,7 +387,7 @@ const UsuariosManager: React.FC = () => {
                   key: "email",
                   label: "Email",
                   render: (u: any) => (
-                    <span className="text-sm text-gray-600">{u.email}</span>
+                    <span className="text-xs md:text-sm text-gray-600">{u.email}</span>
                   ),
                 },
                 {
@@ -421,32 +423,33 @@ const UsuariosManager: React.FC = () => {
           </div>
         </div>
         {showConfirmModal && (
-          <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
-              <div className="p-5 text-center">
+          <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+              <div className="p-4 md:p-5 text-center">
                 <div className="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-red-100 mb-3">
                   <MaterialIcon
                     name="delete"
                     className="h-5 w-5 text-red-600"
                   />
                 </div>
-                <h3 className="text-base font-medium text-gray-900 mb-2">
+                <h3 className="text-sm md:text-base font-medium text-gray-900 mb-2">
                   Confirmar eliminación
                 </h3>
-                <p className="text-gray-600 mb-2 text-sm">
+                <p className="text-gray-600 mb-2 text-xs md:text-sm">
                   ¿Está seguro de que desea eliminar este usuario?
                 </p>
-                <div className="flex gap-2 justify-center mt-4">
+                <div className="flex flex-col sm:flex-row gap-2 justify-center mt-4">
                   <Button
                     variant="secondary"
                     onClick={() => {
                       setShowConfirmModal(false);
                       setDeleteUserId(null);
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>
-                  <Button variant="danger" onClick={confirmDeleteUser}>
+                  <Button variant="danger" onClick={confirmDeleteUser} className="w-full sm:w-auto">
                     Eliminar
                   </Button>
                 </div>

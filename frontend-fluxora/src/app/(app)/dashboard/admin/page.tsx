@@ -5,6 +5,7 @@ import DashboardCard from "@/components/ui/DashboardCard";
 import DashboardAdmin from "@/components/admin/dashboardAdmin";
 import UsuariosManager from "@/components/admin/usuarios/usuariosManager";
 import SistemaManager from "@/components/admin/sistema/SistemaManager";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 function AdminContent() {
   const searchParams = useSearchParams();
@@ -25,12 +26,12 @@ function AdminContent() {
 
   if (activeView === "overview") {
     return (
-      <div className="p-6 min-h-screen bg-gray-50">
+      <div className="p-4 md:p-6 min-h-screen bg-gray-50 mt-12 md:mt-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Panel de Administración
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             Administra usuarios, roles y configuración del sistema
           </p>
         </div>
@@ -61,7 +62,7 @@ function AdminContent() {
 
   if (activeView === "usuarios") {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
         <div className="mb-6">
           <button
             onClick={() => setActiveView("overview")}
@@ -77,7 +78,7 @@ function AdminContent() {
 
   if (activeView === "sistema") {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
         <div className="mb-6">
           <button
             onClick={() => setActiveView("overview")}
@@ -94,12 +95,14 @@ function AdminContent() {
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={
-          <div className="p-6 flex items-center justify-center min-h-[400px]">
-            <div className="text-gray-600"> Cargando dashboard...</div>
-          </div>
-        }>
-          <AdminContent />
-    </Suspense>
+    <ProtectedRoute requiredModule="admin">
+      <Suspense fallback={
+            <div className="p-6 flex items-center justify-center min-h-[400px]">
+              <div className="text-gray-600"> Cargando dashboard...</div>
+            </div>
+          }>
+            <AdminContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

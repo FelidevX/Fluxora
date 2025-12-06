@@ -1,11 +1,13 @@
 package com.microservice.entrega.controller;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,6 +38,7 @@ public class RutaController {
         this.usuarioServiceClient = usuarioServiceClient;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/optimized-ortools/{id_ruta}")
     public Map<String, Object> getOptimizedRouteORTools(@PathVariable Long id_ruta) {
         List<ClienteDTO> clientes = rutaService.getClientesDeRuta(id_ruta);
@@ -54,68 +57,72 @@ public class RutaController {
 
         return result;
     }
-
-    @GetMapping("/test-optimization")
-    public ResponseEntity<Map<String, Object>> testRouteOptimization() {
-        Map<String, Object> result = new HashMap<>();
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
+    @GetMapping("/optimized-ortools/{id_ruta}/{fecha}")
+    public Map<String, Object> getOptimizedRouteORToolsForDate(
+            @PathVariable Long id_ruta, 
+            @PathVariable String fecha) {
         try {
-            List<ClienteDTO> testClientes = Arrays.asList(
-                    createTestCliente(1L, "Cliente A", -34.6037, -58.3816), // Buenos Aires
-                    createTestCliente(2L, "Cliente B", -34.6118, -58.3960), // Palermo
-                    createTestCliente(3L, "Cliente C", -34.5875, -58.3974), // Recoleta
-                    createTestCliente(4L, "Cliente D", -34.6092, -58.3731) // Puerto Madero
-            );
+            java.time.LocalDate fechaLocal = java.time.LocalDate.parse(fecha);
+            
+            // Obtener solo los clientes con programación de entregas para la fecha
+            List<ClienteDTO> clientesConProgramacion = rutaService.getClientesConProgramacion(id_ruta, fechaLocal);
+            
+            if (clientesConProgramacion.isEmpty()) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("orderedClients", new ArrayList<>());
+                result.put("osrmRoute", null);
+                result.put("message", "No hay entregas programadas para esta fecha");
+                return result;
+            }
+            
+            // Optimizar la ruta solo con esos clientes
+            List<ClienteDTO> orderedClients = rutaService.getOptimizedRouteORTools(id_ruta, clientesConProgramacion);
+            Ruta origen = rutaService.getOrigenRuta(id_ruta);
+            String osrmRoute = rutaService.getOsrmRoute(orderedClients, origen);
 
-            result.put("testClientes", testClientes);
-
-            List<ClienteDTO> optimizedRoute = rutaService.getOptimizedRouteORTools(1L, testClientes);
-            result.put("optimizedRoute", optimizedRoute);
-
-            Ruta origen = rutaService.getOrigenRuta(1L);
-            result.put("origen", origen);
-
-            String osrmRoute = rutaService.getOsrmRoute(optimizedRoute, origen);
+            Map<String, Object> result = new HashMap<>();
+            result.put("orderedClients", orderedClients);
             result.put("osrmRoute", osrmRoute);
 
-            result.put("status", "SUCCESS");
-            result.put("message", "Optimización exitosa");
+            Map<String, Object> origenInfo = new HashMap<>();
+            origenInfo.put("latitud", origen.getLatitud());
+            origenInfo.put("longitud", origen.getLongitud());
+            result.put("origen", origenInfo);
+
+            return result;
         } catch (Exception e) {
-            result.put("status", "ERROR");
-            result.put("message", "Error al optimizar la ruta" + e.getMessage());
-            result.put("error", e.getClass().getSimpleName());
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("error", "Error al optimizar la ruta: " + e.getMessage());
+            return errorResult;
         }
-        return ResponseEntity.ok(result);
     }
 
-    private ClienteDTO createTestCliente(Long id, String nombre, Double latitud, Double longitud) {
-        ClienteDTO cliente = new ClienteDTO();
-        cliente.setId(id);
-        cliente.setNombre(nombre);
-        cliente.setLatitud(latitud);
-        cliente.setLongitud(longitud);
-        return cliente;
-    }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/clientes/{id_ruta}")
     public List<ClienteDTO> getClientesDeRuta(@PathVariable Long id_ruta) {
         return rutaService.getClientesDeRuta(id_ruta);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public List<Ruta> getAllRutas() {
         return rutaService.getAllRutas();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/clientes-sin-ruta")
     public List<ClienteDTO> getClientesSinRuta() {
         return rutaService.getClientesSinRuta();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/clientes-con-ruta")
     public List<ClienteConRutaDTO> getClientesConRuta() {
         return rutaService.getClientesConRuta();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/asignar-cliente")
     public ResponseEntity<String> asignarClienteARuta(@RequestBody Map<String, Long> request) {
         try {
@@ -129,6 +136,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/reasignar-cliente")
     public ResponseEntity<String> reasignarClienteARuta(@RequestBody Map<String, Long> request) {
         try {
@@ -142,6 +150,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id_ruta}")
     public ResponseEntity<String> deleteRuta(@PathVariable Long id_ruta) {
         try {
@@ -152,6 +161,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/driver/{driverId}")
     public ResponseEntity<Map<String, Object>> getRutaIdByDriver(@PathVariable Long driverId) {
         try {
@@ -166,6 +176,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @PostMapping("/iniciar/{id_ruta}")
     public ResponseEntity<Map<String, Object>> iniciarRuta(@PathVariable Long id_ruta) {
         try {
@@ -182,6 +193,7 @@ public class RutaController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @PostMapping("/finalizar/{id_ruta}")
     public ResponseEntity<Map<String, Object>> finalizarRuta(@PathVariable Long id_ruta) {
         try {
@@ -192,6 +204,29 @@ public class RutaController {
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al finalizar la ruta: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
+    @GetMapping("/cliente/{idCliente}/ruta")
+    public ResponseEntity<Map<String, Object>> getNombreRutaPorCliente(@PathVariable Long idCliente) {
+        try {
+            String nombreRuta = rutaService.getNombreRutaPorCliente(idCliente);
+            Map<String, Object> response = new HashMap<>();
+            
+            if (nombreRuta != null) {
+                response.put("nombreRuta", nombreRuta);
+                response.put("tieneRuta", true);
+            } else {
+                response.put("nombreRuta", "Sin ruta asignada");
+                response.put("tieneRuta", false);
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al obtener ruta del cliente: " + e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Image from "next/image";
+import { usePermisos } from "@/hooks/usePermisos";
+import { Modulo } from "@/types/rol";
 
 // Utilidad para decodificar el JWT y extraer usuario
 function getUserFromToken() {
@@ -63,20 +65,25 @@ function SidebarUserFooter() {
   );
 }
 
-type Item = { href: string; label: string; icon: string };
+type Item = { 
+  href: string; 
+  label: string; 
+  icon: string;
+  modulo: Modulo;
+};
 
 const items: Item[] = [
-  { href: "/dashboard", label: "Inicio", icon: "home" },
-  { href: "/dashboard/inventario", label: "Inventario", icon: "inventory_2" },
+  { href: "/dashboard", label: "Inicio", icon: "home", modulo: "dashboard" },
+  { href: "/dashboard/inventario", label: "Inventario", icon: "inventory_2", modulo: "inventario" },
   {
     href: "/dashboard/entregas",
     label: "Pedidos y Rutas",
     icon: "local_shipping",
+    modulo: "entregas"
   },
-  { href: "/dashboard/clientes", label: "Clientes", icon: "groups" },
-
-  { href: "/dashboard/reportes", label: "Reportes", icon: "assessment" },
-  { href: "/dashboard/admin", label: "Administración", icon: "settings" },
+  { href: "/dashboard/clientes", label: "Clientes", icon: "groups", modulo: "clientes" },
+  { href: "/dashboard/reportes", label: "Reportes", icon: "assessment", modulo: "reportes" },
+  { href: "/dashboard/admin", label: "Administración", icon: "settings", modulo: "admin" },
 ];
 
 // Sidebar responsive con off-canvas en móvil y fijo en md+
@@ -85,6 +92,16 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  
+  const { tieneAcceso, loading, user } = usePermisos();
+
+  // Si el usuario es DRIVER, no mostrar sidebar
+  if (user?.role === 'DRIVER') {
+    return null;
+  }
+
+  // Filtrar items según permisos del usuario
+  const itemsVisibles = items.filter(item => tieneAcceso(item.modulo));
 
   // Cerrar al cambiar de ruta
   useEffect(() => {
@@ -134,8 +151,10 @@ export default function Sidebar() {
         ref={panelRef}
         className={[
           "z-50 md:z-0",
-          "fixed md:sticky inset-y-0 left-0 md:top-0",
-          "w-72 md:w-[260px] h-screen",
+          "fixed md:relative",
+          "inset-y-0 left-0",
+          "w-72 md:w-[260px]",
+          "h-full",
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           "transition-transform duration-200 ease-out",
           "bg-gradient-to-b from-blue-700 via-blue-600 to-blue-700",
@@ -169,32 +188,38 @@ export default function Sidebar() {
 
         {/* Navegación */}
         <nav className="flex-1 overflow-y-auto py-3 px-2">
-          <ul className="space-y-1">
-            {items.map((item, idx) => {
-              const active = pathname === item.href;
-              const base =
-                "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
-              const classes = active
-                ? `${base} bg-white/15 text-white`
-                : `${base} text-white/90 hover:bg-white/10 hover:text-white`;
+          {loading ? (
+            <div className="text-center text-white/60 py-4">
+              <MaterialIcon name="hourglass_empty" className="animate-spin text-2xl" />
+            </div>
+          ) : (
+            <ul className="space-y-1">
+              {itemsVisibles.map((item, idx) => {
+                const active = pathname === item.href;
+                const base =
+                  "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
+                const classes = active
+                  ? `${base} bg-white/15 text-white`
+                  : `${base} text-white/90 hover:bg-white/10 hover:text-white`;
 
-              return (
-                <li key={item.href}>
-                  <Link
-                    ref={idx === 0 ? firstLinkRef : undefined}
-                    href={item.href}
-                    className={classes}
-                  >
-                    <MaterialIcon
-                      name={item.icon}
-                      className="text-xl opacity-90"
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                return (
+                  <li key={item.href}>
+                    <Link
+                      ref={idx === 0 ? firstLinkRef : undefined}
+                      href={item.href}
+                      className={classes}
+                    >
+                      <MaterialIcon
+                        name={item.icon}
+                        className="text-xl opacity-90"
+                      />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </nav>
 
         {/* Pie del sidebar: usuario y logout */}

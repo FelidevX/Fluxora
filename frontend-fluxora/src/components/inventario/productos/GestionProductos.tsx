@@ -224,8 +224,8 @@ export default function GestionProductos({
             {tipo === "CORRIENTE"
               ? "Corriente"
               : tipo === "ESPECIAL"
-              ? "Especial"
-              : producto.tipoProducto}
+                ? "Especial"
+                : producto.tipoProducto}
           </Badge>
         );
       },
@@ -284,9 +284,9 @@ export default function GestionProductos({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Gestión de Productos
@@ -295,8 +295,13 @@ export default function GestionProductos({
             Administra los productos y sus lotes de producción
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={onOpenMerma} variant="danger" icon="delete_sweep">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+          <Button 
+            onClick={onOpenMerma} 
+            variant="danger" 
+            icon="delete_sweep"
+            className="w-full sm:w-auto whitespace-nowrap"
+          >
             Registrar Merma
           </Button>
           <Button
@@ -306,6 +311,7 @@ export default function GestionProductos({
             }}
             variant="primary"
             icon="add"
+            className="w-full sm:w-auto whitespace-nowrap"
           >
             Nuevo Producto
           </Button>
@@ -345,10 +351,19 @@ export default function GestionProductos({
 
       {/* Modal de formulario */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+          onClick={() => {
+            setShowForm(false);
+            resetFormulario();
+          }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-full md:max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-3 md:py-4 flex justify-between items-center z-10">
+              <h2 className="text-lg md:text-2xl font-bold text-gray-800">
                 {productoEnEdicion ? "Editar Producto" : "Nuevo Producto"}
               </h2>
               <button
@@ -358,11 +373,11 @@ export default function GestionProductos({
                 }}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <MaterialIcon name="close" className="text-2xl" />
+                <MaterialIcon name="close" className="text-xl md:text-2xl" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6">
+            <form onSubmit={handleSubmit} className="p-4 md:p-6">
               <div className="space-y-4">
                 {/* Selector de Receta (solo para crear) */}
                 {!productoEnEdicion && (
@@ -529,7 +544,7 @@ export default function GestionProductos({
               </div>
 
               {/* Botones de acción */}
-              <div className="flex gap-2 mt-6">
+              <div className="flex flex-col sm:flex-row gap-2 mt-6">
                 <Button
                   type="button"
                   onClick={() => {
@@ -537,7 +552,7 @@ export default function GestionProductos({
                     resetFormulario();
                   }}
                   variant="secondary"
-                  className="flex-1"
+                  className="flex-1 w-full"
                 >
                   Cancelar
                 </Button>
@@ -545,13 +560,13 @@ export default function GestionProductos({
                   type="submit"
                   variant="primary"
                   disabled={loading}
-                  className="flex-1"
+                  className="flex-1 w-full"
                 >
                   {loading
                     ? "Guardando..."
                     : productoEnEdicion
-                    ? "Actualizar"
-                    : "Crear Producto"}
+                      ? "Actualizar"
+                      : "Crear Producto"}
                 </Button>
               </div>
             </form>

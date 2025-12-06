@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import DashboardEstadisticas from "@/components/inventario/dashboard/DashboardEstadisticas";
 import AlertasNotificaciones from "@/components/inventario/dashboard/AlertasNotificaciones";
 import Card from "@/components/ui/Card";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 function InventarioContent() {
   const searchParams = useSearchParams();
@@ -22,12 +23,12 @@ function InventarioContent() {
 
   if (activeView === "overview") {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Gestión de Inventario y Producción
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             Sistema completo de materias primas, recetas, producción e
             inventario
           </p>
@@ -79,14 +80,16 @@ function InventarioContent() {
 
 export default function InventarioPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-6 flex items-center justify-center min-h-[400px]">
-          <div className="text-gray-600">Cargando inventario...</div>
-        </div>
-      }
-    >
-      <InventarioContent />
-    </Suspense>
+    <ProtectedRoute requiredModule="inventario">
+      <Suspense
+        fallback={
+          <div className="p-6 flex items-center justify-center min-h-[400px]">
+            <div className="text-gray-600">Cargando inventario...</div>
+          </div>
+        }
+      >
+        <InventarioContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

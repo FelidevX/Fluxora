@@ -21,10 +21,10 @@ interface ColumnDefinition<T> {
 interface TableAction<T> {
   label: string;
   icon: string;
-  variant: "primary" | "success" | "warning" | "danger";
+  variant: "primary" | "secondary" | "success" | "warning" | "danger";
   onClick: (item: T) => void;
   condition?: (item: T) => boolean;
-  disabled?: (item: T) => boolean; // Agregar esta línea
+  disabled?: (item: T) => boolean;
 }
 
 interface DataTableProps<T> {
@@ -134,14 +134,14 @@ function DataTable<T extends Record<string, any>>({
 
       {/* Tabla */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 {columns.map((column) => (
                   <th
                     key={column.key}
-                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                    className={`px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
                       column.className || ""
                     }`}
                   >
@@ -149,7 +149,7 @@ function DataTable<T extends Record<string, any>>({
                   </th>
                 ))}
                 {actions.length > 0 && (
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 )}
@@ -160,7 +160,7 @@ function DataTable<T extends Record<string, any>>({
                 <tr>
                   <td
                     colSpan={columns.length + (actions.length > 0 ? 1 : 0)}
-                    className="px-6 py-8 text-center"
+                    className="px-3 md:px-6 py-8 text-center"
                   >
                     <div className="flex flex-col items-center justify-center">
                       <MaterialIcon
@@ -177,7 +177,7 @@ function DataTable<T extends Record<string, any>>({
                     {columns.map((column) => (
                       <td
                         key={column.key}
-                        className={`px-6 py-4 whitespace-nowrap ${
+                        className={`px-3 md:px-6 py-4 whitespace-nowrap ${
                           column.className || ""
                         }`}
                       >
@@ -191,7 +191,7 @@ function DataTable<T extends Record<string, any>>({
                       </td>
                     ))}
                     {actions.length > 0 && (
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-3 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           {actions.map((action, actionIndex) => {
                             // Verificar condición si existe
@@ -210,6 +210,7 @@ function DataTable<T extends Record<string, any>>({
                                 size="sm"
                                 disabled={isDisabled}
                                 onClick={() => action.onClick(item)}
+                                title={action.label}
                                 className={`flex items-center gap-1 ${
                                   isDisabled
                                     ? "opacity-30 bg-stone-800 cursor-not-allowed hover:bg-stone-800"
@@ -217,7 +218,7 @@ function DataTable<T extends Record<string, any>>({
                                 }`}
                               >
                                 <MaterialIcon name={action.icon} />
-                                {action.label}
+                                <span className="hidden lg:inline">{action.label}</span>
                               </Button>
                             );
                           })}
@@ -279,7 +280,7 @@ function TablePaginator<T extends Record<string, any>>({
 }) {
   if (!enabled) {
     return (
-      <div className="flex justify-between items-center text-sm text-gray-600">
+      <div className="flex justify-between items-center text-sm text-gray-600 px-2">
         <span>Total: {totalCount} elemento(s)</span>
       </div>
     );
@@ -292,41 +293,43 @@ function TablePaginator<T extends Record<string, any>>({
 
   return (
     <div>
-      <div className="flex justify-between items-center text-sm text-gray-600">
-        <span>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 text-sm text-gray-600 px-2">
+        <span className="text-xs md:text-sm">
           Mostrando {start + (totalCount === 0 ? 0 : 1)} - {end} de {totalCount}
         </span>
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Filas:</label>
-          <select
-            value={pageSize}
-            onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
-            className="border border-gray-300 rounded px-2 py-1 text-sm"
-          >
-            {pageSizeOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2">
+            <label className="text-xs md:text-sm text-gray-600">Filas:</label>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
+              className="border border-gray-300 rounded px-2 py-1 text-xs md:text-sm"
+            >
+              {pageSizeOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <nav className="inline-flex items-center">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="px-3 py-1 border border-gray-300 rounded-l disabled:opacity-50"
+              className="px-2 md:px-3 py-1 border border-gray-300 rounded-l disabled:opacity-50 text-xs md:text-sm"
               aria-label="Anterior"
             >
               &lt;
             </button>
-            <span className="px-3 py-1 border-t border-b border-gray-300 text-sm">
+            <span className="px-2 md:px-3 py-1 border-t border-b border-gray-300 text-xs md:text-sm whitespace-nowrap">
               {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="px-3 py-1 border border-gray-300 rounded-r disabled:opacity-50"
+              className="px-2 md:px-3 py-1 border border-gray-300 rounded-r disabled:opacity-50 text-xs md:text-sm"
               aria-label="Siguiente"
             >
               &gt;

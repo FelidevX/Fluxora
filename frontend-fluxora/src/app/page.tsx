@@ -46,12 +46,13 @@ export default function LoginPage() {
 
         // Redirige según el rol
         if (payload.role === "DRIVER") {
-          console.log("Redirigiendo a /driver");
-          // Usar window.location.href para forzar una navegación completa
           window.location.href = "/driver";
-        } else {
-          console.log("Redirigiendo a /dashboard");
-          router.push("/dashboard"); // Admins van al dashboard
+        } 
+        else if (payload.role === "PRODUCER") {
+          window.location.href = "/dashboard/inventario";
+        } 
+        else {
+          window.location.href = "/dashboard";
         }
       } catch (error) {
         console.log("Error decodificando token:", error);

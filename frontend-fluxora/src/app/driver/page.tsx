@@ -8,6 +8,7 @@ import { Entrega } from "@/interfaces/entregas/driver";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
+import { get } from "http";
 
 // Helper para obtener el token normalizado
 const getAuthToken = (): string => {
@@ -110,10 +111,6 @@ export default function DriverHomePage() {
       let token = getAuthToken();
       if (!token) return;
 
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
-      }
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedidoId}`,
         {
@@ -147,15 +144,11 @@ export default function DriverHomePage() {
 
   const fetchRutaOptimizada = async () => {
     try {
-      let token = localStorage.getItem("auth_token");
+      let token = getAuthToken();
 
       if (!token) {
         setError("No autenticado. Por favor, inicia sesión.");
         return;
-      }
-
-      if (token.startsWith("Bearer ")) {
-        token = token.substring(7);
       }
 
       const userData = getUserFromToken();
@@ -275,7 +268,7 @@ export default function DriverHomePage() {
     }
 
     try {
-      let token = localStorage.getItem("auth_token");
+      let token = getAuthToken();
 
       if (!token) {
         warning(
@@ -319,7 +312,7 @@ export default function DriverHomePage() {
   const handleIniciarRuta = async () => {
     setIniciandoRuta(true);
     try {
-      let token = localStorage.getItem("auth_token");
+      let token = getAuthToken();
 
       if (!token) {
         throw new Error("No se encontró el token de autenticación.");

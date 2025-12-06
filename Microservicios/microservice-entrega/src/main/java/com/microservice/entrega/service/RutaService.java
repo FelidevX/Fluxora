@@ -64,14 +64,18 @@ public class RutaService {
 
     public List<ClienteDTO> getOptimizedRouteORTools(Long id_ruta, List<ClienteDTO> clientes) {
 
+        // Ordenar clientes por ID para garantizar consistencia en el orden de entrada
+        List<ClienteDTO> clientesOrdenados = new ArrayList<>(clientes);
+        clientesOrdenados.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+
         // Se construye la matriz de distancias
-        int size = clientes.size() + 1;
+        int size = clientesOrdenados.size() + 1;
         Ruta origen = getOrigenRuta(id_ruta);
 
-        List<double[]> locations = new ArrayList();
+        List<double[]> locations = new ArrayList<>();
         locations.add(new double[] { origen.getLatitud(), origen.getLongitud() });
 
-        for (ClienteDTO c : clientes) {
+        for (ClienteDTO c : clientesOrdenados) {
             locations.add(new double[] { c.getLatitud(), c.getLongitud() });
         }
 
@@ -99,7 +103,7 @@ public class RutaService {
             while (!routing.isEnd(index)) {
                 int nodeIndex = manager.indexToNode(index);
                 if (nodeIndex != 0) {
-                    orderedClients.add(clientes.get(nodeIndex - 1));
+                    orderedClients.add(clientesOrdenados.get(nodeIndex - 1));
                 }
                 index = solution.value(routing.nextVar(index));
             }
@@ -177,7 +181,11 @@ public class RutaService {
     public List<ClienteDTO> getClientesDeRuta(Long id_ruta) {
         List<RutaCliente> rutaCliente = rutaClienteRepository.findById_ruta(id_ruta);
         List<Long> idClientes = rutaCliente.stream().map(RutaCliente::getId_cliente).toList();
-        return clienteServiceClient.getClientesByIds(idClientes);
+        List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(idClientes);
+        
+        // Ordenar por ID para consistencia
+        clientes.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+        return clientes;
     }
 
     public List<Ruta> getAllRutas() {
@@ -485,7 +493,11 @@ public class RutaService {
                 return new ArrayList<>();
             }
             
-            return clienteServiceClient.getClientesByIds(idClientes);
+            List<ClienteDTO> clientes = clienteServiceClient.getClientesByIds(idClientes);
+            
+            // Ordenar por ID para consistencia
+            clientes.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
+            return clientes;
         } catch (Exception e) {
             throw new RuntimeException("Error al obtener clientes con programación: " + e.getMessage());
         }

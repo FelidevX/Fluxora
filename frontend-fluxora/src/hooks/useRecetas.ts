@@ -160,14 +160,10 @@ export function useRecetas() {
 
       const recetaActualizadaResponse = await response.json();
 
-      // Actualizar la lista local
-      setRecetas((prev) =>
-        prev.map((receta) =>
-          receta.id === id ? recetaActualizadaResponse : receta
-        )
-      );
-
+      // Recargar toda la lista para asegurar consistencia
+      await fetchRecetas();
       toast.success("Receta actualizada exitosamente", "Éxito");
+      
       return recetaActualizadaResponse;
     } catch (err) {
       console.error("Error actualizando receta:", err);

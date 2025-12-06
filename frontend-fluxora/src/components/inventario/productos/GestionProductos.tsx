@@ -187,6 +187,15 @@ export default function GestionProductos({
       p.categoria.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  // Filtrar recetas que ya están asociadas a productos existentes
+  const recetasDisponibles = recetas.filter((receta) => {
+    // Solo mostrar recetas activas que no estén asociadas a ningún producto
+    return (
+      receta.activa &&
+      !productos.some((producto) => producto.recetaMaestraId === receta.id)
+    );
+  });
+
   const columns = [
     {
       key: "nombre",
@@ -397,15 +406,15 @@ export default function GestionProductos({
                       <option value="">
                         {loadingRecetas
                           ? "Cargando recetas..."
-                          : "-- Seleccione una receta --"}
+                          : recetasDisponibles.length === 0
+                            ? "No hay recetas disponibles"
+                            : "-- Seleccione una receta --"}
                       </option>
-                      {recetas
-                        .filter((r) => r.activa)
-                        .map((receta) => (
-                          <option key={receta.id} value={receta.id}>
-                            {receta.nombre} - {receta.categoria}
-                          </option>
-                        ))}
+                      {recetasDisponibles.map((receta) => (
+                        <option key={receta.id} value={receta.id}>
+                          {receta.nombre} - {receta.categoria}
+                        </option>
+                      ))}
                     </select>
                     <p className="text-xs text-gray-500 mt-1">
                       El nombre, categoría y precio se extraerán de la receta

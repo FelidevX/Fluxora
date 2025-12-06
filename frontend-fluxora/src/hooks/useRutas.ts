@@ -278,34 +278,37 @@ export function useRutas() {
     ]
   );
 
-  // Calcular ruta optimizada con OSRM
-  const calcularRutaOSRM = useCallback(
-    async (
-      clientes: ClienteDTO[],
-      origen: { latitud: number; longitud: number }
-    ): Promise<any> => {
-      if (clientes.length === 0) {
-        return { routes: [] };
-      }
-
+  // Obtener ruta optimizada desde el backend usando OR-Tools
+  const fetchRutaOptimizada = useCallback(
+    async (rutaId: string): Promise<{
+      orderedClients: ClienteDTO[];
+      osrmRoute: any;
+      origen: { latitud: number; longitud: number };
+    }> => {
       try {
-        const coordinates = [
-          `${origen.longitud},${origen.latitud}`,
-          ...clientes.map((c) => `${c.longitud},${c.latitud}`),
-          `${origen.longitud},${origen.latitud}`,
-        ].join(";");
+        const token = getAuthToken();
+        const url =`${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/optimized-ortools/${rutaId}`;
 
-        const response = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson`
-        );
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-        if (response.ok) {
-          return await response.json();
+        if (!response.ok) {
+          throw new Error("Error al obtener la ruta optimizada");
         }
-        return { routes: [] };
+
+        const data = await response.json();
+        return {
+          orderedClients: data.orderedClients,
+          osrmRoute: JSON.parse(data.osrmRoute),
+          origen: data.origen,
+        };
       } catch (err) {
-        console.warn("No se pudo calcular la ruta optimizada:", err);
-        return { routes: [] };
+        console.error("Error al obtener ruta optimizada:", err);
+        throw err;
       }
     },
     []
@@ -321,6 +324,6 @@ export function useRutas() {
     fetchProgramacionRuta,
     calcularProgresoRuta,
     fetchRutaDetalle,
-    calcularRutaOSRM,
+    fetchRutaOptimizada,
   };
 }

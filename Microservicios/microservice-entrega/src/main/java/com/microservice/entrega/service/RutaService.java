@@ -68,7 +68,6 @@ public class RutaService {
         List<ClienteDTO> clientesOrdenados = new ArrayList<>(clientes);
         clientesOrdenados.sort((c1, c2) -> c1.getId().compareTo(c2.getId()));
 
-        System.out.println("Clientes ordenados por ID: " + clientesOrdenados);
         // Se construye la matriz de distancias
         int size = clientesOrdenados.size() + 1;
         Ruta origen = getOrigenRuta(id_ruta);

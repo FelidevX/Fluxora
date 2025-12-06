@@ -48,7 +48,7 @@ function DetalleRutaContent() {
     loading, 
     error, 
     fetchRutaDetalle, 
-    calcularRutaOSRM 
+    fetchRutaOptimizada 
   } = useRutas();
 
   useEffect(() => {
@@ -70,20 +70,14 @@ function DetalleRutaContent() {
       // Obtener detalle completo de la ruta con progreso
       const rutaCompleta = await fetchRutaDetalle(rutaId);
 
-      // Configurar origen
-      const origen = {
-        latitud: -36.612523,
-        longitud: -72.082921,
-      };
-
-      // Calcular ruta optimizada con OSRM
-      const osrmData = await calcularRutaOSRM(rutaCompleta.clientes, origen);
+      // Obtener ruta optimizada desde el backend (con OR-Tools)
+      const rutaOptimizada = await fetchRutaOptimizada(rutaId);
 
       setRutaData({
         ruta: rutaCompleta,
-        orderedClients: rutaCompleta.clientes,
-        osrmRoute: JSON.stringify(osrmData),
-        origen,
+        orderedClients: rutaOptimizada.orderedClients,
+        osrmRoute: JSON.stringify(rutaOptimizada.osrmRoute),
+        origen: rutaOptimizada.origen,
         driver: rutaCompleta.driver,
       });
       setErrorLocal(null);

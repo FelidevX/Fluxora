@@ -81,7 +81,6 @@ export function useRecetas() {
       }
 
       const recetaCreada = await response.json();
-      console.log("Receta creada:", recetaCreada);
 
       // Recargar toda la lista para asegurar consistencia
       await fetchRecetas();
@@ -160,7 +159,6 @@ export function useRecetas() {
 
       const recetaActualizadaResponse = await response.json();
 
-      // Recargar toda la lista para asegurar consistencia
       await fetchRecetas();
       toast.success("Receta actualizada exitosamente", "Éxito");
       

@@ -187,10 +187,16 @@ const ClientesPage = () => {
         <div className="flex gap-3">
           <button
             onClick={() => setShowForm((s) => !s)}
-            className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            className={`flex items-center justify-center w-full sm:w-auto px-4 py-2 text-white rounded-md transition-colors text-sm ${
+              showForm 
+                ? "bg-red-600 hover:bg-red-700" 
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            <span className="mr-2">Nuevo Cliente</span>
-            <MaterialIcon name="add" />
+            <span className="mr-2">
+              {showForm ? "Cerrar Formulario" : "Nuevo Cliente"}
+            </span>
+            <MaterialIcon name={showForm ? "close" : "add"} />
           </button>
         </div>
       </div>

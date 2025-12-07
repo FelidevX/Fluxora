@@ -171,6 +171,14 @@ export default function RecetasManager() {
       return;
     }
 
+    if (!formulario.precioUnidad || formulario.precioUnidad <= 0) {
+      showError(
+        "Por favor ingrese el precio de venta por unidad",
+        "Campo requerido"
+      );
+      return;
+    }
+
     if (ingredientes.length === 0) {
       showError(
         "Debe agregar al menos un ingrediente a la receta",
@@ -339,6 +347,14 @@ export default function RecetasManager() {
       ingredientesEdicion.length === 0
     ) {
       showError("Todos los campos son requeridos", "Error");
+      return;
+    }
+
+    if (!formularioEdicion.precioUnidad || formularioEdicion.precioUnidad <= 0) {
+      showError(
+        "Por favor ingrese el precio de venta por unidad",
+        "Campo requerido"
+      );
       return;
     }
 
@@ -674,7 +690,7 @@ export default function RecetasManager() {
                     Categoría:
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     value={formulario.categoria}
                     onChange={(e) =>
                       setFormulario({
@@ -708,7 +724,7 @@ export default function RecetasManager() {
                     Unidad base:
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     value={formulario.unidadBase}
                     onChange={(e) =>
                       setFormulario({
@@ -743,12 +759,13 @@ export default function RecetasManager() {
                   step="1"
                   placeholder="Ej: 5000"
                   value={formulario.precioUnidad || ""}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const valor = e.target.value;
                     setFormulario({
                       ...formulario,
-                      precioUnidad: parseFloat(e.target.value) || 0,
-                    })
-                  }
+                      precioUnidad: valor === "" ? 0 : parseFloat(valor),
+                    });
+                  }}
                   required
                 />
               </div>
@@ -847,7 +864,7 @@ export default function RecetasManager() {
                             <input
                               type="number"
                               step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
                               placeholder="Ej: 2.5"
                               value={ingrediente.cantidadNecesaria}
                               onChange={(e) =>
@@ -861,17 +878,13 @@ export default function RecetasManager() {
                             />
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1 ">
-                              Unidad:
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
-                              value={ingrediente.unidad}
-                              readOnly
-                            />
-                          </div>
+                          <Input
+                            label="Unidad:"
+                            type="text"
+                            value={ingrediente.unidad}
+                            readOnly
+                            disabled
+                          />
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1310,12 +1323,13 @@ export default function RecetasManager() {
                   step="1"
                   placeholder="Ej: 5000"
                   value={formularioEdicion.precioUnidad || ""}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const valor = e.target.value;
                     setFormularioEdicion({
                       ...formularioEdicion,
-                      precioUnidad: parseFloat(e.target.value) || 0,
-                    })
-                  }
+                      precioUnidad: valor === "" ? 0 : parseFloat(valor),
+                    });
+                  }}
                   required
                 />
               </div>
@@ -1404,38 +1418,29 @@ export default function RecetasManager() {
                             </select>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Cantidad:
-                            </label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
-                              placeholder="Ej: 2.5"
-                              value={ingrediente.cantidadNecesaria}
-                              onChange={(e) =>
-                                actualizarIngredienteEdicion(
-                                  index,
-                                  "cantidadNecesaria",
-                                  parseFloat(e.target.value)
-                                )
-                              }
-                              required
-                            />
-                          </div>
+                          <Input
+                            label="Cantidad:"
+                            type="number"
+                            step="0.01"
+                            placeholder="Ej: 2.5"
+                            value={ingrediente.cantidadNecesaria}
+                            onChange={(e) =>
+                              actualizarIngredienteEdicion(
+                                index,
+                                "cantidadNecesaria",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            required
+                          />
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1 ">
-                              Unidad:
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
-                              value={ingrediente.unidad}
-                              readOnly
-                            />
-                          </div>
+                          <Input
+                            label="Unidad:"
+                            type="text"
+                            value={ingrediente.unidad}
+                            readOnly
+                            disabled
+                          />
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">

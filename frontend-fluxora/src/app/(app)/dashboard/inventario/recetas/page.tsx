@@ -429,7 +429,7 @@ export default function RecetasManager() {
           <div className="text-xs md:text-sm font-medium text-gray-900">
             {receta.nombre}
           </div>
-          <div className="text-xs md:text-sm text-gray-500">
+          <div className="text-xs md:text-sm text-gray-500 truncate max-w-[120px] md:max-w-xs" title={receta.descripcion}>
             {receta.descripcion}
           </div>
         </div>

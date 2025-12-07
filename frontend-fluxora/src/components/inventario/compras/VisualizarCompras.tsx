@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCompras } from "@/hooks/useCompras";
 import { CompraMateriaPrimaResponse } from "@/types/inventario";
 import { useToast } from "@/hooks/useToast";
@@ -269,7 +270,12 @@ export default function VisualizarCompras() {
   return (
     <div className="space-y-6 max-w-full overflow-x-hidden">
       {/* Header con filtros */}
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4"
+      >
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Historial de Compras
@@ -323,7 +329,7 @@ export default function VisualizarCompras() {
             </Button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -339,33 +345,48 @@ export default function VisualizarCompras() {
       )}
 
       {/* Tabla de compras */}
-      <DataTable
-        data={comprasFiltradas}
-        columns={columns}
-        actions={actions}
-        loading={loading}
-        searchValue={busqueda}
-        onSearch={setBusqueda}
-        searchPlaceholder="Buscar por proveedor o N° documento..."
-        emptyMessage="No hay compras registradas"
-        pagination={{
-          enabled: true,
-          serverSide: false,
-          defaultPageSize: 10,
-          pageSizeOptions: [5, 10, 25, 50],
-        }}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <DataTable
+          data={comprasFiltradas}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar por proveedor o N° documento..."
+          emptyMessage="No hay compras registradas"
+          pagination={{
+            enabled: true,
+            serverSide: false,
+            defaultPageSize: 10,
+            pageSizeOptions: [5, 10, 25, 50],
+          }}
+        />
+      </motion.div>
 
       {/* Modal de Detalle */}
-      {showDetalleModal && compraSeleccionada && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
-          onClick={() => setShowDetalleModal(false)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-full md:max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showDetalleModal && compraSeleccionada && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDetalleModal(false)}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-full md:max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
@@ -537,9 +558,10 @@ export default function VisualizarCompras() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/** Modal de confirmación para eliminar compra */}
       <ConfirmDeleteModal

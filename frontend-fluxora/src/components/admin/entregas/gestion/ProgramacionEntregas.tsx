@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { AsignarProductosModal } from "./components/AsignarProductosModal";
 import { useToast } from "@/hooks/useToast";
@@ -303,17 +304,27 @@ export function ProgramacionEntregas({
 
   return (
     <div className="max-w-full overflow-x-hidden">
-      <div className="mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-6"
+      >
         <h2 className="text-lg font-medium text-gray-900 mb-2">
           Programación de Entregas
         </h2>
         <p className="text-sm text-gray-500">
           Selecciona una ruta y fecha para programar entregas
         </p>
-      </div>
+      </motion.div>
 
       {/* Selector de fecha y ruta */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
+        className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -349,7 +360,7 @@ export function ProgramacionEntregas({
             </select>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Lista de rutas programadas */}
       {loadingProgramacion ? (
@@ -377,10 +388,18 @@ export function ProgramacionEntregas({
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {rutasProgramadasFiltradas.map((rutaProg) => (
-            <div
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="space-y-6"
+        >
+          {rutasProgramadasFiltradas.map((rutaProg, index) => (
+            <motion.div
               key={rutaProg.ruta.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
               className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
             >
               {/* Header de la ruta */}
@@ -485,27 +504,29 @@ export function ProgramacionEntregas({
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Modal para asignar productos */}
-      {showAsignarModal && clienteSeleccionado && rutaIdSeleccionada && (
-        <AsignarProductosModal
-          isOpen={showAsignarModal}
-          onClose={() => {
-            setShowAsignarModal(false);
-            setClienteSeleccionado(null);
-            setRutaIdSeleccionada(null);
-          }}
-          cliente={clienteSeleccionado}
-          rutaId={rutaIdSeleccionada}
-          productosConLotes={productosConLotes}
-          loadingProductos={loadingProductos}
-          onActualizar={handleActualizarProductos}
-        />
-      )}
+      <AnimatePresence>
+        {showAsignarModal && clienteSeleccionado && rutaIdSeleccionada && (
+          <AsignarProductosModal
+            isOpen={showAsignarModal}
+            onClose={() => {
+              setShowAsignarModal(false);
+              setClienteSeleccionado(null);
+              setRutaIdSeleccionada(null);
+            }}
+            cliente={clienteSeleccionado}
+            rutaId={rutaIdSeleccionada}
+            productosConLotes={productosConLotes}
+            loadingProductos={loadingProductos}
+            onActualizar={handleActualizarProductos}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer

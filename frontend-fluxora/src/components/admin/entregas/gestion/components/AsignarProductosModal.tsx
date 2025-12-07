@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
 
@@ -153,11 +154,19 @@ export function AsignarProductosModal({
   );
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60]"
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2 }}
         className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -383,7 +392,7 @@ export function AsignarProductosModal({
             Guardar Cambios
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer
@@ -391,6 +400,6 @@ export function AsignarProductosModal({
         onClose={removeToast}
         position="bottom-right"
       />
-    </div>
+    </motion.div>
   );
 }

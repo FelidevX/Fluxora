@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Driver } from "@/interfaces/entregas/driver";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 
@@ -49,11 +50,19 @@ export function CrearRutaModal({
   if (!isOpen) return null;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
       onClick={handleClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2 }}
         className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -187,7 +196,7 @@ export function CrearRutaModal({
             {loadingCreate ? "Creando..." : "Crear Ruta"}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

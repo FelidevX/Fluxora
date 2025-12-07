@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 
@@ -195,7 +196,12 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
 
   return (
     <div className="max-w-full overflow-x-hidden">
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6"
+      >
         <h2 className="text-lg font-medium text-gray-900">
           Programación de Rutas por Fecha
         </h2>
@@ -222,7 +228,7 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
             Actualizar
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mostrar loading de fecha */}
       {loadingFecha && (
@@ -253,10 +259,18 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
 
       {/* Lista de rutas programadas */}
       {!loadingFecha && rutasPorFecha.length > 0 && (
-        <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="space-y-6"
+        >
           {rutasPorFecha.map((rutaProgramada, index) => (
-            <div
+            <motion.div
               key={index}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
               className="bg-white border border-gray-200 rounded-lg shadow-sm"
             >
               {/* Header de la ruta */}
@@ -385,9 +399,9 @@ export function RutasActivas({ rutas, loading, onRefresh }: RutasActivasProps) {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

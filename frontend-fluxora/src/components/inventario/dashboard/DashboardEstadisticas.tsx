@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useProductos } from "@/hooks/useProductos";
 import { useMaterias } from "@/hooks/useMaterias";
 import { formatCLP } from "@/utils/currency";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import Badge from "@/components/ui/Badge";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 
 export default function DashboardEstadisticas() {
   const { productos } = useProductos();
@@ -57,14 +59,23 @@ export default function DashboardEstadisticas() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          className="bg-blue-50 rounded-lg p-4 border border-blue-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-blue-600">
                 Total Productos
               </p>
               <p className="text-2xl font-bold text-blue-900">
-                {estadisticas.totalProductos}
+                <AnimatedNumber
+                  value={estadisticas.totalProductos}
+                  duration={0.8}
+                  delay={0.1}
+                />
               </p>
             </div>
             <MaterialIcon
@@ -72,28 +83,48 @@ export default function DashboardEstadisticas() {
               className="w-8 h-8 text-blue-500"
             />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-green-50 rounded-lg p-4 border border-green-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-green-600">
                 Materias Primas
               </p>
               <p className="text-2xl font-bold text-green-900">
-                {estadisticas.totalMaterias}
+                <AnimatedNumber
+                  value={estadisticas.totalMaterias}
+                  duration={0.8}
+                  delay={0.15}
+                />
               </p>
             </div>
             <MaterialIcon name="inventory" className="w-8 h-8 text-green-500" />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="bg-purple-50 rounded-lg p-4 border border-purple-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-purple-600">Valor Total</p>
               <p className="text-lg font-bold text-purple-900">
-                {formatCLP(estadisticas.valorTotalInventario)}
+                <AnimatedNumber
+                  value={estadisticas.valorTotalInventario}
+                  duration={0.8}
+                  delay={0.2}
+                  decimals={0}
+                  suffix=""
+                />
               </p>
             </div>
             <MaterialIcon
@@ -101,28 +132,46 @@ export default function DashboardEstadisticas() {
               className="w-8 h-8 text-purple-500"
             />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-orange-600">Stock Bajo</p>
               <p className="text-2xl font-bold text-orange-900">
-                {estadisticas.stockBajo}
+                <AnimatedNumber
+                  value={estadisticas.stockBajo}
+                  duration={0.8}
+                  delay={0.25}
+                />
               </p>
             </div>
             <MaterialIcon name="warning" className="w-8 h-8 text-orange-500" />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+          className="bg-emerald-50 rounded-lg p-4 border border-emerald-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-600">
                 Disponibles
               </p>
               <p className="text-2xl font-bold text-emerald-900">
-                {estadisticas.productosDisponibles}
+                <AnimatedNumber
+                  value={estadisticas.productosDisponibles}
+                  duration={0.8}
+                  delay={0.3}
+                />
               </p>
             </div>
             <MaterialIcon
@@ -130,11 +179,16 @@ export default function DashboardEstadisticas() {
               className="w-8 h-8 text-emerald-500"
             />
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Tabla de productos más vendidos (simulada por ahora) */}
-      <div className="mt-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.35 }}
+        className="mt-6"
+      >
         <h3 className="text-lg font-medium text-gray-900 mb-3">
           Resumen por Categoría
         </h3>
@@ -158,7 +212,7 @@ export default function DashboardEstadisticas() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {["Panadería", "Pastelería"].map(
-                (categoria) => {
+                (categoria, index) => {
                   const productosCategoria = productos.filter(
                     (p) => p.categoria === categoria
                   );
@@ -172,7 +226,13 @@ export default function DashboardEstadisticas() {
                   );
 
                   return (
-                    <tr key={categoria} className="hover:bg-gray-50">
+                    <motion.tr
+                      key={categoria}
+                      initial={{ opacity: 0, x: -15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: 0.45 + index * 0.05 }}
+                      className="hover:bg-gray-50"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <Badge variant="info">{categoria}</Badge>
@@ -187,14 +247,14 @@ export default function DashboardEstadisticas() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCLP(valorTotal)}
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 }
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

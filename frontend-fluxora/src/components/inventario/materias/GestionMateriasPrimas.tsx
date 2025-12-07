@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { MateriaPrimaDTO, MateriaPrima } from "@/types/inventario";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useCurrentDate } from "@/hooks/useDate";
@@ -227,7 +228,12 @@ export default function GestionMateriasPrimas() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+      >
         <div>
           <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
             Catálogo de Materias Primas
@@ -244,7 +250,7 @@ export default function GestionMateriasPrimas() {
         >
           <span className="sm:inline">Nueva Materia Prima</span>
         </Button>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -260,15 +266,23 @@ export default function GestionMateriasPrimas() {
       )}
 
       {/* Formulario */}
-      {showForm && (
-        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-base md:text-lg font-semibold mb-4 text-gray-900">
-            Nueva Materia Prima
-          </h3>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
           >
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md border border-gray-200">
+              <h3 className="text-base md:text-lg font-semibold mb-4 text-gray-900">
+                Nueva Materia Prima
+              </h3>
+              <form
+                onSubmit={handleSubmit}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
             <Input
               label="Nombre de la materia prima:"
               type="text"
@@ -316,36 +330,53 @@ export default function GestionMateriasPrimas() {
             </div>
           </form>
         </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Tabla usando DataTable */}
-      <DataTable
-        data={materiasFiltradas}
-        columns={columns}
-        actions={actions}
-        loading={loading}
-        searchValue={busqueda}
-        onSearch={setBusqueda}
-        searchPlaceholder="Buscar materias primas..."
-        emptyMessage="No hay materias primas registradas"
-        pagination={{
-          enabled: true,
-          serverSide: false,
-          defaultPageSize: 10,
-          pageSizeOptions: [5, 10, 25, 50],
-        }}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <DataTable
+          data={materiasFiltradas}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar materias primas..."
+          emptyMessage="No hay materias primas registradas"
+          pagination={{
+            enabled: true,
+            serverSide: false,
+            defaultPageSize: 10,
+            pageSizeOptions: [5, 10, 25, 50],
+          }}
+        />
+      </motion.div>
 
       {/* Modal de Visualizar Lotes */}
-      {showStockModal && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
-          onClick={handleCancelStock}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showStockModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={handleCancelStock}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -512,9 +543,10 @@ export default function GestionMateriasPrimas() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal de Confirmación de Eliminación */}
       <ConfirmDeleteModalText

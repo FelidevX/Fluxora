@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { Driver } from "@/interfaces/entregas/driver";
 import { TarjetaRuta } from "@/components/admin/entregas/gestion/components/TarjetaRuta";
@@ -275,7 +276,12 @@ export function GestionRutas({
 
   return (
     <div className="max-w-full overflow-x-hidden">
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6"
+      >
         <div>
           <h2 className="text-lg font-medium text-gray-900">
             Gestión de Rutas
@@ -291,7 +297,7 @@ export function GestionRutas({
           <MaterialIcon name="add" className="mr-2" />
           Crear Nueva Ruta
         </button>
-      </div>
+      </motion.div>
 
       {/* Lista de rutas existentes */}
       {loading && (
@@ -324,21 +330,33 @@ export function GestionRutas({
 
       {/* Lista de rutas usando TarjetaRuta */}
       {!loading && rutas.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rutas.map((ruta) => (
-            <TarjetaRuta
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {rutas.map((ruta, index) => (
+            <motion.div
               key={ruta.id}
-              ruta={ruta}
-              onEliminar={handleEliminarRuta}
-              onVerDetalle={onVerDetalle}
-              onAsignarDriver={abrirModalAsignar}
-              drivers={drivers}
-            />
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
+            >
+              <TarjetaRuta
+                ruta={ruta}
+                onEliminar={handleEliminarRuta}
+                onVerDetalle={onVerDetalle}
+                onAsignarDriver={abrirModalAsignar}
+                drivers={drivers}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Modal CrearRuta */}
+      <AnimatePresence>
       <CrearRutaModal
         isOpen={showCrearModal}
         onClose={() => {
@@ -355,22 +373,25 @@ export function GestionRutas({
         loadingDrivers={loadingDrivers}
         loadingCreate={loadingCreate}
       />
+      </AnimatePresence>
 
       {/* Modal AsignarDriver */}
-      <AsignarDriverModal
-        isOpen={showAsignarModal}
-        onClose={() => {
-          setShowAsignarModal(false);
-          setRutaSeleccionada(null);
-          setDriverId("");
-        }}
-        onAsignar={handleAsignarDriver}
-        ruta={rutaSeleccionada}
-        drivers={drivers}
-        loadingDrivers={loadingDrivers}
-        driverId={driverId}
-        setDriverId={setDriverId}
-      />
+      <AnimatePresence>
+        <AsignarDriverModal
+          isOpen={showAsignarModal}
+          onClose={() => {
+            setShowAsignarModal(false);
+            setRutaSeleccionada(null);
+            setDriverId("");
+          }}
+          onAsignar={handleAsignarDriver}
+          ruta={rutaSeleccionada}
+          drivers={drivers}
+          loadingDrivers={loadingDrivers}
+          driverId={driverId}
+          setDriverId={setDriverId}
+        />
+      </AnimatePresence>
 
       {/* Modal Confirmar Eliminación */}
       <ConfirmDeleteModal

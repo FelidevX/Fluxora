@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { useHistorialEntregas } from "@/hooks/useHistorialEntregas";
 
 interface RutaActiva {
@@ -168,52 +170,107 @@ export default function DashboardEstadisticasEntregas() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          className="bg-blue-50 rounded-lg p-4 border border-blue-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-blue-600">
                 Entregados vs Total
               </p>
               <p className="text-2xl font-bold text-blue-900">
-                {entregasConRetorno.length} / {totalEntregas}
+                <AnimatedNumber
+                  value={entregasConRetorno.length}
+                  duration={0.8}
+                  delay={0.1}
+                />
+                {" / "}
+                <AnimatedNumber
+                  value={totalEntregas}
+                  duration={0.8}
+                  delay={0.1}
+                />
               </p>
               <p className="text-sm text-gray-600 mt-1">
-                {entregadosPercent}% completado
+                <AnimatedNumber
+                  value={entregadosPercent}
+                  duration={0.8}
+                  delay={0.15}
+                  suffix="% completado"
+                />
               </p>
             </div>
             <div className="text-blue-500 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100">
               <MaterialIcon name="task_alt" className="w-5 h-5 text-blue-600" />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-emerald-50 rounded-lg p-4 border border-emerald-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-600">
                 Entregas hoy / en curso
               </p>
               <p className="text-2xl font-bold text-emerald-900">
-                {entregasCompletadasHoy.length} / {entregasHoy.length}
+                <AnimatedNumber
+                  value={entregasCompletadasHoy.length}
+                  duration={0.8}
+                  delay={0.15}
+                />
+                {" / "}
+                <AnimatedNumber
+                  value={entregasHoy.length}
+                  duration={0.8}
+                  delay={0.15}
+                />
               </p>
               <p className="text-sm text-gray-600 mt-1">
-                {entregasHoy.length - entregasCompletadasHoy.length} en curso
+                <AnimatedNumber
+                  value={entregasHoy.length - entregasCompletadasHoy.length}
+                  duration={0.8}
+                  delay={0.2}
+                  suffix=" en curso"
+                />
               </p>
             </div>
             <div className="text-emerald-500 w-10 h-10 flex items-center justify-center rounded-full bg-emerald-100">
               <MaterialIcon name="today" className="w-5 h-5 text-emerald-600" />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-orange-600">
                 Rutas activas / completadas (hoy)
               </p>
               <p className="text-2xl font-bold text-orange-900">
-                {rutasActivasHoy.length} / {rutasCompletadasHoy.length}
+                <AnimatedNumber
+                  value={rutasActivasHoy.length}
+                  duration={0.8}
+                  delay={0.2}
+                />
+                {" / "}
+                <AnimatedNumber
+                  value={rutasCompletadasHoy.length}
+                  duration={0.8}
+                  delay={0.2}
+                />
               </p>
               <p className="text-sm text-gray-600 mt-1">
                 Rutas en ejecución / finalizadas
@@ -226,16 +283,25 @@ export default function DashboardEstadisticasEntregas() {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">
                 Últimas entregas registradas
               </p>
               <p className="text-2xl font-bold text-gray-900">
-                {recentDeliveries.length}
+                <AnimatedNumber
+                  value={recentDeliveries.length}
+                  duration={0.8}
+                  delay={0.25}
+                />
               </p>
               <p className="text-sm text-gray-500 mt-1">
                 Entregas recientes
@@ -248,21 +314,30 @@ export default function DashboardEstadisticasEntregas() {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
         <h3 className="text-lg font-medium text-gray-900 mb-3">
           Últimas entregas registradas
         </h3>
         {recentDeliveries.length === 0 ? (
-          <div className="text-center py-8 bg-gray-50 rounded-lg">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.35 }}
+            className="text-center py-8 bg-gray-50 rounded-lg"
+          >
             <MaterialIcon
               name="inbox"
               className="w-12 h-12 text-gray-400 mx-auto mb-2"
             />
             <p className="text-gray-600">No hay entregas registradas aún</p>
-          </div>
+          </motion.div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -289,8 +364,14 @@ export default function DashboardEstadisticasEntregas() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {recentDeliveries.map((d) => (
-                  <tr key={d.id} className="hover:bg-gray-50">
+                {recentDeliveries.map((d, index) => (
+                  <motion.tr
+                    key={d.id}
+                    initial={{ opacity: 0, x: -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.35 + index * 0.05 }}
+                    className="hover:bg-gray-50"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {d.id}
                     </td>
@@ -315,13 +396,13 @@ export default function DashboardEstadisticasEntregas() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {d.driver_nombre}
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

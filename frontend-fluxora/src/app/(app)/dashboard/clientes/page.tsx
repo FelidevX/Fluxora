@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useClientes } from "@/hooks/useClientes";
 import { ClienteResponse } from "@/types/Clientes";
 import ClientForm from "@/components/clientes/ClientForm";
@@ -175,7 +176,12 @@ const ClientesPage = () => {
   return (
     <ProtectedRoute requiredModule="clientes">
     <div className="p-4 md:p-6 max-w-full overflow-x-hidden min-h-screen bg-gray-50 mt-12 md:mt-0">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6"
+      >
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-800">
             Gestión de clientes
@@ -184,7 +190,12 @@ const ClientesPage = () => {
             {" Gestiona clienes y rutas de reparto "}
           </p>
         </div>
-        <div className="flex gap-3">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="flex gap-3"
+        >
           <button
             onClick={() => setShowForm((s) => !s)}
             className={`flex items-center justify-center w-full sm:w-auto px-4 py-2 text-white rounded-md transition-colors text-sm ${
@@ -198,24 +209,37 @@ const ClientesPage = () => {
             </span>
             <MaterialIcon name={showForm ? "close" : "add"} />
           </button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Panel de formulario similar a Materias: aparece al hacer click en Nuevo Cliente */}
-      {showForm && (
-        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md text-black mb-6">
-          <ClientForm
-            onSubmit={(data) => {
-              handleClientSubmit(data);
-              setShowForm(false);
-            }}
-            title="Registrar nuevo cliente"
-            submitButtonText="Registrar cliente"
-          />
-        </div>
-      )}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white p-4 md:p-6 rounded-lg shadow-md text-black overflow-hidden"
+          >
+            <ClientForm
+              onSubmit={(data) => {
+                handleClientSubmit(data);
+                setShowForm(false);
+              }}
+              title="Registrar nuevo cliente"
+              submitButtonText="Registrar cliente"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="flex-1">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="flex-1"
+      >
         <DataTable
           data={filteredClients}
           columns={[
@@ -293,7 +317,7 @@ const ClientesPage = () => {
           pagination={{ enabled: true, serverSide: false, defaultPageSize: 10 }}
           emptyMessage="No se encontraron clientes"
         />
-      </div>
+      </motion.div>
 
       {/* Modal de confirmación para eliminar cliente */}
       <ConfirmDeleteModal
@@ -306,55 +330,65 @@ const ClientesPage = () => {
       />
 
       {/* Modal de edición de cliente */}
-      {showEditModal && clienteAEditar && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4"
-          onClick={() => {
-            setShowEditModal(false);
-            setClienteAEditar(null);
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showEditModal && clienteAEditar && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex text-black items-center justify-center z-50 p-4"
+            onClick={() => {
+              setShowEditModal(false);
+              setClienteAEditar(null);
+            }}
           >
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex justify-between items-center">
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-                Editar Cliente
-              </h2>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setClienteAEditar(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <MaterialIcon name="close" className="text-2xl" />
-              </button>
-            </div>
-            <div className="p-4 md:p-6">
-              <ClientForm
-                onSubmit={(data) => {
-                  handleClientEditSubmit(data);
-                }}
-                initialData={{
-                  businessName: clienteAEditar.nombreNegocio || "",
-                  contactPerson: clienteAEditar.nombre || "",
-                  phone: clienteAEditar.contacto || "",
-                  email: clienteAEditar.email || "",
-                  address: clienteAEditar.direccion || "",
-                  latitude: clienteAEditar.latitud,
-                  longitude: clienteAEditar.longitud,
-                  precioCorriente: clienteAEditar.precioCorriente || 1200,
-                  precioEspecial: clienteAEditar.precioEspecial || 1500,
-                }}
-                title="Actualizar información del cliente"
-                submitButtonText="Guardar cambios"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex justify-between items-center">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+                  Editar Cliente
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setClienteAEditar(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <MaterialIcon name="close" className="text-2xl" />
+                </button>
+              </div>
+              <div className="p-4 md:p-6">
+                <ClientForm
+                  onSubmit={(data) => {
+                    handleClientEditSubmit(data);
+                  }}
+                  initialData={{
+                    businessName: clienteAEditar.nombreNegocio || "",
+                    contactPerson: clienteAEditar.nombre || "",
+                    phone: clienteAEditar.contacto || "",
+                    email: clienteAEditar.email || "",
+                    address: clienteAEditar.direccion || "",
+                    latitude: clienteAEditar.latitud,
+                    longitude: clienteAEditar.longitud,
+                    precioCorriente: clienteAEditar.precioCorriente || 1200,
+                    precioEspecial: clienteAEditar.precioEspecial || 1500,
+                  }}
+                  title="Actualizar información del cliente"
+                  submitButtonText="Guardar cambios"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer

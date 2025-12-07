@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useProductos } from "@/hooks/useProductos";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useRecetas } from "@/hooks/useRecetas";
@@ -165,7 +166,12 @@ export default function AlertasNotificaciones() {
       </div>
 
       {alertas.length === 0 ? (
-        <div className="text-center py-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="text-center py-8"
+        >
           <MaterialIcon
             name="check_circle"
             className="w-16 h-16 text-green-500 mx-auto mb-3"
@@ -173,7 +179,7 @@ export default function AlertasNotificaciones() {
           <p className="text-gray-600">
             ¡Todo está en orden! No hay alertas pendientes.
           </p>
-        </div>
+        </motion.div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -194,8 +200,14 @@ export default function AlertasNotificaciones() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {alertas.map((alerta) => (
-                <tr key={alerta.id} className="hover:bg-gray-50">
+              {alertas.map((alerta, index) => (
+                <motion.tr
+                  key={alerta.id}
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.05 * index }}
+                  className="hover:bg-gray-50"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <MaterialIcon
@@ -227,7 +239,7 @@ export default function AlertasNotificaciones() {
                       {alerta.prioridad.toUpperCase()}
                     </Badge>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>

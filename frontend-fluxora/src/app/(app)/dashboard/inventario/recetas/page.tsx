@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   RecetaMaestra,
   RecetaMaestraDTO,
@@ -561,7 +562,12 @@ export default function RecetasManager() {
 
   return (
     <div className="p-4 md:p-6 max-w-full overflow-x-hidden space-y-6 mt-12 md:mt-0">
-      <div className="mb-4">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-4"
+      >
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
           href={"/dashboard/inventario"}
@@ -569,9 +575,14 @@ export default function RecetasManager() {
           <MaterialIcon name="arrow_back" className="mr-1" />
           <span>Volver al inicio</span>
         </Link>
-      </div>
+      </motion.div>
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
+        className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4"
+      >
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Gestión de Recetas
@@ -621,7 +632,7 @@ export default function RecetasManager() {
             <span className="md:hidden">Reparar</span>
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -643,15 +654,24 @@ export default function RecetasManager() {
       <ReparadorRecetas ref={reparadorRef} />
 
       {/* Modal de Crear Receta */}
-      {showForm && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
-          onClick={() => setShowForm(false)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => setShowForm(false)}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
@@ -945,28 +965,35 @@ export default function RecetasManager() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Lista de recetas */}
       {/* Tabla usando DataTable */}
-      <DataTable
-        data={recetasFiltradas}
-        columns={columns}
-        actions={actions}
-        loading={loading}
-        searchValue={busqueda}
-        onSearch={setBusqueda}
-        searchPlaceholder="Buscar receta, categoría o descripción..."
-        emptyMessage="No hay recetas creadas aún"
-        pagination={{
-          enabled: true,
-          serverSide: false,
-          defaultPageSize: 5,
-          pageSizeOptions: [5, 10, 25, 50],
-        }}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <DataTable
+          data={recetasFiltradas}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar receta, categoría o descripción..."
+          emptyMessage="No hay recetas creadas aún"
+          pagination={{
+            enabled: true,
+            serverSide: false,
+            defaultPageSize: 5,
+            pageSizeOptions: [5, 10, 25, 50],
+          }}
+        />
+      </motion.div>
 
       {/* Modal de reparación de recetas */}
       <Modal
@@ -1011,15 +1038,24 @@ export default function RecetasManager() {
       />
 
       {/* Modal de Ver Detalle */}
-      {showDetalleModal && recetaSeleccionada && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
-          onClick={() => setShowDetalleModal(false)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showDetalleModal && recetaSeleccionada && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDetalleModal(false)}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
@@ -1191,23 +1227,33 @@ export default function RecetasManager() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal de Editar */}
-      {showEditModal && recetaAEditar && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
-          onClick={() => {
-            setShowEditModal(false);
-            setRecetaAEditar(null);
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showEditModal && recetaAEditar && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => {
+              setShowEditModal(false);
+              setRecetaAEditar(null);
+            }}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
@@ -1504,9 +1550,10 @@ export default function RecetasManager() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CompraMateriaPrimaDTO,
   LoteCompraDTO,
@@ -155,14 +156,18 @@ export default function RegistrarCompra() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <h2 className="text-xl font-semibold text-gray-900">
           Registrar Nueva Compra
         </h2>
         <p className="text-sm text-gray-600 mt-1">
           Complete los datos de la compra y agregue los lotes de materias primas
         </p>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -179,7 +184,12 @@ export default function RegistrarCompra() {
         
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Datos de la Compra */}
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
+        >
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Datos de la Compra
           </h3>
@@ -258,10 +268,15 @@ export default function RegistrarCompra() {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Agregar Lotes */}
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
+        >
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Agregar Lotes de Materias Primas
           </h3>
@@ -361,95 +376,108 @@ export default function RegistrarCompra() {
           </div>
 
           {/* Tabla de Lotes Agregados */}
-          {formulario.lotes.length > 0 && (
-            <div className="mt-6">
-              <h4 className="text-md font-semibold mb-3 text-gray-900">
-                Lotes en esta Compra ({formulario.lotes.length})
-              </h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-gray-700">Materia Prima</th>
-                      <th className="px-4 py-2 text-gray-700">Cantidad</th>
-                      <th className="px-4 py-2 text-gray-700">Costo Unit.</th>
-                      <th className="px-4 py-2 text-gray-700">Subtotal</th>
-                      <th className="px-4 py-2 text-gray-700">N° Lote</th>
-                      <th className="px-4 py-2 text-gray-700">Vencimiento</th>
-                      <th className="px-4 py-2 text-gray-700">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {formulario.lotes.map((lote, index) => (
-                      <tr key={index} className="border-b">
-                        <td className="px-4 py-2 text-gray-900">
-                          {lote.materiaPrimaNombre}
+          <AnimatePresence>
+            {formulario.lotes.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-6 overflow-hidden"
+              >
+                <h4 className="text-md font-semibold mb-3 text-gray-900">
+                  Lotes en esta Compra ({formulario.lotes.length})
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-gray-700">Materia Prima</th>
+                        <th className="px-4 py-2 text-gray-700">Cantidad</th>
+                        <th className="px-4 py-2 text-gray-700">Costo Unit.</th>
+                        <th className="px-4 py-2 text-gray-700">Subtotal</th>
+                        <th className="px-4 py-2 text-gray-700">N° Lote</th>
+                        <th className="px-4 py-2 text-gray-700">Vencimiento</th>
+                        <th className="px-4 py-2 text-gray-700">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {formulario.lotes.map((lote, index) => (
+                        <tr key={index} className="border-b">
+                          <td className="px-4 py-2 text-gray-900">
+                            {lote.materiaPrimaNombre}
+                          </td>
+                          <td className="px-4 py-2 text-gray-900">
+                            {lote.cantidad}
+                          </td>
+                          <td className="px-4 py-2 text-gray-900">
+                            {lote.costoUnitario.toLocaleString("es-CL", {
+                              style: "currency",
+                              currency: "CLP",
+                            })}
+                          </td>
+                          <td className="px-4 py-2 text-gray-900 font-semibold">
+                            {(lote.cantidad * lote.costoUnitario).toLocaleString(
+                              "es-CL",
+                              {
+                                style: "currency",
+                                currency: "CLP",
+                              }
+                            )}
+                          </td>
+                          <td className="px-4 py-2 text-gray-900">
+                            {lote.numeroLote || "-"}
+                          </td>
+                          <td className="px-4 py-2 text-gray-900">
+                            {lote.fechaVencimiento
+                              ? new Date(
+                                  lote.fechaVencimiento
+                                ).toLocaleDateString("es-CL")
+                              : "-"}
+                          </td>
+                          <td className="px-4 py-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEliminarLote(index)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <MaterialIcon name="delete" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50 font-bold">
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="px-4 py-3 text-right text-gray-900"
+                        >
+                          TOTAL:
                         </td>
-                        <td className="px-4 py-2 text-gray-900">
-                          {lote.cantidad}
-                        </td>
-                        <td className="px-4 py-2 text-gray-900">
-                          {lote.costoUnitario.toLocaleString("es-CL", {
+                        <td className="px-4 py-3 text-gray-900 text-lg">
+                          {calcularMontoTotal().toLocaleString("es-CL", {
                             style: "currency",
                             currency: "CLP",
                           })}
                         </td>
-                        <td className="px-4 py-2 text-gray-900 font-semibold">
-                          {(lote.cantidad * lote.costoUnitario).toLocaleString(
-                            "es-CL",
-                            {
-                              style: "currency",
-                              currency: "CLP",
-                            }
-                          )}
-                        </td>
-                        <td className="px-4 py-2 text-gray-900">
-                          {lote.numeroLote || "-"}
-                        </td>
-                        <td className="px-4 py-2 text-gray-900">
-                          {lote.fechaVencimiento
-                            ? new Date(
-                                lote.fechaVencimiento
-                              ).toLocaleDateString("es-CL")
-                            : "-"}
-                        </td>
-                        <td className="px-4 py-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEliminarLote(index)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <MaterialIcon name="delete" />
-                          </button>
-                        </td>
+                        <td colSpan={3}></td>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-gray-50 font-bold">
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-4 py-3 text-right text-gray-900"
-                      >
-                        TOTAL:
-                      </td>
-                      <td className="px-4 py-3 text-gray-900 text-lg">
-                        {calcularMontoTotal().toLocaleString("es-CL", {
-                          style: "currency",
-                          currency: "CLP",
-                        })}
-                      </td>
-                      <td colSpan={3}></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
+                    </tfoot>
+                  </table>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
         {/* Botones de Acción */}
-        <div className="flex gap-4 justify-end">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="flex gap-4 justify-end"
+        >
           <Button
             type="button"
             variant="secondary"
@@ -465,63 +493,77 @@ export default function RegistrarCompra() {
           >
             {loading ? "Guardando..." : "Registrar Compra"}
           </Button>
-        </div>
+        </motion.div>
       </form>
 
       {/* Modal de Confirmación */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="p-6">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                <MaterialIcon
-                  name="shopping_cart"
-                  className="h-6 w-6 text-green-600"
-                />
+      <AnimatePresence>
+        {showConfirmModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+            >
+              <div className="p-6">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                  <MaterialIcon
+                    name="shopping_cart"
+                    className="h-6 w-6 text-green-600"
+                  />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+                  Confirmar Registro de Compra
+                </h3>
+                <div className="text-sm text-gray-600 space-y-2 mb-6">
+                  <p>
+                    <strong>Proveedor:</strong> {formulario.proveedor}
+                  </p>
+                  <p>
+                    <strong>Documento:</strong> {formulario.tipoDoc}{" "}
+                    {formulario.numDoc}
+                  </p>
+                  <p>
+                    <strong>Total de lotes:</strong> {formulario.lotes.length}
+                  </p>
+                  <p>
+                    <strong>Monto total:</strong>{" "}
+                    {calcularMontoTotal().toLocaleString("es-CL", {
+                      style: "currency",
+                      currency: "CLP",
+                    })}
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setShowConfirmModal(false)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="success"
+                    onClick={handleConfirmar}
+                    disabled={loading}
+                    className="flex-1"
+                  >
+                    {loading ? "Guardando..." : "Confirmar"}
+                  </Button>
+                </div>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
-                Confirmar Registro de Compra
-              </h3>
-              <div className="text-sm text-gray-600 space-y-2 mb-6">
-                <p>
-                  <strong>Proveedor:</strong> {formulario.proveedor}
-                </p>
-                <p>
-                  <strong>Documento:</strong> {formulario.tipoDoc}{" "}
-                  {formulario.numDoc}
-                </p>
-                <p>
-                  <strong>Total de lotes:</strong> {formulario.lotes.length}
-                </p>
-                <p>
-                  <strong>Monto total:</strong>{" "}
-                  {calcularMontoTotal().toLocaleString("es-CL", {
-                    style: "currency",
-                    currency: "CLP",
-                  })}
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowConfirmModal(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="success"
-                  onClick={handleConfirmar}
-                  disabled={loading}
-                  className="flex-1"
-                >
-                  {loading ? "Guardando..." : "Confirmar"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ToastContainer
         toasts={toasts}

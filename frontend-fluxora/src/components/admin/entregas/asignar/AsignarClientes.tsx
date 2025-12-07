@@ -1,5 +1,6 @@
 "use client";
 import React, { Fragment, useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import DataTable from "@/components/ui/DataTable";
 import Button from "@/components/ui/Button";
 import MaterialIcon from "@/components/ui/MaterialIcon";
@@ -485,12 +486,17 @@ export function AsignarClientes() {
   return (
     <Fragment>
       <div className="max-w-full overflow-x-hidden">
-        <div className="mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
           <h2 className="text-lg font-medium text-gray-900">Asignar Clientes</h2>
           <p className="text-sm text-gray-500">
             Administra la asignación de clientes a rutas de entrega.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-6 overflow-x-auto">
@@ -534,7 +540,12 @@ export function AsignarClientes() {
 
       {/* Contenido de tabs */}
       {activeTab === "sin-asignar" && (
-        <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="bg-white rounded-lg border border-gray-200 p-3 md:p-6"
+        >
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               {clientesSinAsignar.length > 0 && (
@@ -580,11 +591,16 @@ export function AsignarClientes() {
               pageSizeOptions: [5, 10, 25, 50],
             }}
           />
-        </div>
+        </motion.div>
       )}
 
       {activeTab === "asignados" && (
-        <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="bg-white rounded-lg border border-gray-200 p-3 md:p-6"
+        >
           <div className="flex flex-col gap-3 mb-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               {/* Filtro por ruta */}
@@ -660,22 +676,31 @@ export function AsignarClientes() {
               pageSizeOptions: [5, 10, 25, 50],
             }}
           />
-        </div>
+        </motion.div>
       )}
 
       {/* Modal de Asignar */}
-      {showAsignarModal && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
-          onClick={() => {
-            setShowAsignarModal(false);
-            setRutaSeleccionada(null);
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showAsignarModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+            onClick={() => {
+              setShowAsignarModal(false);
+              setRutaSeleccionada(null);
+            }}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
                 Asignar Clientes a Ruta
@@ -749,24 +774,34 @@ export function AsignarClientes() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal de Reasignar */}
-      {showReasignarModal && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
-          onClick={() => {
-            setShowReasignarModal(false);
-            setClientesAsignadosSeleccionados([]);
-            setRutaSeleccionada(null);
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showReasignarModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
+            onClick={() => {
+              setShowReasignarModal(false);
+              setClientesAsignadosSeleccionados([]);
+              setRutaSeleccionada(null);
+            }}
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
                 Reasignar Clientes
@@ -843,9 +878,10 @@ export function AsignarClientes() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ToastContainer
         toasts={toasts}

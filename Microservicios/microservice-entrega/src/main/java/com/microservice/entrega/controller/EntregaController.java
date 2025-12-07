@@ -274,4 +274,20 @@ public class EntregaController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')") 
+    @GetMapping("/plan-produccion/{fecha}")
+    public ResponseEntity<Map<String, Object>> getPlanProduccion(@PathVariable String fecha) {
+        try {
+            LocalDate fechaParsed = LocalDate.parse(fecha);
+            Map<String, Object> planProduccion = entregaService.getPlanProduccion(fechaParsed);
+            return ResponseEntity.ok(planProduccion);
+        } catch (Exception e) {
+            System.err.println("Error al obtener plan de producción: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al obtener plan de producción: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
 }

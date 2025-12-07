@@ -967,4 +967,100 @@ public class EntregaService {
         
         System.out.println("Ruta eliminada exitosamente");
     }
+
+    /**
+     * Obtener plan de producción para una fecha específica
+     * Agrupa productos por nombre y obtiene la unidad de medida desde el inventario
+     */
+    public Map<String, Object> getPlanProduccion(LocalDate fecha) {
+        // Obtener todas las programaciones para la fecha
+        List<ProgramacionEntrega> programaciones = programacionEntregaRepository.findByFechaProgramada(fecha);
+        
+        Map<String, Map<String, Object>> productosAgrupados = new HashMap<>();
+        
+        for (ProgramacionEntrega prog : programaciones) {
+            String nombreProducto = prog.getNombreProducto();
+            
+            // Si el producto no existe en el map, se crea
+            if (!productosAgrupados.containsKey(nombreProducto)) {
+                // Obtener unidad de medida del inventario
+                String unidadMedida = "Kg"; // default
+                
+                try {
+                    // Obtener todos los productos del inventario
+                    ResponseEntity<?> productosResp = inventarioServiceClient.getProductos();
+                    
+                    if (productosResp.getStatusCode().is2xxSuccessful() && productosResp.getBody() != null) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> productos = (List<Map<String, Object>>) productosResp.getBody();
+                        
+                        // Buscar el producto por nombre
+                        for (Map<String, Object> producto : productos) {
+                            if (nombreProducto.equals(producto.get("nombre"))) {
+                                // Si tiene recetaMaestra, obtener unidadBase
+                                if (producto.containsKey("recetaMaestra") && producto.get("recetaMaestra") != null) {
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, Object> receta = (Map<String, Object>) producto.get("recetaMaestra");
+                                    if (receta.containsKey("unidadBase") && receta.get("unidadBase") != null) {
+                                        unidadMedida = receta.get("unidadBase").toString();
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error al obtener unidad de medida para " + nombreProducto + ": " + e.getMessage());
+                }
+                
+                // Crear estructura del producto agrupado
+                Map<String, Object> productoData = new HashMap<>();
+                productoData.put("nombreProducto", nombreProducto);
+                productoData.put("unidadMedida", unidadMedida);
+                productoData.put("cantidadTotal", 0);
+                productoData.put("clientes", new ArrayList<Map<String, Object>>());
+                
+                productosAgrupados.put(nombreProducto, productoData);
+            }
+            
+            // Obtener datos del producto agrupado
+            Map<String, Object> productoData = productosAgrupados.get(nombreProducto);
+            
+            // Sumar cantidad total
+            Integer cantidadActual = (Integer) productoData.get("cantidadTotal");
+            productoData.put("cantidadTotal", cantidadActual + prog.getCantidadProducto());
+            
+            // Agregar información del cliente
+            try {
+                ClienteDTO cliente = clienteServiceClient.getClienteById(prog.getId_cliente());
+                Ruta ruta = rutaRepository.findById(prog.getId_ruta()).orElse(null);
+                
+                Map<String, Object> clienteInfo = new HashMap<>();
+                clienteInfo.put("nombreCliente", cliente.getNombre() != null ? cliente.getNombre() : "Cliente " + prog.getId_cliente());
+                clienteInfo.put("cantidad", prog.getCantidadProducto());
+                clienteInfo.put("ruta", ruta != null ? ruta.getNombre() : "Sin ruta");
+                
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> clientes = (List<Map<String, Object>>) productoData.get("clientes");
+                clientes.add(clienteInfo);
+                
+            } catch (Exception e) {
+                System.err.println("Error al obtener info del cliente " + prog.getId_cliente() + ": " + e.getMessage());
+            }
+        }
+        
+        // Construir respuesta
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("fecha", fecha.toString());
+        respuesta.put("productos", new ArrayList<>(productosAgrupados.values()));
+        respuesta.put("totalProductos", productosAgrupados.size());
+        
+        // Calcular cantidad total general
+        int cantidadTotal = productosAgrupados.values().stream()
+            .mapToInt(p -> (Integer) p.get("cantidadTotal"))
+            .sum();
+        respuesta.put("cantidadTotal", cantidadTotal);
+        
+        return respuesta;
+    }
 }

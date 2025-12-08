@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import MaterialIcon from "@/components/ui/MaterialIcon";
 import { RutaActiva, ClienteDTO } from "@/interfaces/entregas/entregas";
 import { useRutas } from "@/hooks/useRutas";
@@ -169,7 +170,12 @@ function DetalleRutaContent() {
     <div className="min-h-screen bg-gray-50 mt-12 md:mt-0">
       <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header con breadcrumb */}
-        <div className="mb-2 sm:mb-4">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-2 sm:mb-4"
+        >
           <Link
             href="/dashboard/entregas/rutas"
             className="text-blue-600 hover:text-blue-800 flex items-center font-bold cursor-pointer text-sm sm:text-base"
@@ -178,10 +184,15 @@ function DetalleRutaContent() {
             <span className="hidden sm:inline">Volver a Gestión de Rutas</span>
             <span className="sm:hidden">Volver</span>
           </Link>
-        </div>
+        </motion.div>
 
         {/* Título y estadísticas principales */}
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          className="bg-white rounded-lg shadow-sm p-4 sm:p-6"
+        >
           <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">
@@ -273,10 +284,15 @@ function DetalleRutaContent() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Mapa */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-white rounded-lg shadow-sm overflow-hidden"
+        >
           <div className="p-3 sm:p-4 border-b border-gray-200">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
               <MaterialIcon name="map" className="text-blue-600" />
@@ -299,11 +315,16 @@ function DetalleRutaContent() {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Lista de clientes */}
         {orderedClients.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="bg-white rounded-lg shadow-sm p-4 sm:p-6"
+          >
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <MaterialIcon name="list" className="text-blue-600" />
@@ -314,8 +335,11 @@ function DetalleRutaContent() {
 
             <div className="space-y-3">
               {orderedClients.map((cliente, index) => (
-                <div
+                <motion.div
                   key={cliente.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
                   className="bg-gray-50 hover:bg-gray-100 p-3 sm:p-4 rounded-lg border border-gray-200 transition-all"
                 >
                   <div className="flex items-start gap-3 sm:gap-4">
@@ -395,14 +419,19 @@ function DetalleRutaContent() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Información adicional */}
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+          className="bg-white rounded-lg shadow-sm p-4 sm:p-6"
+        >
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <MaterialIcon name="info" className="text-blue-600" />
             Información Adicional
@@ -447,7 +476,7 @@ function DetalleRutaContent() {
               </>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

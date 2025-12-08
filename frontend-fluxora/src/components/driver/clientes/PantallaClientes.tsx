@@ -1,7 +1,8 @@
 "use client";
 
-import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
 
@@ -187,7 +188,12 @@ export default function PantallaClientes({
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="p-3 sm:p-4 max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header con contador actualizado */}
-        <div className="bg-white rounded-lg p-4 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-lg p-4 shadow-sm"
+        >
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Entregas del Día
           </h1>
@@ -204,10 +210,15 @@ export default function PantallaClientes({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Lista de clientes */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="bg-white rounded-lg shadow-sm p-4"
+        >
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 text-base sm:text-lg">
               Orden de Entregas
@@ -228,8 +239,11 @@ export default function PantallaClientes({
                 const estaEntregado = clientesEntregados.has(cliente.id);
 
                 return (
-                  <div
+                  <motion.div
                     key={cliente.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
                     className={`rounded-lg border transition-all duration-300 ${
                       estaEntregado
                         ? "bg-green-50 border-green-200"
@@ -363,16 +377,21 @@ export default function PantallaClientes({
                         {estaEntregado ? "Completado" : "Ruta optimizada"}
                       </span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Botón flotante de finalizar ruta */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg"
+      >
         <div className="max-w-4xl mx-auto">
           <button
             onClick={handleFinalizarRuta}
@@ -391,7 +410,7 @@ export default function PantallaClientes({
             </p>
           )}
         </div>
-      </div>
+      </motion.div>
 
       <ToastContainer
         toasts={toasts}

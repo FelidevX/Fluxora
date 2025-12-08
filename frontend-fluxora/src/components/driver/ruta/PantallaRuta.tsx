@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 
 // Importación dinámica para evitar problemas de SSR
 const MapaRuta = dynamic(() => import("./MapaRuta"), {
@@ -73,7 +74,12 @@ export default function PantallaRuta({ rutaData }: PantallaRutaProps) {
     <div className="min-h-screen bg-gray-50">
       <div className="p-3 sm:p-4 max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-lg p-4 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-lg p-4 shadow-sm"
+        >
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Ruta del Día
           </h1>
@@ -87,10 +93,15 @@ export default function PantallaRuta({ rutaData }: PantallaRutaProps) {
               Optimizada
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Mapa */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          className="bg-white rounded-lg shadow-sm overflow-hidden"
+        >
           <MapaRuta
             clientes={rutaData.orderedClients}
             rutaGeometry={JSON.parse(rutaData.osrmRoute)}
@@ -134,10 +145,15 @@ export default function PantallaRuta({ rutaData }: PantallaRutaProps) {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Lista de clientes */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="bg-white rounded-lg shadow-sm p-4"
+        >
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 text-base sm:text-lg">
               Orden de Visitas
@@ -146,8 +162,11 @@ export default function PantallaRuta({ rutaData }: PantallaRutaProps) {
 
           <div className="space-y-2 sm:space-y-3">
             {rutaData.orderedClients.map((cliente, index) => (
-              <div
+              <motion.div
                 key={cliente.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
                 className="bg-gray-50 hover:bg-gray-100 active:bg-gray-200 p-3 sm:p-4 rounded-lg border transition-colors"
               >
                 <div className="flex items-start gap-3">
@@ -195,10 +214,10 @@ export default function PantallaRuta({ rutaData }: PantallaRutaProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

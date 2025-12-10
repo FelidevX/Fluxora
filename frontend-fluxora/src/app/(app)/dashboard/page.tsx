@@ -20,6 +20,8 @@ import { useCompras } from "@/hooks/useCompras";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { usePermisos } from "@/hooks/usePermisos";
 import { useRouter } from "next/navigation";
+import { usePlanProduccion } from "@/components/inventario/productos/plan-produccion/usePlanProduccion";
+import { obtenerPlanProduccion } from "@/services/api/entregas";
 
 // Helper para obtener el token normalizado
 const getAuthToken = (): string => {
@@ -88,6 +90,11 @@ interface AlertaInventario {
   tipo: "materia" | "producto";
 }
 
+interface PlanProduccionDashboard {
+  totalKg: number;
+  totalProductos: number;
+}
+
 function DashboardHome() {
   const router = useRouter();
   const { user, loading } = usePermisos();
@@ -100,6 +107,10 @@ function DashboardHome() {
     AlertaInventario[]
   >([]);
   const [productosProximosVencer, setProductosProximosVencer] = useState(0);
+  const [planProduccion, setPlanProduccion] = useState<PlanProduccionDashboard>({
+    totalKg: 0,
+    totalProductos: 0,
+  });
 
   // Hooks para obtener datos reales
   const { materias } = useMaterias();
@@ -186,11 +197,31 @@ function DashboardHome() {
     }
   };
 
+  const fetchPlanProduccion = async () => {
+    try {
+      // Calcular fecha de mañana
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const fechaManana = tomorrow.toISOString().split("T")[0];
+
+      const data = await obtenerPlanProduccion(fechaManana);
+      
+      setPlanProduccion({
+        totalKg: data.cantidadTotal || 0,
+        totalProductos: data.totalProductos || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching plan de producción:", error);
+      setPlanProduccion({ totalKg: 0, totalProductos: 0 });
+    }
+  };
+
   useEffect(() => {
     fetchClients();
     fetchMateriasPrimas();
     fetchEstadisticas();
     cargarCompras();
+    fetchPlanProduccion();
   }, []);
 
   // Generar alertas de inventario bajo
@@ -391,26 +422,24 @@ function DashboardHome() {
           transition={{ duration: 0.3, delay: 0.15 }}
           className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm"
         >
-          <p className="text-xs font-bold text-gray-500">Inventario bajo</p>
+          <p className="text-xs font-bold text-gray-500">Plan de Producción</p>
           <div className="mt-2 flex items-end justify-between">
             <span className="text-3xl font-semibold text-gray-900">
               <AnimatedNumber
-                value={alertasInventario.length}
+                value={planProduccion.totalKg}
                 duration={0.8}
                 delay={0.2}
+                suffix=" kg"
               />
             </span>
-            <span className="text-xs text-semibold text-gray-500 mr-[150px] mb-1">
-              producto(s)
-            </span>
-            {alertasInventario.length > 0 && (
+            {planProduccion.totalKg > 0 && (
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.0 }}
-                className="text-xs text-rose-600"
+                className="text-xs text-blue-600"
               >
-                Requiere atención
+                Para mañana
               </motion.span>
             )}
           </div>

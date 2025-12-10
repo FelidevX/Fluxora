@@ -33,7 +33,6 @@ export function usePlanProduccion() {
 
       // Usar fetch del servicio para obtener el plan de producción
       const data = await obtenerPlanProduccion(fechaManana);
-      console.log("Plan de producción recibido:", data);
 
       const productosData = data.productos || [];
 

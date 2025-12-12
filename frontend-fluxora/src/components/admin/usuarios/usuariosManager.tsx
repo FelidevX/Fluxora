@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Usuario } from "@/types/usuario";
 import { Rol } from "@/types/rol";
 import MaterialIcon from "@/components/ui/MaterialIcon";
@@ -251,10 +252,15 @@ const UsuariosManager: React.FC = () => {
   };
 
   return (
-    <div className="max-w-full overflow-x-hidden">
+    <div className="max-w-full overflow-x-hidden min-h-screen bg-gray-50">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+        >
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">
               Gestión de Usuarios
@@ -264,24 +270,51 @@ const UsuariosManager: React.FC = () => {
               <span>{currentDateFormatted}</span>
             </div>
           </div>
-          <Button
-            variant="primary"
-            icon="add"
-            onClick={() => setShowForm(!showForm)}
-            className="w-full sm:w-auto"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <span className="sm:inline">Nuevo usuario</span>
-          </Button>
-        </div>
-        {showForm && (
-          <div className="bg-white p-4 md:p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-base md:text-lg font-semibold mb-4 text-gray-700">
-              Nuevo Usuario
-            </h2>
-            <form
-              onSubmit={handleSubmit}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            {!showForm ? (
+              <Button
+                variant="primary"
+                icon="add"
+                onClick={() => setShowForm(!showForm)}
+                className="w-full sm:w-auto"
+              >
+                <span className="sm:inline">Nuevo usuario</span>
+              </Button>
+            ) : (
+              <Button
+                variant="danger"
+                icon="close"
+                onClick={() => setShowForm(!showForm)}
+                className="w-full sm:w-auto"
+              >
+                <span className="sm:inline">Cerrar formulario</span>
+              </Button>
+            )}
+          </motion.div>
+        </motion.div>
+
+        {/* Formulario con animación */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
             >
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-md mb-6">
+                <h2 className="text-base md:text-lg font-semibold mb-4 text-gray-700">
+                  Nuevo Usuario
+                </h2>
+                <form
+                  onSubmit={handleSubmit}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nombre:
@@ -360,16 +393,32 @@ const UsuariosManager: React.FC = () => {
                 </Button>
               </div>
             </form>
-          </div>
-        )}
-        <div>
-          {error && (
-            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
-              {error}
-            </div>
+              </div>
+            </motion.div>
           )}
-          <div>
-            <DataTable
+        </AnimatePresence>
+
+      {/* Mensajes de error */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <DataTable
               data={usuarios.filter((u) => {
                 return true;
               })}
@@ -420,11 +469,31 @@ const UsuariosManager: React.FC = () => {
               }
               pagination={{ enabled: true, defaultPageSize: 10 }}
             />
-          </div>
+          </motion.div>
         </div>
-        {showConfirmModal && (
-          <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+
+        {/* Modal de confirmación con animación */}
+        <AnimatePresence>
+          {showConfirmModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+              onClick={() => {
+                setShowConfirmModal(false);
+                setDeleteUserId(null);
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white rounded-lg shadow-xl max-w-sm w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
               <div className="p-4 md:p-5 text-center">
                 <div className="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-red-100 mb-3">
                   <MaterialIcon
@@ -454,30 +523,57 @@ const UsuariosManager: React.FC = () => {
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-        <UsuarioModal
-          open={editModalOpen}
-          onClose={() => {
-            setEditModalOpen(false);
-            setUsuarioAEditar(null);
-          }}
-          onSubmit={handleEditSubmit}
-          roles={roles}
-          initialValues={
-            usuarioAEditar
-              ? {
-                  nombre: usuarioAEditar.nombre,
-                  email: usuarioAEditar.email,
-                  password: "",
-                  rolId: usuarioAEditar.rol.id.toString(),
+      </AnimatePresence>
+
+      {/* Modal de edición con animación */}
+      <AnimatePresence>
+        {editModalOpen && usuarioAEditar && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => {
+              setEditModalOpen(false);
+              setUsuarioAEditar(null);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <UsuarioModal
+                open={editModalOpen}
+                onClose={() => {
+                  setEditModalOpen(false);
+                  setUsuarioAEditar(null);
+                }}
+                onSubmit={handleEditSubmit}
+                roles={roles}
+                initialValues={
+                  usuarioAEditar
+                    ? {
+                        nombre: usuarioAEditar.nombre,
+                        email: usuarioAEditar.email,
+                        password: "",
+                        rolId: usuarioAEditar.rol.id.toString(),
+                      }
+                    : undefined
                 }
-              : undefined
-          }
-          isEdit={true}
-        />
-      </div>
+                isEdit={true}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

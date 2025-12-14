@@ -74,13 +74,15 @@ export function AsignarProductosModal({
 
   if (!isOpen) return null;
 
-  const productosDisponibles = productosConLotes.filter((p) =>
-    p.lotes.some(
-      (lote) =>
-        !productosProgramados.some((pp) => pp.id_lote === lote.id) &&
-        lote.stockActual > 0
-    )
-  );
+  const productosDisponibles = productosConLotes.filter((p) => {
+    // Excluir productos que ya están asignados
+    if (productosProgramados.some((pp) => pp.id_producto === p.id)) {
+      return false;
+    }
+    
+    // Verificar que tenga al menos un lote con stock disponible
+    return p.lotes.some((lote) => lote.stockActual > 0);
+  });
 
   const productosFiltrados = searchTerm
     ? productosDisponibles.filter((p) =>
@@ -89,16 +91,22 @@ export function AsignarProductosModal({
     : productosDisponibles;
 
   const handleSeleccionarProducto = (producto: ProductoConLotes) => {
+    // Verificar si el producto ya está asignado
+    if (productosProgramados.some((p) => p.id_producto === producto.id)) {
+      warning("Este producto ya está asignado");
+      return;
+    }
+
     if (producto.lotes.length > 0) {
       // Seleccionar el lote más antiguo disponible (FIFO - First In, First Out)
       const lotesDisponibles = producto.lotes
         .filter((lote) => lote.stockActual > 0)
         .sort(
           (a, b) =>
-            new Date(a.fechaProduccion).getTime() -
-            new Date(b.fechaProduccion).getTime()
+            new Date(a.fechaVencimiento).getTime() -
+            new Date(b.fechaVencimiento).getTime()
         );
-
+        
       if (lotesDisponibles.length > 0) {
         const loteSeleccionado = lotesDisponibles[0];
 
@@ -116,19 +124,12 @@ export function AsignarProductosModal({
         setSearchTerm("");
       }
     }
-  };
-
-  const handleCantidadChange = (idProducto: number, cantidad: number) => {
+  };  const handleCantidadChange = (idProducto: number, cantidad: number) => {
     setProductosProgramados(
       productosProgramados.map((p) =>
         p.id_producto === idProducto ? { ...p, cantidad_kg: cantidad } : p
       )
     );
-  };
-
-  const handleLoteChange = (idProducto: number, nuevoIdLote: number) => {
-    // Función deshabilitada - el lote se asigna automáticamente
-    return;
   };
 
   const handleEliminarProducto = (idProducto: number) => {

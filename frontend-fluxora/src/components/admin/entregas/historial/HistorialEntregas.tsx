@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useHistorialEntregas } from "@/hooks/useHistorialEntregas";
 import { TablaRutas } from "./componentes/TablaRutas";
 import { DetallesRutaModal } from "./componentes/DetallesRutaModal";
@@ -83,31 +84,44 @@ export function HistorialEntregas() {
 
   return (
     <div>
-      <div className="mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-6"
+      >
         <h2 className="text-lg font-medium text-gray-900 mb-4">
           Historial de Rutas
         </h2>
-      </div>
+      </motion.div>
 
-      <TablaRutas
-        rutas={entregasFiltradas}
-        getNombreDriver={getNombreDriver}
-        onVerDetalles={abrirModal}
-        loading={loading}
-        searchValue={search}
-        onSearch={setSearch}
-      />
-
-      {modalAbierto && (
-        <DetallesRutaModal
-          ruta={rutaSeleccionada}
-          detallesEntrega={detallesEntrega}
-          clientes={clientes}
-          loading={loadingDetalles}
-          onClose={cerrarModal}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <TablaRutas
+          rutas={entregasFiltradas}
           getNombreDriver={getNombreDriver}
+          onVerDetalles={abrirModal}
+          loading={loading}
+          searchValue={search}
+          onSearch={setSearch}
         />
-      )}
+      </motion.div>
+
+      <AnimatePresence>
+        {modalAbierto && (
+          <DetallesRutaModal
+            ruta={rutaSeleccionada}
+            detallesEntrega={detallesEntrega}
+            clientes={clientes}
+            loading={loadingDetalles}
+            onClose={cerrarModal}
+            getNombreDriver={getNombreDriver}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

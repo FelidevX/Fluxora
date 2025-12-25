@@ -83,15 +83,15 @@ export default function ReportFilters({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-6">
+      <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
         Filtros del Reporte
       </h3>
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {/* Periodo */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
             Periodo
           </label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -105,7 +105,7 @@ export default function ReportFilters({
                 key={opt.value}
                 onClick={() => setPeriodo(opt.value as PeriodoReporte)}
                 className={`
-                  px-4 py-2 rounded-lg text-sm font-medium transition-all
+                  px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all
                   ${
                     periodo === opt.value
                       ? "bg-blue-500 text-white"
@@ -120,9 +120,9 @@ export default function ReportFilters({
         </div>
 
         {/* Rango de fechas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
               Fecha Inicio
             </label>
             <input
@@ -130,11 +130,11 @@ export default function ReportFilters({
               value={fechaInicio}
               onChange={(e) => setFechaInicio(e.target.value)}
               disabled={periodo !== "personalizado"}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-700"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-700 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
               Fecha Fin
             </label>
             <input
@@ -142,7 +142,7 @@ export default function ReportFilters({
               value={fechaFin}
               onChange={(e) => setFechaFin(e.target.value)}
               disabled={periodo !== "personalizado"}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-700"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-700 text-sm"
             />
           </div>
         </div>
@@ -151,13 +151,13 @@ export default function ReportFilters({
         {tipoSeleccionado === "inventario" && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                 Tipo de Análisis
               </label>
               <select
                 value={tipoReporteInventario}
                 onChange={(e) => setTipoReporteInventario(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 text-sm"
               >
                 <option value="movimientos">Todos los movimientos</option>
                 <option value="bajoStock">Productos con bajo stock</option>
@@ -166,17 +166,17 @@ export default function ReportFilters({
               </select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-2">
               <input
                 type="checkbox"
                 id="incluirAnalisis"
                 checked={incluirAnalisis}
                 onChange={(e) => setIncluirAnalisis(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5 flex-shrink-0"
               />
               <label
                 htmlFor="incluirAnalisis"
-                className="text-sm font-medium text-gray-700"
+                className="text-xs md:text-sm font-medium text-gray-700"
               >
                 Incluir análisis avanzado (rotación, mermas, estado del stock)
               </label>
@@ -189,11 +189,11 @@ export default function ReportFilters({
           type="button"
           onClick={handleGenerar}
           disabled={!tipoSeleccionado || loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2.5 md:py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm md:text-base"
         >
           {loading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white"></div>
               <span>Generando...</span>
             </>
           ) : (

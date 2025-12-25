@@ -64,8 +64,13 @@ export interface ProgramacionEntrega {
   id: number;
   id_ruta: number;
   id_cliente: number;
-  kg_corriente_programado: number;
-  kg_especial_programado: number;
+  id_lote?: number;
+  nombreProducto?: string;
+  unidadMedida?: string;
+  cantidadProducto?: number;
+  kg_corriente_programado?: number;
+  kg_especial_programado?: number;
+  orden?: number;
   fecha_programada: string;
   estado: string;
   cliente?: ClienteDTO;

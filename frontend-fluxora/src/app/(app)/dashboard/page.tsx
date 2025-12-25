@@ -1,6 +1,8 @@
 "use client";
 import { Line } from "react-chartjs-2";
 import MaterialIcon from "@/components/ui/MaterialIcon";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import { motion } from "framer-motion";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,6 +20,8 @@ import { useCompras } from "@/hooks/useCompras";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { usePermisos } from "@/hooks/usePermisos";
 import { useRouter } from "next/navigation";
+import { usePlanProduccion } from "@/components/inventario/productos/plan-produccion/usePlanProduccion";
+import { obtenerPlanProduccion } from "@/services/api/entregas";
 
 // Helper para obtener el token normalizado
 const getAuthToken = (): string => {
@@ -86,6 +90,11 @@ interface AlertaInventario {
   tipo: "materia" | "producto";
 }
 
+interface PlanProduccionDashboard {
+  totalKg: number;
+  totalProductos: number;
+}
+
 function DashboardHome() {
   const router = useRouter();
   const { user, loading } = usePermisos();
@@ -98,6 +107,10 @@ function DashboardHome() {
     AlertaInventario[]
   >([]);
   const [productosProximosVencer, setProductosProximosVencer] = useState(0);
+  const [planProduccion, setPlanProduccion] = useState<PlanProduccionDashboard>({
+    totalKg: 0,
+    totalProductos: 0,
+  });
 
   // Hooks para obtener datos reales
   const { materias } = useMaterias();
@@ -184,11 +197,31 @@ function DashboardHome() {
     }
   };
 
+  const fetchPlanProduccion = async () => {
+    try {
+      // Calcular fecha de mañana
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const fechaManana = tomorrow.toISOString().split("T")[0];
+
+      const data = await obtenerPlanProduccion(fechaManana);
+      
+      setPlanProduccion({
+        totalKg: data.cantidadTotal || 0,
+        totalProductos: data.totalProductos || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching plan de producción:", error);
+      setPlanProduccion({ totalKg: 0, totalProductos: 0 });
+    }
+  };
+
   useEffect(() => {
     fetchClients();
     fetchMateriasPrimas();
     fetchEstadisticas();
     cargarCompras();
+    fetchPlanProduccion();
   }, []);
 
   // Generar alertas de inventario bajo
@@ -293,82 +326,162 @@ function DashboardHome() {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Panel de Inicio</h1>
-        <div className="flex items-center gap-2 text-gray-600">
+    <div className="p-4 md:p-6 mt-12 md:mt-0">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-6"
+      >
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Panel de Inicio</h1>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Resumen general</span>
           <span className="text-sm text-gray-400">|</span>
           <span className="text-sm">{formattedDate}</span>
         </div>
-      </div>
+      </motion.div>
       {/* KPIs y estadísticas */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Entregas del día */}
-        <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm"
+        >
           <p className="text-xs font-bold text-gray-500">Entregas del día</p>
           <div className="mt-2 flex items-end justify-between">
             <span className="text-3xl font-semibold text-gray-900">
-              {estadisticas
-                ? `${estadisticas.entregasDelDia.completadas}/${estadisticas.entregasDelDia.total}`
-                : "0/0"}
+              {estadisticas ? (
+                <>
+                  <AnimatedNumber
+                    value={estadisticas.entregasDelDia.completadas}
+                    duration={0.8}
+                    delay={0.1}
+                  />
+                  /
+                  <AnimatedNumber
+                    value={estadisticas.entregasDelDia.total}
+                    duration={0.8}
+                    delay={0.1}
+                  />
+                </>
+              ) : (
+                "0/0"
+              )}
             </span>
             {estadisticas && estadisticas.entregasDelDia.total > 0 && (
-              <span className="text-xs text-emerald-600">
-                {Math.round(
-                  (estadisticas.entregasDelDia.completadas /
-                    estadisticas.entregasDelDia.total) *
-                    100
-                )}
-                % completado
-              </span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.9 }}
+                className="text-xs text-emerald-600"
+              >
+                <AnimatedNumber
+                  value={Math.round(
+                    (estadisticas.entregasDelDia.completadas /
+                      estadisticas.entregasDelDia.total) *
+                      100
+                  )}
+                  duration={0.8}
+                  delay={0.1}
+                  suffix="% completado"
+                />
+              </motion.span>
             )}
           </div>
-        </div>
-        <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm"
+        >
           <p className="text-xs font-bold text-gray-500">Productos vendidos</p>
           <div className="mt-2 flex items-end justify-between">
             <span className="text-3xl font-semibold text-gray-900">
-              {estadisticas
-                ? `${Math.round(estadisticas.productosVendidosHoy || 0)} kg`
-                : "0 kg"}
+              {estadisticas ? (
+                <AnimatedNumber
+                  value={Math.round(estadisticas.productosVendidosHoy || 0)}
+                  duration={0.8}
+                  delay={0.15}
+                  suffix=" kg"
+                />
+              ) : (
+                "0 kg"
+              )}
             </span>
             <span className="text-xs text-emerald-600">
               {estadisticas ? "" : ""}
             </span>
           </div>
-        </div>
-        <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold text-gray-500">Inventario bajo</p>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm"
+        >
+          <p className="text-xs font-bold text-gray-500">Plan de Producción</p>
           <div className="mt-2 flex items-end justify-between">
             <span className="text-3xl font-semibold text-gray-900">
-              {alertasInventario.length}
+              <AnimatedNumber
+                value={planProduccion.totalKg}
+                duration={0.8}
+                delay={0.2}
+                suffix=" kg"
+              />
             </span>
-            <span className="text-xs text-semibold text-gray-500 mr-[150px] mb-1">
-              producto(s)
-            </span>
-            {alertasInventario.length > 0 && (
-              <span className="text-xs text-rose-600">Requiere atención</span>
+            {planProduccion.totalKg > 0 && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.0 }}
+                className="text-xs text-blue-600"
+              >
+                Para mañana
+              </motion.span>
             )}
           </div>
-        </div>
-        <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm"
+        >
           <p className="text-xs font-bold text-gray-500">
             Productos próximos a vencer
           </p>
           <div className="mt-2 flex items-end justify-between">
             <span className="text-3xl font-semibold text-gray-900">
-              {productosProximosVencer}
+              <AnimatedNumber
+                value={productosProximosVencer}
+                duration={0.8}
+                delay={0.25}
+              />
             </span>
             {productosProximosVencer > 0 && (
-              <span className="text-xs text-amber-600">Próximos 10 días</span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.05 }}
+                className="text-xs text-amber-600"
+              >
+                Próximos 10 días
+              </motion.span>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
       {/* Paneles: entregas de la semana y alertas */}
       <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="rounded-xl border border-blue-200 bg-white p-6 shadow-sm"
+        >
           <div className="flex flex-row items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">
               Entregas de la semana
@@ -391,15 +504,24 @@ function DashboardHome() {
               <p className="text-gray-400">No se encontraron estadisticas</p>
             )}
           </div>
-        </div>
-        <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm">
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm"
+        >
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-semibold text-gray-900">
               Alerta de inventario bajo
             </h2>
             <span className="text-xs rounded-full bg-rose-50 px-2 py-1 text-rose-700">
-              {alertasInventario.length} producto
-              {alertasInventario.length !== 1 ? "s" : ""}
+              <AnimatedNumber
+                value={alertasInventario.length}
+                duration={0.8}
+                delay={0.35}
+                suffix={` producto${alertasInventario.length !== 1 ? "s" : ""}`}
+              />
             </span>
           </div>
           <p className="text-sm text-gray-500">
@@ -411,13 +533,16 @@ function DashboardHome() {
                 No hay productos con inventario bajo
               </div>
             ) : (
-              alertasInventario.slice(0, 5).map((alerta) => {
+              alertasInventario.slice(0, 5).map((alerta, index) => {
                 const porcentaje = Math.round(
                   (alerta.cantidadActual / alerta.stockMinimo) * 100
                 );
                 return (
-                  <div
+                  <motion.div
                     key={`${alerta.tipo}-${alerta.id}`}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
                     className="flex items-center justify-between py-2 text-sm"
                   >
                     <span className="text-gray-700">{alerta.nombre}</span>
@@ -432,16 +557,21 @@ function DashboardHome() {
                         {porcentaje}%
                       </span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
       <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
         {/* Clientes recientes */}
-        <div className=" bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+          className=" bg-white rounded-xl border border-gray-200 shadow-sm p-6"
+        >
           <div className="flex flex-row items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">
               Clientes recientes
@@ -480,9 +610,12 @@ function DashboardHome() {
                   clients
                     .sort((a, b) => b.id - a.id)
                     .slice(0, 5)
-                    .map((cliente) => (
-                      <tr
+                    .map((cliente, index) => (
+                      <motion.tr
                         key={cliente.email || cliente.id}
+                        initial={{ opacity: 0, x: -15 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
                         className="hover:bg-gray-50"
                       >
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
@@ -494,7 +627,7 @@ function DashboardHome() {
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                           {cliente.contacto}
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))
                 ) : (
                   <tr>
@@ -509,9 +642,14 @@ function DashboardHome() {
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
         {/* Próximas facturas a pagar */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+          className="bg-white rounded-xl border border-gray-200 shadow-sm p-6"
+        >
           <div className="flex flex-row items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">
               Próximas facturas a pagar
@@ -562,7 +700,7 @@ function DashboardHome() {
                       return dateA.getTime() - dateB.getTime();
                     })
                     .slice(0, 5)
-                    .map((compra) => {
+                    .map((compra, index) => {
                       const fechaPago = new Date(compra.fechaPago!);
                       const hoy = new Date();
                       const diasRestantes = Math.ceil(
@@ -571,7 +709,13 @@ function DashboardHome() {
                       );
 
                       return (
-                        <tr key={compra.id} className="hover:bg-gray-50">
+                        <motion.tr
+                          key={compra.id}
+                          initial={{ opacity: 0, x: -15 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
+                          className="hover:bg-gray-50"
+                        >
                           <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-900 text-center">
                             {compra.numDoc}
                           </td>
@@ -613,7 +757,7 @@ function DashboardHome() {
                               </span>
                             </div>
                           </td>
-                        </tr>
+                        </motion.tr>
                       );
                     })
                 ) : (
@@ -629,7 +773,7 @@ function DashboardHome() {
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

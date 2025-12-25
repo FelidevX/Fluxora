@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { FormularioEntrega } from "@/interfaces/entregas/driver";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
@@ -445,15 +446,25 @@ export default function PantallaAgendarVisita({
 
   return (
     <div className="p-4">
-      <div className="bg-gray-100 rounded-lg p-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-100 rounded-lg p-4 mb-6"
+      >
         <h3 className="font-semibold text-gray-800 mb-1">
           Agendar Próxima Visita
         </h3>
         <p className="text-gray-600">{clienteNombre}</p>
-      </div>
+      </motion.div>
 
       {/* Resumen de la entrega actual */}
-      <div className="bg-blue-50 rounded-lg p-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
+        className="bg-blue-50 rounded-lg p-4 mb-6"
+      >
         <h4 className="font-medium text-blue-800 mb-2">
           Resumen de Entrega Actual
         </h4>
@@ -475,9 +486,9 @@ export default function PantallaAgendarVisita({
           )}
           <p className="font-medium pt-2">Total: $ {calcularTotalEntrega()}</p>
         </div>
-      </div>
+      </motion.div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <motion.form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div>
             <label className="block text-gray-700 font-medium mb-2">
@@ -610,7 +621,7 @@ export default function PantallaAgendarVisita({
             {isLoading ? "Procesando..." : "FINALIZAR"}
           </button>
         </div>
-      </form>
+      </motion.form>
 
       <ToastContainer
         toasts={toasts}

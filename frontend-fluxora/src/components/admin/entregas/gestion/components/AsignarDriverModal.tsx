@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { RutaActiva } from "@/interfaces/entregas/entregas";
 import { Driver } from "@/interfaces/entregas/driver";
 
@@ -25,11 +26,19 @@ export function AsignarDriverModal({
   if (!isOpen || !ruta) return null;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2 }}
         className="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"
         onClick={(e) => e.stopPropagation()}
       >
@@ -88,7 +97,7 @@ export function AsignarDriverModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -156,29 +156,31 @@ const ClientForm: React.FC<ClientFormProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 w-full">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <MaterialIcon name="person_add" className="w-6 h-6 text-green-600" />
-          <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+          <MaterialIcon name="person_add" className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+          <h3 className="text-lg md:text-xl font-semibold text-gray-900">{title}</h3>
         </div>
-        <Badge variant="info">Nuevo</Badge>
+        <div className="self-start sm:self-auto">
+          <Badge variant="info">Nuevo</Badge>
+        </div>
       </div>
 
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-xs md:text-sm text-gray-500 mb-4">
         Ingrese los nuevos datos del cliente
       </p>
 
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6"
       >
         {/* Left: datos del cliente */}
         <div className="space-y-4">
           <div>
             <label
               htmlFor="businessName"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-xs md:text-sm font-medium text-gray-700 mb-1"
             >
               Nombre del negocio
             </label>
@@ -189,7 +191,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
               value={formData.businessName}
               onChange={handleInputChange}
               placeholder="Ej: Juan Perez"
-              className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 text-sm text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
@@ -197,7 +199,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
           <div>
             <label
               htmlFor="contactPerson"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-xs md:text-sm font-medium text-gray-700 mb-1"
             >
               Persona de contacto
             </label>
@@ -208,16 +210,16 @@ const ClientForm: React.FC<ClientFormProps> = ({
               value={formData.contactPerson}
               onChange={handleInputChange}
               placeholder="Ej: Juan Perez"
-              className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 text-sm text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-xs md:text-sm font-medium text-gray-700 mb-1"
               >
                 Teléfono
               </label>
@@ -228,14 +230,14 @@ const ClientForm: React.FC<ClientFormProps> = ({
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="+569 0000 0000"
-                className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-sm text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 required
               />
             </div>
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-xs md:text-sm font-medium text-gray-700 mb-1"
               >
                 Correo
               </label>
@@ -246,17 +248,17 @@ const ClientForm: React.FC<ClientFormProps> = ({
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="cliente@gmail.com"
-                className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-sm text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 required
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label
                 htmlFor="precioCorriente"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-xs md:text-sm font-medium text-gray-700 mb-1"
               >
                 Precio Pan Corriente ($)
               </label>
@@ -269,14 +271,14 @@ const ClientForm: React.FC<ClientFormProps> = ({
                 placeholder="1300"
                 min="0"
                 step="100"
-                className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-sm text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 required
               />
             </div>
             <div>
               <label
                 htmlFor="precioEspecial"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-xs md:text-sm font-medium text-gray-700 mb-1"
               >
                 Precio Pan Especial ($)
               </label>
@@ -289,7 +291,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
                 placeholder="1500"
                 min="0"
                 step="100"
-                className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-sm text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 required
               />
             </div>
@@ -315,13 +317,14 @@ const ClientForm: React.FC<ClientFormProps> = ({
               type="button"
               onClick={getCurrentLocation}
               disabled={isGeolocating}
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 font-medium"
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 md:py-3 px-4 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 font-medium text-sm"
             >
               <MaterialIcon name={isGeolocating ? "refresh" : "my_location"} className={isGeolocating ? "animate-spin" : ""} />
-              <span>{isGeolocating ? "Obteniendo ubicación..." : "Obtener mi ubicación actual"}</span>
+              <span className="hidden sm:inline">{isGeolocating ? "Obteniendo ubicación..." : "Obtener mi ubicación actual"}</span>
+              <span className="sm:hidden">{isGeolocating ? "Obteniendo..." : "Mi ubicación"}</span>
             </button>
 
-            <div className="border border-gray-300 rounded-md overflow-hidden h-64">
+            <div className="border border-gray-300 rounded-md overflow-hidden h-48 md:h-64">
               <MapSelector
                 onLocationSelect={handleLocationSelect}
                 initialPosition={
@@ -332,8 +335,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
               />
             </div>
 
-            <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded-lg flex items-start gap-2 border border-blue-200">
-              <MaterialIcon name="info" className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs md:text-sm text-blue-700 bg-blue-50 p-2 md:p-3 rounded-lg flex items-start gap-2 border border-blue-200">
+              <MaterialIcon name="info" className="text-blue-600 flex-shrink-0 mt-0.5 text-base md:text-xl" />
               <span className="leading-relaxed">
                 Selecciona en el mapa la ubicación exacta del cliente
               </span>
@@ -342,18 +345,18 @@ const ClientForm: React.FC<ClientFormProps> = ({
         </div>
 
         {/* Submit en el footer ocupando ambas columnas */}
-        <div className="md:col-span-2 flex justify-end gap-2">
+        <div className="lg:col-span-2 flex flex-col sm:flex-row justify-end gap-2">
           <button
             type="button"
             onClick={resetForm}
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+            className="w-full sm:w-auto px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100"
           >
             Limpiar
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "Procesando..." : submitButtonText}
           </button>

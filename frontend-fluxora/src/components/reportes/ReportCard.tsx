@@ -22,7 +22,7 @@ export default function ReportCard({
     <button
       onClick={onClick}
       className={`
-        w-full p-6 rounded-xl border-2 transition-all duration-200
+        w-full p-4 md:p-6 rounded-xl border-2 transition-all duration-200
         ${
           isSelected
             ? "border-blue-500 bg-blue-50 shadow-lg"
@@ -30,34 +30,34 @@ export default function ReportCard({
         }
       `}
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3 md:gap-4">
         <div
           className={`
-          p-3 rounded-lg
+          p-2 md:p-3 rounded-lg
           ${isSelected ? "bg-blue-500" : "bg-blue-100"}
         `}
         >
           <MaterialIcon
             name={icono}
-            className={`text-2xl ${
+            className={`text-xl md:text-2xl ${
               isSelected ? "text-white" : "text-blue-600"
             }`}
           />
         </div>
         <div className="flex-1 text-left">
           <h3
-            className={`text-lg font-semibold mb-1 ${
+            className={`text-base md:text-lg font-semibold mb-1 ${
               isSelected ? "text-blue-700" : "text-gray-900"
             }`}
           >
             {titulo}
           </h3>
-          <p className="text-sm text-gray-600">{descripcion}</p>
+          <p className="text-xs md:text-sm text-gray-600">{descripcion}</p>
         </div>
         {isSelected && (
           <MaterialIcon
             name="check_circle"
-            className="text-2xl text-blue-500"
+            className="text-xl md:text-2xl text-blue-500 flex-shrink-0"
           />
         )}
       </div>

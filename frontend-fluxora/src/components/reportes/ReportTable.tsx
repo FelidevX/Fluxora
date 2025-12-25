@@ -23,12 +23,12 @@ export default function ReportTable({
 }: ReportTableProps) {
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 text-center">
         <MaterialIcon
           name="inbox"
-          className="text-6xl text-gray-300 mx-auto mb-4"
+          className="text-5xl md:text-6xl text-gray-300 mx-auto mb-4"
         />
-        <p className="text-gray-500">
+        <p className="text-sm md:text-base text-gray-500">
           No hay datos disponibles para este reporte
         </p>
       </div>
@@ -38,24 +38,24 @@ export default function ReportTable({
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">{titulo}</h3>
-        <div className="flex gap-3">
+      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h3 className="text-base md:text-lg font-semibold text-gray-900">{titulo}</h3>
+        <div className="flex gap-2 md:gap-3">
           {onExportarExcel && (
             <button
               onClick={onExportarExcel}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-sm text-sm flex-1 sm:flex-initial"
             >
-              <MaterialIcon name="file_download" className="text-xl" />
+              <MaterialIcon name="file_download" className="text-lg md:text-xl" />
               <span className="font-medium">Excel</span>
             </button>
           )}
           {onExportarPDF && (
             <button
               onClick={onExportarPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-sm text-sm flex-1 sm:flex-initial"
             >
-              <MaterialIcon name="picture_as_pdf" className="text-xl" />
+              <MaterialIcon name="picture_as_pdf" className="text-lg md:text-xl" />
               <span className="font-medium">PDF</span>
             </button>
           )}
@@ -70,7 +70,7 @@ export default function ReportTable({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   {col.label}
                 </th>
@@ -83,7 +83,7 @@ export default function ReportTable({
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                    className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900"
                   >
                     {col.format ? col.format(row[col.key]) : row[col.key]}
                   </td>
@@ -95,8 +95,8 @@ export default function ReportTable({
       </div>
 
       {/* Footer con total de registros */}
-      <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-        <p className="text-sm text-gray-600">
+      <div className="px-4 md:px-6 py-3 bg-gray-50 border-t border-gray-200">
+        <p className="text-xs md:text-sm text-gray-600">
           Total de registros:{" "}
           <span className="font-semibold">{data.length}</span>
         </p>

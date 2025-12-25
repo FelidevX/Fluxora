@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { TipoReporte, FiltrosReporte } from "@/types/reportes";
 import { useReportes } from "@/hooks/useReportes";
 import ReportCard from "@/components/reportes/ReportCard";
@@ -270,83 +271,143 @@ function ReportesContent() {
   };
 
   return (
-    <div className="p-6  mx-auto">
+    <div className="p-4 md:p-6 max-w-full overflow-x-hidden mx-auto mt-12 md:mt-0">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Reportes</h1>
-        <p className="text-gray-600">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-6 md:mb-8"
+      >
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Reportes</h1>
+        <p className="text-sm text-gray-600">
           Genera reportes detallados de entregas, ventas, inventario y clientes
         </p>
-      </div>
+      </motion.div>
 
       {/* Selección de tipo de reporte */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="mb-6 md:mb-8"
+      >
+        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
           Selecciona el tipo de reporte
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tiposReportes.map((reporte) => (
-            <ReportCard
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          {tiposReportes.map((reporte, index) => (
+            <motion.div
               key={reporte.tipo}
-              tipo={reporte.tipo}
-              titulo={reporte.titulo}
-              descripcion={reporte.descripcion}
-              icono={reporte.icono}
-              onClick={() => setTipoSeleccionado(reporte.tipo)}
-              isSelected={tipoSeleccionado === reporte.tipo}
-            />
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
+            >
+              <ReportCard
+                tipo={reporte.tipo}
+                titulo={reporte.titulo}
+                descripcion={reporte.descripcion}
+                icono={reporte.icono}
+                onClick={() => setTipoSeleccionado(reporte.tipo)}
+                isSelected={tipoSeleccionado === reporte.tipo}
+              />
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Filtros */}
-      {tipoSeleccionado && (
-        <div className="mb-8">
-          <ReportFilters
-            onGenerar={handleGenerarReporte}
-            tipoSeleccionado={tipoSeleccionado}
-            loading={loading}
-          />
-        </div>
-      )}
+      <AnimatePresence>
+        {tipoSeleccionado && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: "auto", marginBottom: "2rem" }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <ReportFilters
+              onGenerar={handleGenerarReporte}
+              tipoSeleccionado={tipoSeleccionado}
+              loading={loading}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Error */}
-      {error && (
-        <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">❌ {error}</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="mb-6 md:mb-8 bg-red-50 border border-red-200 rounded-lg p-3 md:p-4"
+          >
+            <p className="text-sm md:text-base text-red-800 font-medium">❌ {error}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Resultados */}
-      {datosReporte && datosReporte.datos && datosReporte.datos.length > 0 && (
-        <div className="space-y-6">
-          {/* Resumen */}
-          <ReportSummary
-            resumen={datosReporte.resumen}
-            tipo={tipoSeleccionado || ""}
-          />
+      <AnimatePresence>
+        {datosReporte && datosReporte.datos && datosReporte.datos.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-6"
+          >
+            {/* Resumen */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <ReportSummary
+                resumen={datosReporte.resumen}
+                tipo={tipoSeleccionado || ""}
+              />
+            </motion.div>
 
-          {/* Tabla */}
-          <ReportTable
-            data={datosReporte.datos}
-            columns={getColumnas()}
-            titulo={`Resultados del Reporte - ${tipoSeleccionado?.toUpperCase()}`}
-            onExportarExcel={exportarAExcel}
-            onExportarPDF={exportarAPDF}
-          />
-        </div>
-      )}
+            {/* Tabla */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <ReportTable
+                data={datosReporte.datos}
+                columns={getColumnas()}
+                titulo={`Resultados del Reporte - ${tipoSeleccionado?.toUpperCase()}`}
+                onExportarExcel={exportarAExcel}
+                onExportarPDF={exportarAPDF}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Sin datos */}
-      {datosReporte &&
-        datosReporte.datos &&
-        datosReporte.datos.length === 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
-            <p className="text-yellow-800 text-lg">
-              ℹ️ No se encontraron datos para el periodo seleccionado
-            </p>
-          </div>
-        )}
+      <AnimatePresence>
+        {datosReporte &&
+          datosReporte.datos &&
+          datosReporte.datos.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 md:p-8 text-center"
+            >
+              <p className="text-sm md:text-base text-yellow-800">
+                No se encontraron datos para el periodo seleccionado
+              </p>
+            </motion.div>
+          )}
+      </AnimatePresence>
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer

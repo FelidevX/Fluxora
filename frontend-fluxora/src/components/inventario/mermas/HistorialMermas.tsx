@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useMermas } from "@/hooks/useMermas";
 import DataTable from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
@@ -86,7 +87,12 @@ export default function HistorialMermas() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex justify-between items-start"
+      >
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Historial de Mermas
@@ -95,7 +101,7 @@ export default function HistorialMermas() {
             Registro completo de productos mermados
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -112,7 +118,12 @@ export default function HistorialMermas() {
 
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total de Mermas</p>
@@ -121,9 +132,14 @@ export default function HistorialMermas() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Cantidad Total Mermada</p>
@@ -135,9 +151,14 @@ export default function HistorialMermas() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Mermas Automáticas</p>
@@ -146,10 +167,15 @@ export default function HistorialMermas() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Tabla usando DataTable con búsqueda y paginación */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
       <DataTable
         data={mermasFiltradas}
         columns={columns}
@@ -165,6 +191,7 @@ export default function HistorialMermas() {
           pageSizeOptions: [5, 10, 25, 50],
         }}
       />
+      </motion.div>
     </div>
   );
 }

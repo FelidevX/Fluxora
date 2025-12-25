@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import PantallaFormulario from "../formulario/PantallaFormulario";
 import PantallaAgendarVisita from "../visita/AgendarVisita";
 import { Entrega, FormularioEntrega } from "@/interfaces/entregas/driver";
@@ -33,29 +34,43 @@ export default function FormularioContainer({
     onComplete(clienteId); // Pasar clienteId al padre
   };
 
-  if (currentStep === 'formulario') {
-    return (
-      <PantallaFormulario
-        entrega={entrega}
-        onContinue={handleContinue}
-        onCancel={onCancel}
-      />
-    );
-  }
+  return (
+    <AnimatePresence mode="wait">
+      {currentStep === 'formulario' && (
+        <motion.div
+          key="formulario"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <PantallaFormulario
+            entrega={entrega}
+            onContinue={handleContinue}
+            onCancel={onCancel}
+          />
+        </motion.div>
+      )}
 
-  if (currentStep === 'agendar' && formularioData) {
-    return (
-      <PantallaAgendarVisita
-        formularioData={formularioData}
-        clienteId={entrega.id_cliente}
-        clienteNombre={entrega.cliente}
-        rutaId={entrega.id_ruta}
-        pedidoId={entrega.id_pedido}
-        onComplete={handleAgendarComplete}
-        onBack={handleBack}
-      />
-    );
-  }
-
-  return null;
+      {currentStep === 'agendar' && formularioData && (
+        <motion.div
+          key="agendar"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <PantallaAgendarVisita
+            formularioData={formularioData}
+            clienteId={entrega.id_cliente}
+            clienteNombre={entrega.cliente}
+            rutaId={entrega.id_ruta}
+            pedidoId={entrega.id_pedido}
+            onComplete={handleAgendarComplete}
+            onBack={handleBack}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Producto, ProductoDTO } from "@/types/inventario";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
@@ -187,6 +188,15 @@ export default function GestionProductos({
       p.categoria.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  // Filtrar recetas que ya están asociadas a productos existentes
+  const recetasDisponibles = recetas.filter((receta) => {
+    // Solo mostrar recetas activas que no estén asociadas a ningún producto
+    return (
+      receta.activa &&
+      !productos.some((producto) => producto.recetaMaestraId === receta.id)
+    );
+  });
+
   const columns = [
     {
       key: "nombre",
@@ -284,9 +294,14 @@ export default function GestionProductos({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4"
+      >
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Gestión de Productos
@@ -295,8 +310,13 @@ export default function GestionProductos({
             Administra los productos y sus lotes de producción
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={onOpenMerma} variant="danger" icon="delete_sweep">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+          <Button 
+            onClick={onOpenMerma} 
+            variant="danger" 
+            icon="delete_sweep"
+            className="w-full sm:w-auto whitespace-nowrap"
+          >
             Registrar Merma
           </Button>
           <Button
@@ -306,11 +326,12 @@ export default function GestionProductos({
             }}
             variant="primary"
             icon="add"
+            className="w-full sm:w-auto whitespace-nowrap"
           >
             Nuevo Producto
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -326,38 +347,53 @@ export default function GestionProductos({
       )}
 
       {/* Tabla de productos usando DataTable con búsqueda y paginación */}
-      <DataTable
-        data={productosFiltrados}
-        columns={columns}
-        actions={actions}
-        loading={loading}
-        searchValue={busqueda}
-        onSearch={setBusqueda}
-        searchPlaceholder="Buscar por nombre o categoría..."
-        emptyMessage="No hay productos registrados"
-        pagination={{
-          enabled: true,
-          serverSide: false,
-          defaultPageSize: 10,
-          pageSizeOptions: [5, 10, 25, 50],
-        }}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <DataTable
+          data={productosFiltrados}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar por nombre o categoría..."
+          emptyMessage="No hay productos registrados"
+          pagination={{
+            enabled: true,
+            serverSide: false,
+            defaultPageSize: 10,
+            pageSizeOptions: [5, 10, 25, 50],
+          }}
+        />
+      </motion.div>
 
       {/* Modal de formulario */}
-      {showForm && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
-          onClick={() => {
-            setShowForm(false);
-            resetFormulario();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => {
+              setShowForm(false);
+              resetFormulario();
+            }}
           >
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-full md:max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-3 md:py-4 flex justify-between items-center z-10">
+              <h2 className="text-lg md:text-2xl font-bold text-gray-800">
                 {productoEnEdicion ? "Editar Producto" : "Nuevo Producto"}
               </h2>
               <button
@@ -367,11 +403,11 @@ export default function GestionProductos({
                 }}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <MaterialIcon name="close" className="text-2xl" />
+                <MaterialIcon name="close" className="text-xl md:text-2xl" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6">
+            <form onSubmit={handleSubmit} className="p-4 md:p-6">
               <div className="space-y-4">
                 {/* Selector de Receta (solo para crear) */}
                 {!productoEnEdicion && (
@@ -391,15 +427,15 @@ export default function GestionProductos({
                       <option value="">
                         {loadingRecetas
                           ? "Cargando recetas..."
-                          : "-- Seleccione una receta --"}
+                          : recetasDisponibles.length === 0
+                            ? "No hay recetas disponibles"
+                            : "-- Seleccione una receta --"}
                       </option>
-                      {recetas
-                        .filter((r) => r.activa)
-                        .map((receta) => (
-                          <option key={receta.id} value={receta.id}>
-                            {receta.nombre} - {receta.categoria}
-                          </option>
-                        ))}
+                      {recetasDisponibles.map((receta) => (
+                        <option key={receta.id} value={receta.id}>
+                          {receta.nombre} - {receta.categoria}
+                        </option>
+                      ))}
                     </select>
                     <p className="text-xs text-gray-500 mt-1">
                       El nombre, categoría y precio se extraerán de la receta
@@ -538,7 +574,7 @@ export default function GestionProductos({
               </div>
 
               {/* Botones de acción */}
-              <div className="flex gap-2 mt-6">
+              <div className="flex flex-col sm:flex-row gap-2 mt-6">
                 <Button
                   type="button"
                   onClick={() => {
@@ -546,7 +582,7 @@ export default function GestionProductos({
                     resetFormulario();
                   }}
                   variant="secondary"
-                  className="flex-1"
+                  className="flex-1 w-full"
                 >
                   Cancelar
                 </Button>
@@ -554,7 +590,7 @@ export default function GestionProductos({
                   type="submit"
                   variant="primary"
                   disabled={loading}
-                  className="flex-1"
+                  className="flex-1 w-full"
                 >
                   {loading
                     ? "Guardando..."
@@ -564,9 +600,10 @@ export default function GestionProductos({
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal de gestión de lotes */}
       {productoParaLotes && (

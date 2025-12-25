@@ -90,3 +90,45 @@ export async function registrarAjuste(
     throw error;
   }
 }
+
+interface PlanProduccionResponse {
+  fecha: string;
+  productos: Array<{
+    nombreProducto: string;
+    unidadMedida: string;
+    cantidadTotal: number;
+    clientes: Array<{
+      nombreCliente: string;
+      cantidad: number;
+      ruta: string;
+    }>;
+  }>;
+  totalProductos: number;
+  cantidadTotal: number;
+}
+
+export async function obtenerPlanProduccion(
+  fecha: string
+): Promise<PlanProduccionResponse> {
+  try {
+    const token = getAuthToken();
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/plan-produccion/${fecha}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener plan de producción: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error en obtenerPlanProduccion:", error);
+    throw error;
+  }
+}

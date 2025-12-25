@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { MateriaPrimaDTO, MateriaPrima } from "@/types/inventario";
 import { useMaterias } from "@/hooks/useMaterias";
 import { useCurrentDate } from "@/hooks/useDate";
@@ -134,19 +135,29 @@ export default function GestionMateriasPrimas() {
 
   const fetchLotes = async (materiaId: number) => {
     try {
+      let token = localStorage.getItem("auth_token");
+
+      if (token?.startsWith("Bearer ")) {
+        token = token.substring(7);
+      }
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${materiaId}/lotes`
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/inventario/materias-primas/${materiaId}/lotes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (!res.ok) throw new Error("Error al obtener lotes");
       const data = await res.json();
       // Filtrar solo lotes con stock_actual > 0
       const lotesConStock = Array.isArray(data)
         ? data.filter((lote: any) => {
-          // Usar stockActual si existe, sino usar cantidad como fallback
-          const stock =
-            lote.stockActual !== undefined ? lote.stockActual : lote.cantidad;
-          return stock > 0;
-        })
+            // Usar stockActual si existe, sino usar cantidad como fallback
+            const stock =
+              lote.stockActual !== undefined ? lote.stockActual : lote.cantidad;
+            return stock > 0;
+          })
         : [];
       setLotes(lotesConStock);
     } catch (err) {
@@ -173,7 +184,7 @@ export default function GestionMateriasPrimas() {
       key: "nombre",
       label: "Producto",
       render: (materia: MateriaPrima) => (
-        <span className="text-sm font-medium text-gray-900">
+        <span className="text-xs md:text-sm font-medium text-gray-900">
           {materia.nombre || "Sin nombre"}
         </span>
       ),
@@ -182,14 +193,16 @@ export default function GestionMateriasPrimas() {
       key: "unidad",
       label: "Unidad",
       render: (materia: MateriaPrima) => (
-        <span className="text-sm text-gray-900">{materia.unidad || ""}</span>
+        <span className="text-xs md:text-sm text-gray-900">
+          {materia.unidad || ""}
+        </span>
       ),
     },
     {
       key: "stock",
       label: "Stock",
       render: (materia: MateriaPrima) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {materia.cantidad ?? 0} {materia.unidad || ""}
         </span>
       ),
@@ -199,7 +212,7 @@ export default function GestionMateriasPrimas() {
   // Definir acciones de la tabla
   const actions = [
     {
-      label: "Visualizar Lotes",
+      label: "Ver Lotes",
       icon: "visibility",
       variant: "primary" as const,
       onClick: (materia: MateriaPrima) => handleAgregarStock(materia),
@@ -215,9 +228,14 @@ export default function GestionMateriasPrimas() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+      >
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
             Catálogo de Materias Primas
           </h2>
           <p className="text-sm text-gray-600 mt-1">
@@ -228,10 +246,11 @@ export default function GestionMateriasPrimas() {
           variant="primary"
           icon="add"
           onClick={() => setShowForm(!showForm)}
+          className="w-full sm:w-auto text-sm"
         >
-          Nueva Materia Prima
+          <span className="sm:inline">Nueva Materia Prima</span>
         </Button>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -247,15 +266,23 @@ export default function GestionMateriasPrimas() {
       )}
 
       {/* Formulario */}
-      {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900">
-            Nueva Materia Prima
-          </h3>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
           >
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md border border-gray-200">
+              <h3 className="text-base md:text-lg font-semibold mb-4 text-gray-900">
+                Nueva Materia Prima
+              </h3>
+              <form
+                onSubmit={handleSubmit}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
             <Input
               label="Nombre de la materia prima:"
               type="text"
@@ -267,11 +294,11 @@ export default function GestionMateriasPrimas() {
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Unidad:
               </label>
               <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
                 value={formulario.unidad}
                 onChange={(e) =>
                   setFormulario({ ...formulario, unidad: e.target.value })
@@ -284,60 +311,82 @@ export default function GestionMateriasPrimas() {
               </select>
             </div>
 
-            <div className="md:col-span-2 flex gap-2">
-              <Button type="submit" variant="success">
+            <div className="md:col-span-2 flex flex-col sm:flex-row gap-2">
+              <Button
+                type="submit"
+                variant="success"
+                className="w-full sm:w-auto text-sm"
+              >
                 Guardar
               </Button>
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => setShowForm(false)}
+                className="w-full sm:w-auto text-sm"
               >
                 Cancelar
               </Button>
             </div>
           </form>
         </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Tabla usando DataTable */}
-      <DataTable
-        data={materiasFiltradas}
-        columns={columns}
-        actions={actions}
-        loading={loading}
-        searchValue={busqueda}
-        onSearch={setBusqueda}
-        searchPlaceholder="Buscar materias primas..."
-        emptyMessage="No hay materias primas registradas"
-        pagination={{
-          enabled: true,
-          serverSide: false,
-          defaultPageSize: 10,
-          pageSizeOptions: [5, 10, 25, 50],
-        }}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <DataTable
+          data={materiasFiltradas}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar materias primas..."
+          emptyMessage="No hay materias primas registradas"
+          pagination={{
+            enabled: true,
+            serverSide: false,
+            defaultPageSize: 10,
+            pageSizeOptions: [5, 10, 25, 50],
+          }}
+        />
+      </motion.div>
 
       {/* Modal de Visualizar Lotes */}
-      {showStockModal && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
-          onClick={handleCancelStock}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showStockModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={handleCancelStock}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900">
                     Visualizar Lotes
                   </h3>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-sm md:text-base text-gray-600 mt-1 truncate">
                     {materiaAActualizar?.nombre}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs md:text-sm text-gray-500">
                     Stock total disponible:{" "}
                     <span className="font-semibold text-green-600">
                       {materiaAActualizar?.cantidad ?? 0}
@@ -347,37 +396,51 @@ export default function GestionMateriasPrimas() {
                 </div>
                 <button
                   onClick={handleCancelStock}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 flex-shrink-0"
                 >
-                  <MaterialIcon name="close" className="w-6 h-6" />
+                  <MaterialIcon
+                    name="close"
+                    className="w-5 h-5 md:w-6 md:h-6"
+                  />
                 </button>
               </div>
             </div>
 
-            <div className="p-6">
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="p-4 md:p-6">
+              <p className="text-xs md:text-sm text-gray-600 mb-4">
                 Lotes con stock disponible (ordenados por fecha de vencimiento)
               </p>
 
               {lotes && lotes.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                  <table className="w-full text-left text-xs md:text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="py-3 px-4 text-gray-700 font-medium">
-                          Fecha Compra
+                        <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium">
+                          <span className="hidden sm:inline">Fecha Compra</span>
+                          <span className="sm:hidden">Compra</span>
                         </th>
-                        <th className="py-3 px-4 text-gray-700 font-medium">
-                          Fecha Vencimiento
+                        <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium">
+                          <span className="hidden sm:inline">
+                            Fecha Vencimiento
+                          </span>
+                          <span className="sm:hidden">Venc.</span>
                         </th>
-                        <th className="py-3 px-4 text-gray-700 font-medium text-right">
-                          Cantidad Original
+                        <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium text-right">
+                          <span className="hidden sm:inline">
+                            Cantidad Original
+                          </span>
+                          <span className="sm:hidden">Original</span>
                         </th>
-                        <th className="py-3 px-4 text-gray-700 font-medium text-right">
-                          Stock Actual
+                        <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium text-right">
+                          <span className="hidden sm:inline">Stock Actual</span>
+                          <span className="sm:hidden">Stock</span>
                         </th>
-                        <th className="py-3 px-4 text-gray-700 font-medium text-right">
-                          Costo Unitario
+                        <th className="py-2 md:py-3 px-2 md:px-4 text-gray-700 font-medium text-right">
+                          <span className="hidden sm:inline">
+                            Costo Unitario
+                          </span>
+                          <span className="sm:hidden">Costo</span>
                         </th>
                       </tr>
                     </thead>
@@ -395,14 +458,14 @@ export default function GestionMateriasPrimas() {
                             }
                             className="hover:bg-gray-50"
                           >
-                            <td className="py-3 px-4 text-gray-900">
+                            <td className="py-2 md:py-3 px-2 md:px-4 text-gray-900">
                               {lote.fechaCompra
                                 ? new Date(lote.fechaCompra).toLocaleDateString(
-                                  "es-CL"
-                                )
+                                    "es-CL"
+                                  )
                                 : "-"}
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="py-2 md:py-3 px-2 md:px-4">
                               {lote.fechaVencimiento ? (
                                 <span className="text-orange-600 font-medium">
                                   {new Date(
@@ -410,21 +473,25 @@ export default function GestionMateriasPrimas() {
                                   ).toLocaleDateString("es-CL")}
                                 </span>
                               ) : (
-                                <span className="text-gray-400">
-                                  Sin vencimiento
+                                <span className="text-gray-400 text-xs">
+                                  <span className="hidden sm:inline">
+                                    Sin vencimiento
+                                  </span>
+                                  <span className="sm:hidden">-</span>
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 px-4 text-right text-gray-900">
+                            <td className="py-2 md:py-3 px-2 md:px-4 text-right text-gray-900">
                               {lote.cantidad} {materiaAActualizar?.unidad}
                             </td>
-                            <td className="py-3 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
+                            <td className="py-2 md:py-3 px-2 md:px-4 text-right">
+                              <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1">
                                 <span
-                                  className={`font-semibold ${porcentajeConsumido > 50
-                                    ? "text-orange-600"
-                                    : "text-green-600"
-                                    }`}
+                                  className={`font-semibold ${
+                                    porcentajeConsumido > 50
+                                      ? "text-orange-600"
+                                      : "text-green-600"
+                                  }`}
                                 >
                                   {stockActual} {materiaAActualizar?.unidad}
                                 </span>
@@ -435,12 +502,12 @@ export default function GestionMateriasPrimas() {
                                 )}
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-right text-gray-900">
+                            <td className="py-2 md:py-3 px-2 md:px-4 text-right text-gray-900">
                               {typeof lote.costoUnitario === "number"
                                 ? lote.costoUnitario.toLocaleString("es-CL", {
-                                  style: "currency",
-                                  currency: "CLP",
-                                })
+                                    style: "currency",
+                                    currency: "CLP",
+                                  })
                                 : "-"}
                             </td>
                           </tr>
@@ -455,26 +522,31 @@ export default function GestionMateriasPrimas() {
                     name="inventory_2"
                     className="w-12 h-12 text-gray-300 mx-auto mb-3"
                   />
-                  <p className="text-gray-500">
+                  <p className="text-sm md:text-base text-gray-500">
                     No hay lotes con stock disponible para esta materia prima.
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-xs md:text-sm text-gray-400 mt-1">
                     Los lotes consumidos completamente no se muestran aquí.
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex gap-3 justify-end">
-                <Button variant="secondary" onClick={handleCancelStock}>
+                <Button
+                  variant="secondary"
+                  onClick={handleCancelStock}
+                  className="w-full sm:w-auto text-sm"
+                >
                   Cerrar
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal de Confirmación de Eliminación */}
       <ConfirmDeleteModalText

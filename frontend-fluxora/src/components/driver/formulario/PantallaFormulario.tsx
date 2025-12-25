@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Entrega, FormularioEntrega } from "@/interfaces/entregas/driver";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
@@ -189,7 +190,12 @@ export default function PantallaFormulario({
 
   return (
     <div className="p-4">
-      <div className="bg-gray-100 rounded-lg p-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-100 rounded-lg p-4 mb-6"
+      >
         <h3 className="font-semibold text-gray-800 mb-1">
           {clienteActual?.cliente.nombreNegocio || entrega.cliente}
         </h3>
@@ -205,9 +211,15 @@ export default function PantallaFormulario({
             </p>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <motion.form
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
         {clienteActual?.productosProgramados.map(
           (producto: any, idx: number) => (
             <div
@@ -288,7 +300,7 @@ export default function PantallaFormulario({
             CONTINUAR
           </button>
         </div>
-      </form>
+      </motion.form>
 
       <ToastContainer
         toasts={toasts}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   RecetaMaestra,
   RecetaMaestraDTO,
@@ -151,27 +152,69 @@ export default function RecetasManager() {
     setIngredientes(nuevosIngredientes);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
+    console.log("=== INICIANDO CREACIÓN DE RECETA ===");
+    console.log("Formulario:", formulario);
+    console.log("Ingredientes:", ingredientes);
 
-    if (
-      !formulario.nombre ||
-      !formulario.descripcion ||
-      ingredientes.length === 0
-    ) {
+    // Validar campos básicos
+    if (!formulario.nombre) {
+      showError("Por favor ingrese el nombre de la receta", "Campo requerido");
+      return;
+    }
+
+    if (!formulario.descripcion) {
+      showError(
+        "Por favor ingrese la descripción de la receta",
+        "Campo requerido"
+      );
+      return;
+    }
+
+    if (!formulario.precioUnidad || formulario.precioUnidad <= 0) {
+      showError(
+        "Por favor ingrese el precio de venta por unidad",
+        "Campo requerido"
+      );
+      return;
+    }
+
+    if (ingredientes.length === 0) {
+      showError(
+        "Debe agregar al menos un ingrediente a la receta",
+        "Ingredientes requeridos"
+      );
       return;
     }
 
     // Validar que todos los ingredientes tengan materia prima seleccionada
-    const ingredientesIncompletos = ingredientes.some(
-      (ing) => ing.materiaPrimaId === 0 || ing.cantidadNecesaria <= 0
+    const ingredientesSinMateria = ingredientes.find(
+      (ing) => ing.materiaPrimaId === 0
     );
 
-    if (ingredientesIncompletos) {
+    if (ingredientesSinMateria) {
+      showError(
+        "Todos los ingredientes deben tener una materia prima seleccionada",
+        "Ingredientes incompletos"
+      );
+      return;
+    }
+
+    const ingredientesSinCantidad = ingredientes.find(
+      (ing) => ing.cantidadNecesaria <= 0
+    );
+
+    if (ingredientesSinCantidad) {
+      showError(
+        "Todos los ingredientes deben tener una cantidad mayor a 0",
+        "Cantidades inválidas"
+      );
       return;
     }
 
     try {
+      console.log("Preparando datos de receta...");
       const nuevaReceta: RecetaMaestraDTO = {
         ...formulario,
         ingredientes: ingredientes.map((ing) => {
@@ -183,7 +226,9 @@ export default function RecetasManager() {
         }),
       };
 
+      console.log("Receta a crear:", nuevaReceta);
       await crearReceta(nuevaReceta);
+      console.log("Receta creada exitosamente");
       success("Receta creada exitosamente", "¡Éxito!");
 
       // Limpiar formulario
@@ -200,8 +245,11 @@ export default function RecetasManager() {
       setIngredientes([]);
       setShowForm(false);
     } catch (err) {
-      console.error(err);
-      showError("Error al crear la receta", "Error");
+      console.error("Error completo al crear receta:", err);
+      showError(
+        err instanceof Error ? err.message : "Error al crear la receta",
+        "Error"
+      );
     }
   };
 
@@ -303,6 +351,14 @@ export default function RecetasManager() {
       return;
     }
 
+    if (!formularioEdicion.precioUnidad || formularioEdicion.precioUnidad <= 0) {
+      showError(
+        "Por favor ingrese el precio de venta por unidad",
+        "Campo requerido"
+      );
+      return;
+    }
+
     // Validar que todos los ingredientes tengan materia prima seleccionada
     const ingredientesIncompletos = ingredientesEdicion.some(
       (ing) => ing.materiaPrimaId === 0 || ing.cantidadNecesaria <= 0
@@ -371,10 +427,12 @@ export default function RecetasManager() {
       label: "Receta",
       render: (receta: RecetaMaestra) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-xs md:text-sm font-medium text-gray-900">
             {receta.nombre}
           </div>
-          <div className="text-sm text-gray-500">{receta.descripcion}</div>
+          <div className="text-xs md:text-sm text-gray-500 truncate max-w-[120px] md:max-w-xs" title={receta.descripcion}>
+            {receta.descripcion}
+          </div>
         </div>
       ),
     },
@@ -391,7 +449,7 @@ export default function RecetasManager() {
       key: "cantidad",
       label: "Cantidad Base",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {receta.cantidadBase} {receta.unidadBase}
         </span>
       ),
@@ -400,7 +458,7 @@ export default function RecetasManager() {
       key: "precio",
       label: "Precio Estimado",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {formatCLP(receta.precioEstimado || 0)}
         </span>
       ),
@@ -409,7 +467,7 @@ export default function RecetasManager() {
       key: "precioUnidad",
       label: "Precio / unidad",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {formatCLP(receta.precioUnidad || 0)}
         </span>
       ),
@@ -418,7 +476,7 @@ export default function RecetasManager() {
       key: "tiempo",
       label: "Tiempo",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {receta.tiempoPreparacion} min
         </span>
       ),
@@ -427,7 +485,7 @@ export default function RecetasManager() {
       key: "ingredientes",
       label: "Ingredientes",
       render: (receta: RecetaMaestra) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-xs md:text-sm text-gray-900">
           {receta.ingredientes.length} ingredientes
         </span>
       ),
@@ -503,8 +561,13 @@ export default function RecetasManager() {
   );
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="mb-4">
+    <div className="p-4 md:p-6 max-w-full overflow-x-hidden space-y-6 mt-12 md:mt-0">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-4"
+      >
         <Link
           className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
           href={"/dashboard/inventario"}
@@ -512,15 +575,20 @@ export default function RecetasManager() {
           <MaterialIcon name="arrow_back" className="mr-1" />
           <span>Volver al inicio</span>
         </Link>
-      </div>
+      </motion.div>
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
+        className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4"
+      >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Gestión de Recetas
           </h1>
-          <div className="flex items-center text-gray-600 mt-1">
-            <MaterialIcon name="calendar_today" className="mr-1" />
+          <div className="flex items-center text-gray-600 mt-1 text-sm">
+            <MaterialIcon name="calendar_today" className="mr-1 text-lg" />
             <span>
               {new Date().toLocaleDateString("es-ES", {
                 weekday: "long",
@@ -531,11 +599,12 @@ export default function RecetasManager() {
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <Button
             variant="success"
             icon="add"
             onClick={() => setShowForm(!showForm)}
+            className="w-full sm:w-auto text-sm"
           >
             {showForm ? "Cancelar" : "Crear Receta"}
           </Button>
@@ -544,18 +613,26 @@ export default function RecetasManager() {
             icon="picture_as_pdf"
             onClick={handleExportarTodasPDF}
             disabled={recetasFiltradas.length === 0}
+            className="w-full sm:w-auto text-sm"
           >
-            Exportar a PDF ({recetasFiltradas.length})
+            <span className="hidden md:inline">
+              Exportar a PDF ({recetasFiltradas.length})
+            </span>
+            <span className="md:hidden">PDF ({recetasFiltradas.length})</span>
           </Button>
           <Button
             variant="warning"
             icon="build"
             onClick={handleOpenRepairModal}
+            className="w-full sm:w-auto text-sm"
           >
-            Reparar recetas manualmente
+            <span className="hidden md:inline">
+              Reparar recetas manualmente
+            </span>
+            <span className="md:hidden">Reparar</span>
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mostrar errores */}
       {error && (
@@ -577,22 +654,31 @@ export default function RecetasManager() {
       <ReparadorRecetas ref={reparadorRef} />
 
       {/* Modal de Crear Receta */}
-      {showForm && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
-          onClick={() => setShowForm(false)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => setShowForm(false)}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900">
                     Crear Nueva Receta
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Complete la información de la receta y agregue los
                     ingredientes necesarios
                   </p>
@@ -606,7 +692,7 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-6">
               {/* Información básica */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
@@ -624,7 +710,7 @@ export default function RecetasManager() {
                     Categoría:
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     value={formulario.categoria}
                     onChange={(e) =>
                       setFormulario({
@@ -658,7 +744,7 @@ export default function RecetasManager() {
                     Unidad base:
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     value={formulario.unidadBase}
                     onChange={(e) =>
                       setFormulario({
@@ -693,12 +779,13 @@ export default function RecetasManager() {
                   step="1"
                   placeholder="Ej: 5000"
                   value={formulario.precioUnidad || ""}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const valor = e.target.value;
                     setFormulario({
                       ...formulario,
-                      precioUnidad: parseFloat(e.target.value) || 0,
-                    })
-                  }
+                      precioUnidad: valor === "" ? 0 : parseFloat(valor),
+                    });
+                  }}
                   required
                 />
               </div>
@@ -797,7 +884,7 @@ export default function RecetasManager() {
                             <input
                               type="number"
                               step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500"
                               placeholder="Ej: 2.5"
                               value={ingrediente.cantidadNecesaria}
                               onChange={(e) =>
@@ -811,17 +898,13 @@ export default function RecetasManager() {
                             />
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1 ">
-                              Unidad:
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
-                              value={ingrediente.unidad}
-                              readOnly
-                            />
-                          </div>
+                          <Input
+                            label="Unidad:"
+                            type="text"
+                            value={ingrediente.unidad}
+                            readOnly
+                            disabled
+                          />
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -863,42 +946,54 @@ export default function RecetasManager() {
               </div>
             </form>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex gap-3 justify-end">
-                <Button variant="secondary" onClick={() => setShowForm(false)}>
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowForm(false)}
+                  className="w-full sm:w-auto"
+                >
                   Cancelar
                 </Button>
                 <Button
                   variant="success"
                   onClick={handleSubmit}
                   disabled={loading}
+                  className="w-full sm:w-auto"
                 >
                   {loading ? "Creando..." : "Crear Receta"}
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Lista de recetas */}
       {/* Tabla usando DataTable */}
-      <DataTable
-        data={recetasFiltradas}
-        columns={columns}
-        actions={actions}
-        loading={loading}
-        searchValue={busqueda}
-        onSearch={setBusqueda}
-        searchPlaceholder="Buscar receta, categoría o descripción..."
-        emptyMessage="No hay recetas creadas aún"
-        pagination={{
-          enabled: true,
-          serverSide: false,
-          defaultPageSize: 5,
-          pageSizeOptions: [5, 10, 25, 50],
-        }}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <DataTable
+          data={recetasFiltradas}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchValue={busqueda}
+          onSearch={setBusqueda}
+          searchPlaceholder="Buscar receta, categoría o descripción..."
+          emptyMessage="No hay recetas creadas aún"
+          pagination={{
+            enabled: true,
+            serverSide: false,
+            defaultPageSize: 5,
+            pageSizeOptions: [5, 10, 25, 50],
+          }}
+        />
+      </motion.div>
 
       {/* Modal de reparación de recetas */}
       <Modal
@@ -943,16 +1038,25 @@ export default function RecetasManager() {
       />
 
       {/* Modal de Ver Detalle */}
-      {showDetalleModal && recetaSeleccionada && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
-          onClick={() => setShowDetalleModal(false)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showDetalleModal && recetaSeleccionada && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDetalleModal(false)}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -1104,41 +1208,53 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex gap-3 justify-end">
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   variant="secondary"
                   icon="picture_as_pdf"
                   onClick={() => handleExportarPDF(recetaSeleccionada)}
+                  className="w-full sm:w-auto"
                 >
                   Exportar PDF
                 </Button>
                 <Button
                   variant="secondary"
                   onClick={() => setShowDetalleModal(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cerrar
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal de Editar */}
-      {showEditModal && recetaAEditar && (
-        <div
-          className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50"
-          onClick={() => {
-            setShowEditModal(false);
-            setRecetaAEditar(null);
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showEditModal && recetaAEditar && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={() => {
+              setShowEditModal(false);
+              setRecetaAEditar(null);
+            }}
           >
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div className="p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -1160,7 +1276,10 @@ export default function RecetasManager() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmitEdicion} className="p-6 space-y-6">
+            <form
+              onSubmit={handleSubmitEdicion}
+              className="p-4 md:p-6 space-y-6"
+            >
               {/* Información básica */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
@@ -1250,12 +1369,13 @@ export default function RecetasManager() {
                   step="1"
                   placeholder="Ej: 5000"
                   value={formularioEdicion.precioUnidad || ""}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const valor = e.target.value;
                     setFormularioEdicion({
                       ...formularioEdicion,
-                      precioUnidad: parseFloat(e.target.value) || 0,
-                    })
-                  }
+                      precioUnidad: valor === "" ? 0 : parseFloat(valor),
+                    });
+                  }}
                   required
                 />
               </div>
@@ -1344,38 +1464,29 @@ export default function RecetasManager() {
                             </select>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Cantidad:
-                            </label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-500"
-                              placeholder="Ej: 2.5"
-                              value={ingrediente.cantidadNecesaria}
-                              onChange={(e) =>
-                                actualizarIngredienteEdicion(
-                                  index,
-                                  "cantidadNecesaria",
-                                  parseFloat(e.target.value)
-                                )
-                              }
-                              required
-                            />
-                          </div>
+                          <Input
+                            label="Cantidad:"
+                            type="number"
+                            step="0.01"
+                            placeholder="Ej: 2.5"
+                            value={ingrediente.cantidadNecesaria}
+                            onChange={(e) =>
+                              actualizarIngredienteEdicion(
+                                index,
+                                "cantidadNecesaria",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            required
+                          />
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1 ">
-                              Unidad:
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 focus:outline-none"
-                              value={ingrediente.unidad}
-                              readOnly
-                            />
-                          </div>
+                          <Input
+                            label="Unidad:"
+                            type="text"
+                            value={ingrediente.unidad}
+                            readOnly
+                            disabled
+                          />
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1417,14 +1528,15 @@ export default function RecetasManager() {
               </div>
             </form>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex gap-3 justify-end">
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 <Button
                   variant="secondary"
                   onClick={() => {
                     setShowEditModal(false);
                     setRecetaAEditar(null);
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Cancelar
                 </Button>
@@ -1432,14 +1544,16 @@ export default function RecetasManager() {
                   variant="success"
                   onClick={handleSubmitEdicion}
                   disabled={loading}
+                  className="w-full sm:w-auto"
                 >
                   {loading ? "Actualizando..." : "Actualizar Receta"}
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Contenedor de notificaciones toast */}
       <ToastContainer

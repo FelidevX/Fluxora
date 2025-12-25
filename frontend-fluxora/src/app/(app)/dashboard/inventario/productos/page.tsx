@@ -3,6 +3,7 @@
 import { useState } from "react";
 import GestionProductos from "@/components/inventario/productos/GestionProductos";
 import HistorialMermas from "@/components/inventario/mermas/HistorialMermas";
+import PlanProduccion from "@/components/inventario/productos/PlanProduccion";
 import RegistrarMermaModal from "@/components/inventario/RegistrarMermaModal";
 import { Producto, ProductoDTO } from "@/types/inventario";
 import { RecetaMaestra } from "@/types/produccion";
@@ -29,7 +30,7 @@ export default function ProductosPage() {
     eliminarProducto,
     clearError,
   } = useProductos();
-  const [activeTab, setActiveTab] = useState<"gestion" | "mermas">("gestion");
+  const [activeTab, setActiveTab] = useState<"gestion" | "mermas" | "produccion">("gestion");
   const [showMermaModal, setShowMermaModal] = useState(false);
   const { recetas, loading: loadingRecetas } = useRecetas();
 
@@ -315,7 +316,7 @@ export default function ProductosPage() {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6 mt-12 md:mt-0">
       <Link
         className="text-blue-600 hover:text-blue-800 mb-4 flex items-center font-bold cursor-pointer"
         href={"/dashboard/inventario"}
@@ -341,6 +342,19 @@ export default function ProductosPage() {
           </button>
 
           <button
+            className={`px-4 py-2 border text-sm font-medium focus:outline-none transition-colors ${
+              activeTab === "produccion"
+                ? "bg-white border-blue-500 text-blue-600 z-10"
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "produccion"}
+            onClick={() => setActiveTab("produccion")}
+          >
+            Plan de Producción
+          </button>
+
+          <button
             className={`px-4 py-2 rounded-r-md border text-sm font-medium focus:outline-none transition-colors ${
               activeTab === "mermas"
                 ? "bg-white border-blue-500 text-blue-600 z-10"
@@ -359,6 +373,8 @@ export default function ProductosPage() {
       {activeTab === "gestion" && (
         <GestionProductos onOpenMerma={() => setShowMermaModal(true)} />
       )}
+
+      {activeTab === "produccion" && <PlanProduccion />}
 
       {activeTab === "mermas" && <HistorialMermas />}
 

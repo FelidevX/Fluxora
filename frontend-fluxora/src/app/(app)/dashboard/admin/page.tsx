@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import DashboardCard from "@/components/ui/DashboardCard";
 import DashboardAdmin from "@/components/admin/dashboardAdmin";
 import UsuariosManager from "@/components/admin/usuarios/usuariosManager";
 import SistemaManager from "@/components/admin/sistema/SistemaManager";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import MaterialIcon from "@/components/ui/MaterialIcon";
 
 function AdminContent() {
   const searchParams = useSearchParams();
@@ -26,68 +28,114 @@ function AdminContent() {
 
   if (activeView === "overview") {
     return (
-      <div className="p-6 min-h-screen bg-gray-50">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+      <div className="p-4 md:p-6 min-h-screen bg-gray-50 mt-12 md:mt-0">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             Panel de Administración
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             Administra usuarios, roles y configuración del sistema
           </p>
-        </div>
+        </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <DashboardCard
-            title="Usuarios y Roles"
-            description="Administra los usuarios y roles del sistema"
-            icon="group"
-            iconColor="bg-blue-100 text-blue-600"
-            buttonText="Gestionar Usuarios"
-            buttonVariant="primary"
-            onClick={() => handleCardClick("usuarios")}
-          />
-          <DashboardCard
-            title="Configuración"
-            description="Ajustes y parámetros globales"
-            icon="settings"
-            iconColor="bg-yellow-100 text-yellow-600"
-            buttonText="Configurar Sistema"
-            buttonVariant="warning"
-            onClick={() => handleCardClick("sistema")}
-          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
+          >
+            <DashboardCard
+              title="Usuarios y Roles"
+              description="Administra los usuarios y roles del sistema"
+              icon="group"
+              iconColor="bg-blue-100 text-blue-600"
+              buttonText="Gestionar Usuarios"
+              buttonVariant="primary"
+              onClick={() => handleCardClick("usuarios")}
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <DashboardCard
+              title="Configuración"
+              description="Ajustes y parámetros globales"
+              icon="settings"
+              iconColor="bg-yellow-100 text-yellow-600"
+              buttonText="Configurar Sistema"
+              buttonVariant="warning"
+              onClick={() => handleCardClick("sistema")}
+            />
+          </motion.div>
         </div>
-        <DashboardAdmin />;
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <DashboardAdmin />
+        </motion.div>
       </div>
     );
   }
 
   if (activeView === "usuarios") {
     return (
-      <div className="p-6">
-        <div className="mb-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
           <button
             onClick={() => setActiveView("overview")}
             className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2 font-bold"
           >
-            ← Volver al inicio
+            <MaterialIcon name="arrow_back" className="mr-1" />
+            <span>Volver al inicio</span>
           </button>
-        </div>
-        <UsuariosManager />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <UsuariosManager />
+        </motion.div>
       </div>
     );
   }
 
   if (activeView === "sistema") {
     return (
-      <div className="p-6">
-        <div className="mb-6">
+      <div className="p-4 md:p-6 mt-12 md:mt-0">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
           <button
             onClick={() => setActiveView("overview")}
             className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2 font-bold"
           >
             ← Volver al inicio
           </button>
-        </div>
-        <SistemaManager />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <SistemaManager />
+        </motion.div>
       </div>
     );
   }

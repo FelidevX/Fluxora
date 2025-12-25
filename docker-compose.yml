@@ -7,10 +7,14 @@ services:
       POSTGRES_USER: fluxora
       POSTGRES_PASSWORD: fluxora123
       POSTGRES_DB: fluxora_db
+      TZ: America/Santiago
+      PGTZ: America/Santiago
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
       - fluxora-network
     healthcheck:
@@ -28,6 +32,9 @@ services:
       - "8080:8080"
     depends_on:
       - eureka-server
+    environment:
+      - TZ=America/Santiago
+      - JAVA_OPTS=-Duser.timezone=America/Santiago
     networks:
       - fluxora-network
 
@@ -39,6 +46,9 @@ services:
     container_name: eureka-server
     ports:
       - "8761:8761"
+    environment:
+      - TZ=America/Santiago
+      - JAVA_OPTS=-Duser.timezone=America/Santiago
     networks:
       - fluxora-network
 
@@ -51,6 +61,8 @@ services:
       - "3000:3000"
     env_file:
       - ./frontend-fluxora/.env
+    environment:
+      - TZ=America/Santiago
     depends_on:
       - api-gateway
     networks:
@@ -65,6 +77,9 @@ services:
       - "8083:8083"
     env_file:
       - ./Microservicios/microservice-cliente/.env
+    environment:
+      - TZ=America/Santiago
+      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server
@@ -79,6 +94,9 @@ services:
       - "8081:8081"
     env_file:
       - ./Microservicios/microservice-usuario/.env
+    environment:
+      - TZ=America/Santiago
+      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server
@@ -93,6 +111,9 @@ services:
       - "8084:8084"
     env_file:
       - ./Microservicios/microservice-entrega/.env
+    environment:
+      - TZ=America/Santiago
+      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server
@@ -107,6 +128,9 @@ services:
       - "8082:8082"
     env_file:
       - ./Microservicios/microservice-inventario/.env
+    environment:
+      - TZ=America/Santiago
+      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server

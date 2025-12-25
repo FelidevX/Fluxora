@@ -1,23 +1,24 @@
-FROM node:20-alpine
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copiar archivos de package
 COPY package*.json ./
+RUN npm ci
 
-# Instalar todas las dependencias
-RUN npm install
-
-# Copiar código fuente
 COPY . .
-
-# Limpiar cache
-RUN rm -rf .next
-
-# Build ignorando ESLint y TypeScript
 RUN npm run build
 
-# Exponer puerto
-EXPOSE 3000
+# ----------------------------
 
-# Comando de inicio
-CMD ["npm", "start"]
+FROM node:20-alpine
+
+WORKDIR /app
+
+# crear usuario NO root
+RUN addgroup -S app && adduser -S app -G app
+
+COPY --from=builder /app ./
+
+USER app
+
+EXPOSE 3000
+CMD ["node", "node_modules/next/dist/bin/next", "start"]

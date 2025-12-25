@@ -1,85 +1,86 @@
+version: "3.9"
+
 services:
-  # Base de datos PostgreSQL
+  # =========================
+  # Base de Datos PostgreSQL
+  # =========================
   db:
     image: postgres:15-alpine
     container_name: postgres-db
+    restart: unless-stopped
     environment:
       POSTGRES_USER: fluxora
       POSTGRES_PASSWORD: fluxora123
       POSTGRES_DB: fluxora_db
-      TZ: America/Santiago
-      PGTZ: America/Santiago
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - /etc/localtime:/etc/localtime:ro
-      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
       - fluxora-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U fluxora"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
 
-  # API Gateway
-  api-gateway:
-    build:
-      context: ./Microservicios/microservice-gateway
-    container_name: api-gateway
-    ports:
-      - "8080:8080"
-    depends_on:
-      - eureka-server
-    environment:
-      - TZ=America/Santiago
-      - JAVA_OPTS=-Duser.timezone=America/Santiago
-    networks:
-      - fluxora-network
-
-  # Eureka Server
+  # =========================
+  # Eureka Server (INTERNAL)
+  # =========================
   eureka-server:
     build:
       context: ./Microservicios/microservice-eureka
       dockerfile: Dockerfile
     container_name: eureka-server
-    ports:
-      - "8761:8761"
-    environment:
-      - TZ=America/Santiago
-      - JAVA_OPTS=-Duser.timezone=America/Santiago
+    restart: unless-stopped
     networks:
       - fluxora-network
 
-  # Frontend Next.js
+  # =========================
+  # API Gateway (PÚBLICO)
+  # =========================
+  api-gateway:
+    build:
+      context: ./Microservicios/microservice-gateway
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    networks:
+      - fluxora-network
+
+  # =========================
+  # Frontend Next.js (PÚBLICO)
+  # =========================
   frontend:
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     build:
       context: ./frontend-fluxora
     container_name: frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     env_file:
       - ./frontend-fluxora/.env
-    environment:
-      - TZ=America/Santiago
     depends_on:
       - api-gateway
     networks:
       - fluxora-network
 
-  # Microservicios
+  # =========================
+  # Microservicios (INTERNOS)
+  # =========================
   cliente-service:
     build:
       context: ./Microservicios/microservice-cliente
     container_name: cliente-service
-    ports:
-      - "8083:8083"
+    restart: unless-stopped
     env_file:
       - ./Microservicios/microservice-cliente/.env
-    environment:
-      - TZ=America/Santiago
-      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server
@@ -90,13 +91,9 @@ services:
     build:
       context: ./Microservicios/microservice-usuario
     container_name: usuario-service
-    ports:
-      - "8081:8081"
+    restart: unless-stopped
     env_file:
       - ./Microservicios/microservice-usuario/.env
-    environment:
-      - TZ=America/Santiago
-      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server
@@ -107,13 +104,9 @@ services:
     build:
       context: ./Microservicios/microservice-entrega
     container_name: entrega-service
-    ports:
-      - "8084:8084"
+    restart: unless-stopped
     env_file:
       - ./Microservicios/microservice-entrega/.env
-    environment:
-      - TZ=America/Santiago
-      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server
@@ -124,22 +117,24 @@ services:
     build:
       context: ./Microservicios/microservice-inventario
     container_name: inventario-service
-    ports:
-      - "8082:8082"
+    restart: unless-stopped
     env_file:
       - ./Microservicios/microservice-inventario/.env
-    environment:
-      - TZ=America/Santiago
-      - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
       - db
       - eureka-server
     networks:
       - fluxora-network
 
+# =========================
+# Red interna Docker
+# =========================
 networks:
   fluxora-network:
     driver: bridge
 
+# =========================
+# Volúmenes persistentes
+# =========================
 volumes:
   postgres_data:

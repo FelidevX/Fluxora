@@ -145,6 +145,8 @@ public class ClienteService {
             .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
         
         cliente.setNombre(clienteDetails.getNombre());
+        cliente.setNombreNegocio(clienteDetails.getNombreNegocio());
+        cliente.setContacto(clienteDetails.getContacto());
         cliente.setDireccion(clienteDetails.getDireccion());
         cliente.setLatitud(clienteDetails.getLatitud());
         cliente.setLongitud(clienteDetails.getLongitud());

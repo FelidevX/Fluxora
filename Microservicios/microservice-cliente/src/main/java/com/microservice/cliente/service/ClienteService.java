@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,16 +11,24 @@ import org.springframework.transaction.annotation.Transactional;
 import com.microservice.cliente.client.EntregaServiceClient;
 import com.microservice.cliente.dto.ClienteDTO;
 import com.microservice.cliente.entity.Cliente;
+import com.microservice.cliente.mapper.ClienteMapper;
 import com.microservice.cliente.repository.ClienteRepository;
 
 @Service
 public class ClienteService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
+    private final EntregaServiceClient entregaServiceClient;
+    private final ClienteMapper clienteMapper;
 
-    @Autowired
-    private EntregaServiceClient entregaServiceClient;
+    public ClienteService(ClienteRepository clienteRepository, 
+                         EntregaServiceClient entregaServiceClient,
+                         ClienteMapper clienteMapper) {
+        this.clienteRepository = clienteRepository;
+        this.entregaServiceClient = entregaServiceClient;
+        this.clienteMapper = clienteMapper;
+    }
+
 
     public List<Cliente> getAllClientes() {
         return clienteRepository.findAll();
@@ -36,18 +43,7 @@ public class ClienteService {
         return clientes.stream()
                 .map(cliente -> {
                     String nombreRuta = obtenerNombreRuta(cliente.getId());
-                    return new ClienteDTO(
-                        cliente.getId(), 
-                        cliente.getNombreNegocio(),
-                        cliente.getNombre(),
-                        cliente.getContacto(),
-                        cliente.getDireccion(), 
-                        cliente.getLatitud(), 
-                        cliente.getLongitud(), 
-                        cliente.getEmail(),
-                        cliente.getPrecioCorriente(),
-                        cliente.getPrecioEspecial(),
-                        nombreRuta);
+                    return clienteMapper.toDTO(cliente, nombreRuta);
                 })
                 .collect(Collectors.toList());
     }
@@ -76,43 +72,19 @@ public class ClienteService {
 
     public List<ClienteDTO> getClienteByIds(List<Long> ids) {
         List<Cliente> clientes = clienteRepository.findAllById(ids);
-        List<ClienteDTO> clientesDTO = clientes.stream()
+        return clientes.stream()
                 .map(cliente -> {
                     String nombreRuta = obtenerNombreRuta(cliente.getId());
-                    return new ClienteDTO(
-                        cliente.getId(), 
-                        cliente.getNombreNegocio(),
-                        cliente.getNombre(),
-                        cliente.getContacto(),
-                        cliente.getDireccion(), 
-                        cliente.getLatitud(), 
-                        cliente.getLongitud(), 
-                        cliente.getEmail(),
-                        cliente.getPrecioCorriente(),
-                        cliente.getPrecioEspecial(),
-                        nombreRuta);
+                    return clienteMapper.toDTO(cliente, nombreRuta);
                 })
                 .collect(Collectors.toList());
-        
-        return clientesDTO;
     }
 
     public ClienteDTO getClienteById(Long id) {
         Cliente cliente = clienteRepository.findById(id).orElse(null);
         if (cliente != null) {
             String nombreRuta = obtenerNombreRuta(id);
-            return new ClienteDTO(
-                    cliente.getId(), 
-                    cliente.getNombreNegocio(),
-                    cliente.getNombre(),
-                    cliente.getContacto(),
-                    cliente.getDireccion(), 
-                    cliente.getLatitud(), 
-                    cliente.getLongitud(), 
-                    cliente.getEmail(),
-                    cliente.getPrecioCorriente(),
-                    cliente.getPrecioEspecial(),
-                    nombreRuta);
+            return clienteMapper.toDTO(cliente, nombreRuta);
         }
         return null;
     }

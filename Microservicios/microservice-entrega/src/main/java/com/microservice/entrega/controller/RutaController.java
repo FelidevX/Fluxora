@@ -230,4 +230,12 @@ public class RutaController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
+    @GetMapping("/clientes/batch")
+    public ResponseEntity<Map<String, String>> getNombresRutasPorClientes(
+            @RequestParam("clienteIds") List<Long> clienteIds) {
+        Map<String, String> resultado = rutaService.obtenerNombresRutasPorClientes(clienteIds);    
+        return ResponseEntity.ok(resultado);
+    }
 }

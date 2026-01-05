@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -500,6 +499,49 @@ public class RutaService {
             return clientes;
         } catch (Exception e) {
             throw new RuntimeException("Error al obtener clientes con programación: " + e.getMessage());
+        }
+    }
+
+    public Map<String, String> obtenerNombresRutasPorClientes(List<Long> clienteIds) {
+        try {
+            if (clienteIds == null || clienteIds.isEmpty()) {
+                return new HashMap<>();
+            }
+
+            // 1. Obtener solo las relaciones de los clientes solicitados (query filtrada en BD)
+            List<RutaCliente> relaciones = rutaClienteRepository.findByIdClienteIn(clienteIds);
+            
+            if (relaciones.isEmpty()) {
+                return new HashMap<>();
+            }
+            
+            List<Long> rutaIds = relaciones.stream()
+                    .map(RutaCliente::getId_ruta)
+                    .distinct()
+                    .collect(Collectors.toList());
+            
+            List<Ruta> rutas = rutaRepository.findAllById(rutaIds);
+            
+            Map<Long, String> rutaNombresMap = rutas.stream()
+                    .collect(Collectors.toMap(
+                        Ruta::getId,
+                        Ruta::getNombre
+                    ));
+            
+            Map<String, String> resultado = relaciones.stream()
+                    .filter(rc -> rutaNombresMap.containsKey(rc.getId_ruta()))
+                    .collect(Collectors.toMap(
+                        rc -> rc.getId_cliente().toString(),
+                        rc -> rutaNombresMap.get(rc.getId_ruta()),
+                        (existing, replacement) -> existing
+                    ));
+            
+            return resultado;
+            
+        } catch (Exception e) {
+            System.err.println("Error al obtener nombres de rutas batch para " + clienteIds.size() + " clientes: " + e.getMessage());
+            e.printStackTrace();
+            return new HashMap<>();
         }
     }
 }

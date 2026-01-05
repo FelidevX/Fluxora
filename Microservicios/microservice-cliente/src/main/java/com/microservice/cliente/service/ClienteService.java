@@ -12,9 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.microservice.cliente.client.EntregaServiceClient;
 import com.microservice.cliente.dto.ClienteDTO;
 import com.microservice.cliente.entity.Cliente;
+import com.microservice.cliente.exception.ClienteDeleteException;
+import com.microservice.cliente.exception.ClienteNotFoundException;
 import com.microservice.cliente.mapper.ClienteMapper;
 import com.microservice.cliente.repository.ClienteRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class ClienteService {
 
@@ -68,12 +73,12 @@ public class ClienteService {
                 return response.getBody();
             }
             
-            System.err.println("El servicio de entregas retornó body vacío");
+            log.warn("El servicio de entregas retornó body vacío para {} clientes", clienteIds.size());
             return Collections.emptyMap();
             
         } catch (Exception e) {
-            System.err.println("Error al obtener nombres de rutas batch para " + 
-                             clienteIds.size() + " clientes: " + e.getMessage());
+            log.error("Error al obtener nombres de rutas batch para {} clientes: {}", 
+                     clienteIds.size(), e.getMessage(), e);
             return Collections.emptyMap();
         }
     }
@@ -86,7 +91,7 @@ public class ClienteService {
             }
             return "Sin ruta asignada";
         } catch (Exception e) {
-            System.err.println("Error al obtener nombre de ruta para cliente " + idCliente + ": " + e.getMessage());
+            log.error("Error al obtener nombre de ruta para cliente {}: {}", idCliente, e.getMessage(), e);
             return "Sin ruta asignada";
         }
     }
@@ -137,21 +142,21 @@ public class ClienteService {
     @Transactional
     public void deleteCliente(Long id) {
         clienteRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+            .orElseThrow(() -> new ClienteNotFoundException(id));
         
         try {
             entregaServiceClient.eliminarRelacionesCliente(id);
-            
             clienteRepository.deleteById(id);
-            
+            log.info("Cliente con ID {} eliminado exitosamente", id);
         } catch (Exception e) {
-            throw new RuntimeException("Error al eliminar cliente: " + e.getMessage(), e);
+            log.error("Error al eliminar cliente con ID {}: {}", id, e.getMessage(), e);
+            throw new ClienteDeleteException(id, e);
         }
     }
 
     public ResponseEntity<Cliente> updateCliente(Long id, Cliente clienteDetails) {
         Cliente cliente = clienteRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+            .orElseThrow(() -> new ClienteNotFoundException(id));
         
         cliente.setNombre(clienteDetails.getNombre());
         cliente.setNombreNegocio(clienteDetails.getNombreNegocio());

@@ -544,4 +544,121 @@ public class RutaService {
             return new HashMap<>();
         }
     }
+
+    /**
+     * Obtener todas las rutas activas con información básica
+     */
+    public List<Map<String, Object>> getRutasActivas() {
+        List<Ruta> rutas = rutaRepository.findAll();
+        List<Map<String, Object>> rutasActivas = new ArrayList<>();
+
+        for (Ruta ruta : rutas) {
+            Map<String, Object> rutaInfo = new HashMap<>();
+            rutaInfo.put("id", ruta.getId());
+            rutaInfo.put("nombre", ruta.getNombre());
+            rutaInfo.put("id_driver", ruta.getId_driver());
+
+            // Por simplicidad, por ahora no calculamos entregas completadas ni progreso
+            rutaInfo.put("entregasCompletadas", 0);
+            rutaInfo.put("progreso", 0);
+
+            rutasActivas.add(rutaInfo);
+        }
+
+        return rutasActivas;
+    }
+
+    /**
+     * Asignar un driver a una ruta
+     */
+    public void asignarDriverARuta(Long idRuta, Long idDriver) {
+        Ruta ruta = rutaRepository.findById(idRuta)
+                .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+
+        ruta.setId_driver(idDriver);
+        rutaRepository.save(ruta);
+    }
+
+    /**
+     * Crear nueva ruta con los datos proporcionados
+     */
+    public String crearRuta(Map<String, Object> datosRuta) {
+        try {
+            String nombre = (String) datosRuta.get("nombre");
+            String origenCoordenada = (String) datosRuta.get("origen_coordenada");
+            Object idDriverObj = datosRuta.get("id_driver");
+
+            if (nombre == null || nombre.trim().isEmpty()) {
+                throw new IllegalArgumentException("El nombre de la ruta es obligatorio");
+            }
+
+            // Verificar si ya existe una ruta con el mismo nombre
+            List<Ruta> rutasExistentes = rutaRepository.findAll();
+            for (Ruta ruta : rutasExistentes) {
+                if (ruta.getNombre().equalsIgnoreCase(nombre.trim())) {
+                    throw new IllegalArgumentException("Ya existe una ruta con el nombre: " + nombre);
+                }
+            }
+
+            Ruta nuevaRuta = new Ruta();
+            nuevaRuta.setNombre(nombre.trim());
+
+            // Parsear coordenadas si se proporcionan (formato "latitud,longitud")
+            if (origenCoordenada != null && !origenCoordenada.trim().isEmpty()) {
+                try {
+                    String[] coords = origenCoordenada.trim().split(",");
+                    if (coords.length == 2) {
+                        nuevaRuta.setLatitud(Double.parseDouble(coords[0].trim()));
+                        nuevaRuta.setLongitud(Double.parseDouble(coords[1].trim()));
+                    }
+                } catch (NumberFormatException e) {
+                    // Si no se pueden parsear las coordenadas, continuar sin ellas
+                    System.out.println("Advertencia: No se pudieron parsear las coordenadas: " + origenCoordenada);
+                }
+            }
+
+            // Manejar el ID del driver (puede ser null)
+            if (idDriverObj != null && !idDriverObj.toString().trim().isEmpty()) {
+                try {
+                    Long idDriver = Long.valueOf(idDriverObj.toString());
+                    nuevaRuta.setId_driver(idDriver);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("El ID del driver debe ser un número válido");
+                }
+            }
+
+            Ruta rutaGuardada = rutaRepository.save(nuevaRuta);
+
+            return "Ruta '" + rutaGuardada.getNombre() + "' creada exitosamente con ID: " + rutaGuardada.getId();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al crear la ruta: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Eliminar una ruta y todas sus relaciones
+     */
+    @Transactional
+    public void eliminarRuta(Long idRuta) {
+        System.out.println("Eliminando ruta ID: " + idRuta);
+        
+        // Verificar que la ruta existe
+        Ruta ruta = rutaRepository.findById(idRuta)
+            .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+        
+        // Eliminar programaciones de entregas asociadas a los clientes de esta ruta
+        List<RutaCliente> rutasClientes = rutaClienteRepository.findByIdRuta(idRuta);
+        for (RutaCliente rc : rutasClientes) {
+            programacionEntregaRepository.deleteByIdCliente(rc.getId_cliente());
+        }
+        
+        // Eliminar relaciones ruta-cliente
+        rutaClienteRepository.deleteAll(rutasClientes);
+        
+        // Eliminar la ruta
+        rutaRepository.delete(ruta);
+        
+        System.out.println("Ruta eliminada exitosamente");
+    }
 }

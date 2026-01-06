@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,21 +16,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.microservice.entrega.dto.ClienteDTO;
 import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
-import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.TipoMovimiento;
 import com.microservice.entrega.service.EntregaService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/entrega")
+@RequiredArgsConstructor
 public class EntregaController {
 
-    @Autowired
-    private EntregaService entregaService;
+    private final EntregaService entregaService;
 
     // Obtener todas las rutas activas con sus clientes
     @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")

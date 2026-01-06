@@ -1,7 +1,6 @@
 package com.microservice.entrega.controller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,25 +17,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.entrega.service.RutaService;
-import com.microservice.entrega.client.ClienteServiceClient;
-import com.microservice.entrega.client.UsuarioServiceClient;
 import com.microservice.entrega.dto.*;
 import com.microservice.entrega.entity.Ruta;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/rutas")
+@RequiredArgsConstructor
 public class RutaController {
 
-    private RutaService rutaService;
-    private ClienteServiceClient clienteServiceClient;
-    private UsuarioServiceClient usuarioServiceClient;
-
-    public RutaController(RutaService rutaService, ClienteServiceClient clienteServiceClient,
-            UsuarioServiceClient usuarioServiceClient) {
-        this.rutaService = rutaService;
-        this.clienteServiceClient = clienteServiceClient;
-        this.usuarioServiceClient = usuarioServiceClient;
-    }
+    private final RutaService rutaService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/optimized-ortools/{id_ruta}")

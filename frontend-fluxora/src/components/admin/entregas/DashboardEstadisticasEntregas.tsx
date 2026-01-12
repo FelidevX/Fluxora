@@ -8,11 +8,10 @@ import { useHistorialEntregas } from "@/hooks/useHistorialEntregas";
 
 interface RutaActiva {
   id: number;
+  nombre: string;
+  progreso: number;
   id_driver: number;
-  fecha: string;
-  hora_retorno: string | null;
-  kg_corriente: number;
-  kg_especial: number;
+  entregasCompletadas: number;
 }
 
 interface DetalleEntregaExtendido {
@@ -31,6 +30,7 @@ export default function DashboardEstadisticasEntregas() {
   const { entregas, drivers, clientes, loading, getNombreDriver } =
     useHistorialEntregas();
   const [rutasActivas, setRutasActivas] = useState<RutaActiva[]>([]);
+  const [rutasPorFecha, setRutasPorFecha] = useState<any[]>([]);
   const [entregasDetalladas, setEntregasDetalladas] = useState<
     DetalleEntregaExtendido[]
   >([]);
@@ -51,6 +51,9 @@ export default function DashboardEstadisticasEntregas() {
       const token = getAuthToken();
       if (!token) return;
 
+      const hoy = new Date().toISOString().split("T")[0];
+
+      // Obtener rutas activas
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-activas`,
         {
@@ -65,9 +68,26 @@ export default function DashboardEstadisticasEntregas() {
         const data = await response.json();
         setRutasActivas(data || []);
       }
+
+      // Obtener rutas programadas por fecha (tiene los totales de kg)
+      const rutasPorFechaResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${hoy}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (rutasPorFechaResponse.ok) {
+        const rutasFecha = await rutasPorFechaResponse.json();
+        setRutasPorFecha(rutasFecha || []);
+      }
     } catch (error) {
       console.error("Error al obtener rutas activas:", error);
       setRutasActivas([]);
+      setRutasPorFecha([]);
     } finally {
       setLoadingRutas(false);
     }
@@ -121,15 +141,35 @@ export default function DashboardEstadisticasEntregas() {
 
   const hoy = new Date().toISOString().split("T")[0];
 
-  const entregasHoy = entregas.filter((e) => e.fecha === hoy);
-  const entregasCompletadasHoy = entregas.filter(
-    (e) => e.fecha === hoy && e.hora_retorno !== null
+  // Entregas programadas hoy = total de clientes en todas las rutas del día
+  const totalEntregasProgramadasHoy = rutasPorFecha.reduce((acc, ruta) => {
+    return acc + (ruta.totalClientes || 0);
+  }, 0);
+
+  // Entregas completadas hoy = entregas detalladas del día
+  const entregasCompletadasHoy = entregasDetalladas.filter((e) =>
+    e.hora_entregada.startsWith(hoy)
   );
 
-  const rutasActivasHoy = rutasActivas.filter((r) => r.fecha === hoy);
-  const rutasCompletadasHoy = entregas.filter(
-    (e) => e.fecha === hoy && e.hora_retorno !== null
-  );
+  // Para las estadísticas generales (mantener compatibilidad)
+  const entregasHoy = entregas.filter((e) => e.fecha === hoy);
+
+  // IMPORTANTE: rutasActivas NO tienen campo fecha, son las rutas activas en tiempo real
+  // Solo contamos las que tienen progreso < 100 (no completadas)
+  const rutasActivasReales = rutasActivas.filter((r) => r.progreso < 100);
+  const rutasCompletadasReales = rutasActivas.filter((r) => r.progreso === 100);
+
+  // Para saber qué rutas tienen kg, usamos rutasPorFecha (que tiene totalKgCorriente y totalKgEspecial)
+  const rutasActivasConKg = rutasActivasReales.filter((rActiva) => {
+    const rutaConKg = rutasPorFecha.find((rf) => rf.ruta.id === rActiva.id);
+    const tieneKg =
+      rutaConKg &&
+      ((rutaConKg.totalKgCorriente || 0) > 0 ||
+        (rutaConKg.totalKgEspecial || 0) > 0);
+    return tieneKg;
+  });
+
+  const totalRutasActivas = rutasActivas.length; // Total de rutas (activas + completadas)
 
   const totalEntregas = entregas.length;
   const entregasConRetorno = entregas.filter((e) => e.hora_retorno !== null);
@@ -145,6 +185,21 @@ export default function DashboardEstadisticasEntregas() {
         new Date(a.hora_entregada).getTime()
     )
     .slice(0, 5);
+
+  // Cálculos mejorados
+  // Total KG para entregar: suma de todos los totales de las rutas del día
+  const totalKgParaEntregarHoy = rutasPorFecha.reduce((acc, ruta) => {
+    return acc + (ruta.totalKgCorriente || 0) + (ruta.totalKgEspecial || 0);
+  }, 0);
+
+  // Total KG entregados (de las entregas completadas)
+  const totalKgEntregadosHoy = entregasDetalladas
+    .filter((e) => e.hora_entregada.startsWith(hoy))
+    .reduce(
+      (acc, e) =>
+        acc + (e.corriente_entregado || 0) + (e.especial_entregado || 0),
+      0
+    );
 
   if (loading || loadingRutas) {
     return (
@@ -169,42 +224,41 @@ export default function DashboardEstadisticasEntregas() {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.05 }}
-          className="bg-blue-50 rounded-lg p-4 border border-blue-200"
+          className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-600">
-                Entregados vs Total
+              <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">
+                Entregas Hoy
               </p>
-              <p className="text-2xl font-bold text-blue-900">
+              <p className="text-3xl font-bold text-blue-900 mt-1">
                 <AnimatedNumber
-                  value={entregasConRetorno.length}
+                  value={entregasCompletadasHoy.length}
                   duration={0.8}
                   delay={0.1}
                 />
-                {" / "}
-                <AnimatedNumber
-                  value={totalEntregas}
-                  duration={0.8}
-                  delay={0.1}
-                />
+                <span className="text-lg text-blue-600">
+                  /{totalEntregasProgramadasHoy}
+                </span>
               </p>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs text-blue-700 mt-1">
                 <AnimatedNumber
-                  value={entregadosPercent}
+                  value={
+                    totalEntregasProgramadasHoy - entregasCompletadasHoy.length
+                  }
                   duration={0.8}
                   delay={0.15}
-                  suffix="% completado"
+                  suffix=" pendientes"
                 />
               </p>
             </div>
-            <div className="text-blue-500 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100">
-              <MaterialIcon name="task_alt" className="w-5 h-5 text-blue-600" />
+            <div className="text-blue-600 w-12 h-12 flex items-center justify-center rounded-full bg-white/50">
+              <MaterialIcon name="local_shipping" className="w-6 h-6" />
             </div>
           </div>
         </motion.div>
@@ -213,37 +267,29 @@ export default function DashboardEstadisticasEntregas() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="bg-emerald-50 rounded-lg p-4 border border-emerald-200"
+          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-emerald-600">
-                Entregas hoy / en curso
+              <p className="text-xs font-medium text-emerald-700 uppercase tracking-wide">
+                Total KG Hoy
               </p>
-              <p className="text-2xl font-bold text-emerald-900">
+              <p className="text-3xl font-bold text-emerald-900 mt-1">
                 <AnimatedNumber
-                  value={entregasCompletadasHoy.length}
+                  value={totalKgEntregadosHoy}
                   duration={0.8}
                   delay={0.15}
                 />
-                {" / "}
-                <AnimatedNumber
-                  value={entregasHoy.length}
-                  duration={0.8}
-                  delay={0.15}
-                />
+                <span className="text-lg text-emerald-600">
+                  /{totalKgParaEntregarHoy}
+                </span>
               </p>
-              <p className="text-sm text-gray-600 mt-1">
-                <AnimatedNumber
-                  value={entregasHoy.length - entregasCompletadasHoy.length}
-                  duration={0.8}
-                  delay={0.2}
-                  suffix=" en curso"
-                />
+              <p className="text-xs text-emerald-700 mt-1">
+                Entregados vs Programados
               </p>
             </div>
-            <div className="text-emerald-500 w-10 h-10 flex items-center justify-center rounded-full bg-emerald-100">
-              <MaterialIcon name="today" className="w-5 h-5 text-emerald-600" />
+            <div className="text-emerald-600 w-12 h-12 flex items-center justify-center rounded-full bg-white/50">
+              <MaterialIcon name="scale" className="w-6 h-6" />
             </div>
           </div>
         </motion.div>
@@ -252,66 +298,29 @@ export default function DashboardEstadisticasEntregas() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.15 }}
-          className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-orange-600">
-                Rutas activas / completadas (hoy)
+              <p className="text-xs font-medium text-orange-700 uppercase tracking-wide">
+                Rutas Activas
               </p>
-              <p className="text-2xl font-bold text-orange-900">
+              <p className="text-3xl font-bold text-orange-900 mt-1">
                 <AnimatedNumber
-                  value={rutasActivasHoy.length}
+                  value={rutasActivasConKg.length}
                   duration={0.8}
                   delay={0.2}
                 />
-                {" / "}
-                <AnimatedNumber
-                  value={rutasCompletadasHoy.length}
-                  duration={0.8}
-                  delay={0.2}
-                />
+                <span className="text-lg text-orange-600">
+                  /{totalRutasActivas}
+                </span>
               </p>
-              <p className="text-sm text-gray-600 mt-1">
-                Rutas en ejecución / finalizadas
+              <p className="text-xs text-orange-700 mt-1">
+                {rutasCompletadasReales.length} completadas
               </p>
             </div>
-            <div className="text-orange-500 w-10 h-10 flex items-center justify-center rounded-full bg-orange-100">
-              <MaterialIcon
-                name="alt_route"
-                className="w-5 h-5 text-orange-600"
-              />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Últimas entregas registradas
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                <AnimatedNumber
-                  value={recentDeliveries.length}
-                  duration={0.8}
-                  delay={0.25}
-                />
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Entregas recientes
-              </p>
-            </div>
-            <div className="text-gray-500 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100">
-              <MaterialIcon
-                name="receipt_long"
-                className="w-5 h-5 text-gray-600"
-              />
+            <div className="text-orange-600 w-12 h-12 flex items-center justify-center rounded-full bg-white/50">
+              <MaterialIcon name="alt_route" className="w-6 h-6" />
             </div>
           </div>
         </motion.div>

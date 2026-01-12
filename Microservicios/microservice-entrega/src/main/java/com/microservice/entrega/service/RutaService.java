@@ -29,6 +29,8 @@ import com.microservice.entrega.dto.ClienteConRutaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
+import com.microservice.entrega.entity.TipoMovimiento;
+import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.RutaCliente;
 import com.microservice.entrega.repository.RutaClienteRepository;
@@ -395,7 +397,7 @@ public class RutaService {
         }
     }
 
-    public void finalizarRuta(Long idPedido) {
+    public Map<String, Object> finalizarRuta(Long idPedido) {
         try {
 
             SesionReparto pedido = sesionRepartoRepository.findById(idPedido)
@@ -433,6 +435,29 @@ public class RutaService {
             pedido.setHora_retorno(LocalDateTime.now());
 
             SesionReparto pedidoActualizado = sesionRepartoRepository.save(pedido);
+
+            // Calcular resumen financiero
+            Double totalDineroRecaudado = entregas.stream()
+                    .filter(e -> e.getTipo() == TipoMovimiento.VENTA)
+                    .map(e -> e.getMonto_total() != null ? e.getMonto_total() : 0.0)
+                    .reduce(0.0, Double::sum);
+
+            int totalEntregas = entregas.size();
+            int entregasVenta = (int) entregas.stream().filter(e -> e.getTipo() == TipoMovimiento.VENTA).count();
+
+            // Crear respuesta con resumen
+            Map<String, Object> resumen = new HashMap<>();
+            resumen.put("totalDineroRecaudado", totalDineroRecaudado);
+            resumen.put("totalCorrienteEntregado", totalCorrienteEntregado);
+            resumen.put("totalEspecialEntregado", totalEspecialEntregado);
+            resumen.put("corrienteDevuelto", corrienteDevuelto);
+            resumen.put("especialDevuelto", especialDevuelto);
+            resumen.put("totalEntregas", totalEntregas);
+            resumen.put("entregasVenta", entregasVenta);
+            resumen.put("kgCorrienteSalida", pedido.getKg_corriente());
+            resumen.put("kgEspecialSalida", pedido.getKg_especial());
+
+            return resumen;
         } catch (Exception e) {
             System.err.println("Error al finalizar ruta: " + e.getMessage());
             e.printStackTrace();

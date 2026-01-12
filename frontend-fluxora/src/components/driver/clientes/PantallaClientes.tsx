@@ -28,6 +28,7 @@ export default function PantallaClientes({
   onFinalizarRuta,
 }: PantallaClientesProps) {
   const [isFinalizando, setIsFinalizando] = useState(false);
+  const [resumenRuta, setResumenRuta] = useState<any>(null);
   const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(
     new Set()
   );
@@ -41,6 +42,16 @@ export default function PantallaClientes({
     error: showError,
     warning,
   } = useToast();
+
+  // Cargar resumen guardado al iniciar
+  useEffect(() => {
+    if (pedidoId) {
+      const resumenGuardado = localStorage.getItem(`resumen_ruta_${pedidoId}`);
+      if (resumenGuardado) {
+        setResumenRuta(JSON.parse(resumenGuardado));
+      }
+    }
+  }, [pedidoId]);
 
   // Función para abrir cliente en Google Maps (sin origen)
   const abrirClienteEnMaps = (cliente: Cliente) => {
@@ -106,10 +117,6 @@ export default function PantallaClientes({
     (window as any).marcarClienteEntregado = marcarComoEntregado;
   }, []);
 
-  const clientesPendientes = orderedClients.filter(
-    (c) => !clientesEntregados.has(c.id)
-  ).length;
-
   const handleFinalizarRuta = async () => {
     if (!pedidoId) {
       showError("No se encontró el ID del pedido", "Error");
@@ -157,14 +164,25 @@ export default function PantallaClientes({
       }
 
       const data = await response.json();
+
+      // Guardar resumen en localStorage y estado
+      setResumenRuta(data);
+      if (pedidoId) {
+        localStorage.setItem(`resumen_ruta_${pedidoId}`, JSON.stringify(data));
+      }
+
       success(
         data.message || "Ruta finalizada correctamente",
         "¡Ruta Finalizada!"
       );
 
+      // Esto hará que se muestre la pantalla completa de resumen
       if (onFinalizarRuta) {
         onFinalizarRuta();
       }
+
+      // Limpiar clientes entregados ya que ya finalizó
+      setClientesEntregados(new Set());
     } catch (err) {
       console.error("Error al finalizar ruta:", err);
       showError(
@@ -184,8 +202,13 @@ export default function PantallaClientes({
     );
   }
 
+  const clientesPendientes = orderedClients.filter(
+    (c) => !clientesEntregados.has(c.id)
+  ).length;
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
+      \n{" "}
       <div className="p-3 sm:p-4 max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header con contador actualizado */}
         <motion.div
@@ -384,7 +407,6 @@ export default function PantallaClientes({
           )}
         </motion.div>
       </div>
-
       {/* Botón flotante de finalizar ruta */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -411,7 +433,6 @@ export default function PantallaClientes({
           )}
         </div>
       </motion.div>
-
       <ToastContainer
         toasts={toasts}
         onClose={removeToast}

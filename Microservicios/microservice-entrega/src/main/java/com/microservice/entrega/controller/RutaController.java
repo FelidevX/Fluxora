@@ -188,10 +188,9 @@ public class RutaController {
     @PostMapping("/finalizar/{id_ruta}")
     public ResponseEntity<Map<String, Object>> finalizarRuta(@PathVariable Long id_ruta) {
         try {
-            rutaService.finalizarRuta(id_ruta);
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Ruta finalizada correctamente");
-            return ResponseEntity.ok(response);
+            Map<String, Object> resumen = rutaService.finalizarRuta(id_ruta);
+            resumen.put("message", "Ruta finalizada correctamente");
+            return ResponseEntity.ok(resumen);
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al finalizar la ruta: " + e.getMessage());

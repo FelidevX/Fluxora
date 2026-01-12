@@ -27,14 +27,22 @@ interface DetalleEntregaExtendido {
 }
 
 export default function DashboardEstadisticasEntregas() {
-  const { entregas, drivers, clientes, loading, getNombreDriver } =
-    useHistorialEntregas();
+  const {
+    entregas,
+    drivers,
+    clientes,
+    loading,
+    getNombreDriver,
+    detallesEntrega,
+    fetchDetallesEntrega,
+  } = useHistorialEntregas();
   const [rutasActivas, setRutasActivas] = useState<RutaActiva[]>([]);
   const [rutasPorFecha, setRutasPorFecha] = useState<any[]>([]);
-  const [entregasDetalladas, setEntregasDetalladas] = useState<
-    DetalleEntregaExtendido[]
-  >([]);
+  const [todasLasEntregasHoy, setTodasLasEntregasHoy] = useState<any[]>([]);
   const [loadingRutas, setLoadingRutas] = useState(false);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   const getAuthToken = () => {
     let token = localStorage.getItem("auth_token");
@@ -50,8 +58,6 @@ export default function DashboardEstadisticasEntregas() {
     try {
       const token = getAuthToken();
       if (!token) return;
-
-      const hoy = new Date().toISOString().split("T")[0];
 
       // Obtener rutas activas
       const response = await fetch(
@@ -71,7 +77,7 @@ export default function DashboardEstadisticasEntregas() {
 
       // Obtener rutas programadas por fecha (tiene los totales de kg)
       const rutasPorFechaResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${hoy}`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fechaSeleccionada}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,6 +89,60 @@ export default function DashboardEstadisticasEntregas() {
       if (rutasPorFechaResponse.ok) {
         const rutasFecha = await rutasPorFechaResponse.json();
         setRutasPorFecha(rutasFecha || []);
+
+        // Obtener todos los pedidos (sesiones de reparto)
+        const pedidosResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedidos`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (pedidosResponse.ok) {
+          const todosPedidos = await pedidosResponse.json();
+          const todasEntregas: any[] = [];
+
+          // Para cada ruta de la fecha seleccionada
+          for (const rutaFecha of rutasFecha) {
+            const idDriver = rutaFecha.ruta.id_driver;
+
+            // Buscar la sesión de reparto (pedido) del driver en esta fecha
+            const pedido = todosPedidos.find(
+              (p: any) =>
+                p.id_driver === idDriver && p.fecha === fechaSeleccionada
+            );
+
+            if (pedido) {
+              // Obtener entregas de este pedido
+              try {
+                const detallesResponse = await fetch(
+                  `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedido.id}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+
+                if (detallesResponse.ok) {
+                  const detalles = await detallesResponse.json();
+                  todasEntregas.push(...detalles);
+                }
+              } catch (error) {
+                console.error(
+                  `Error obteniendo entregas del pedido ${pedido.id}:`,
+                  error
+                );
+              }
+            }
+          }
+
+          setTodasLasEntregasHoy(todasEntregas);
+        }
       }
     } catch (error) {
       console.error("Error al obtener rutas activas:", error);
@@ -93,73 +153,25 @@ export default function DashboardEstadisticasEntregas() {
     }
   };
 
-  const fetchTodasLasEntregas = async () => {
-    try {
-      const token = getAuthToken();
-      if (!token) return;
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/entregas`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const entregasConInfo = data.map((entrega: any) => {
-          const cliente = clientes.find((c) => c.id === entrega.id_cliente);
-          const driver = drivers.find((d) =>
-            entregas.some(
-              (e) => e.id === entrega.id_pedido && e.id_driver === d.id
-            )
-          );
-
-          return {
-            ...entrega,
-            cliente_nombre: cliente?.nombre || "Cliente desconocido",
-            driver_nombre: driver?.nombre || "Driver desconocido",
-          };
-        });
-        setEntregasDetalladas(entregasConInfo);
-      }
-    } catch (error) {
-      console.error("Error al obtener entregas:", error);
-      setEntregasDetalladas([]);
-    }
-  };
-
   useEffect(() => {
     fetchRutasActivas();
-    if (clientes.length > 0 && drivers.length > 0) {
-      fetchTodasLasEntregas();
-    }
-  }, [clientes, drivers]);
+  }, [fechaSeleccionada]);
 
-  const hoy = new Date().toISOString().split("T")[0];
-
-  // Entregas programadas hoy = total de clientes en todas las rutas del día
   const totalEntregasProgramadasHoy = rutasPorFecha.reduce((acc, ruta) => {
     return acc + (ruta.totalClientes || 0);
   }, 0);
 
-  // Entregas completadas hoy = entregas detalladas del día
-  const entregasCompletadasHoy = entregasDetalladas.filter((e) =>
-    e.hora_entregada.startsWith(hoy)
-  );
+  const entregasCompletadasHoy = todasLasEntregasHoy;
 
-  // Para las estadísticas generales (mantener compatibilidad)
-  const entregasHoy = entregas.filter((e) => e.fecha === hoy);
+  const totalKgEntregadosHoy = todasLasEntregasHoy.reduce((acc, e) => {
+    return acc + (e.corriente_entregado || 0) + (e.especial_entregado || 0);
+  }, 0);
 
-  // IMPORTANTE: rutasActivas NO tienen campo fecha, son las rutas activas en tiempo real
-  // Solo contamos las que tienen progreso < 100 (no completadas)
+  const entregasHoy = entregas.filter((e) => e.fecha === fechaSeleccionada);
   const rutasActivasReales = rutasActivas.filter((r) => r.progreso < 100);
   const rutasCompletadasReales = rutasActivas.filter((r) => r.progreso === 100);
 
-  // Para saber qué rutas tienen kg, usamos rutasPorFecha (que tiene totalKgCorriente y totalKgEspecial)
+  // Filtrar rutas que tienen kg asignados
   const rutasActivasConKg = rutasActivasReales.filter((rActiva) => {
     const rutaConKg = rutasPorFecha.find((rf) => rf.ruta.id === rActiva.id);
     const tieneKg =
@@ -178,28 +190,24 @@ export default function DashboardEstadisticasEntregas() {
       ? Math.round((entregasConRetorno.length / totalEntregas) * 100)
       : 0;
 
-  const recentDeliveries = entregasDetalladas
+  const recentDeliveries = todasLasEntregasHoy
     .sort(
       (a, b) =>
         new Date(b.hora_entregada).getTime() -
         new Date(a.hora_entregada).getTime()
     )
-    .slice(0, 5);
+    .slice(0, 5)
+    .map((entrega: any) => {
+      const cliente = clientes.find((c) => c.id === entrega.id_cliente);
+      return {
+        ...entrega,
+        cliente_nombre: cliente?.nombre || "Cliente desconocido",
+      };
+    });
 
-  // Cálculos mejorados
-  // Total KG para entregar: suma de todos los totales de las rutas del día
   const totalKgParaEntregarHoy = rutasPorFecha.reduce((acc, ruta) => {
     return acc + (ruta.totalKgCorriente || 0) + (ruta.totalKgEspecial || 0);
   }, 0);
-
-  // Total KG entregados (de las entregas completadas)
-  const totalKgEntregadosHoy = entregasDetalladas
-    .filter((e) => e.hora_entregada.startsWith(hoy))
-    .reduce(
-      (acc, e) =>
-        acc + (e.corriente_entregado || 0) + (e.especial_entregado || 0),
-      0
-    );
 
   if (loading || loadingRutas) {
     return (
@@ -217,6 +225,48 @@ export default function DashboardEstadisticasEntregas() {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      {/* Selector de Fecha */}
+      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+        <div className="flex items-center gap-3">
+          <MaterialIcon
+            name="calendar_today"
+            className="text-blue-600 text-xl"
+          />
+          <label
+            htmlFor="fecha"
+            className="text-sm font-semibold text-gray-700"
+          >
+            Fecha:
+          </label>
+          <input
+            type="date"
+            id="fecha"
+            value={fechaSeleccionada}
+            onChange={(e) => setFechaSeleccionada(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium text-gray-600"
+          />
+          <span className="text-sm text-gray-600 font-medium">
+            {new Date(fechaSeleccionada + "T00:00:00").toLocaleDateString(
+              "es-ES",
+              {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            )}
+          </span>
+          <button
+            onClick={fetchRutasActivas}
+            disabled={loadingRutas}
+            className="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center gap-2 font-medium"
+          >
+            <MaterialIcon name="refresh" className="text-xl" />
+            {loadingRutas ? "Cargando..." : "Refrescar"}
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center gap-2 mb-4">
         <MaterialIcon name="local_shipping" className="w-6 h-6 text-blue-600" />
         <h2 className="text-xl font-semibold text-gray-900">

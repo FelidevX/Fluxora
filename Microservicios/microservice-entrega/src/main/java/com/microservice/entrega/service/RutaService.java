@@ -434,13 +434,16 @@ public class RutaService {
             pedido.setEspecial_devuelto(especialDevuelto);
             pedido.setHora_retorno(LocalDateTime.now());
 
-            SesionReparto pedidoActualizado = sesionRepartoRepository.save(pedido);
-
             // Calcular resumen financiero
             Double totalDineroRecaudado = entregas.stream()
                     .filter(e -> e.getTipo() == TipoMovimiento.VENTA)
                     .map(e -> e.getMonto_total() != null ? e.getMonto_total() : 0.0)
                     .reduce(0.0, Double::sum);
+            
+            // Guardar monto total en la sesión
+            pedido.setMonto_total(totalDineroRecaudado);
+
+            SesionReparto pedidoActualizado = sesionRepartoRepository.save(pedido);
 
             int totalEntregas = entregas.size();
             int entregasVenta = (int) entregas.stream().filter(e -> e.getTipo() == TipoMovimiento.VENTA).count();
@@ -685,5 +688,15 @@ public class RutaService {
         rutaRepository.delete(ruta);
         
         System.out.println("Ruta eliminada exitosamente");
+    }
+    
+    @Transactional
+    public void marcarSesionComoPagada(Long idSesion) {
+        SesionReparto sesion = sesionRepartoRepository.findById(idSesion)
+            .orElseThrow(() -> new RuntimeException("Sesión no encontrada con ID: " + idSesion));
+        
+        sesion.setPagado(true);
+        sesion.setFecha_pago(LocalDateTime.now());
+        sesionRepartoRepository.save(sesion);
     }
 }

@@ -228,4 +228,21 @@ public class RutaController {
         Map<String, String> resultado = rutaService.obtenerNombresRutasPorClientes(clienteIds);    
         return ResponseEntity.ok(resultado);
     }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/marcar-pagado/{id_sesion}")
+    public ResponseEntity<Map<String, Object>> marcarComoPagado(@PathVariable Long id_sesion) {
+        try {
+            rutaService.marcarSesionComoPagada(id_sesion);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Sesión marcada como pagada exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }

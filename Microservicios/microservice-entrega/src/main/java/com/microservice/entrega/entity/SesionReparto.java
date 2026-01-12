@@ -30,4 +30,8 @@ public class SesionReparto {
     private Double corriente_devuelto;
     private Double especial_devuelto;
     private LocalDateTime hora_retorno;
+    
+    private Double monto_total;
+    private Boolean pagado = false;
+    private LocalDateTime fecha_pago;
 }

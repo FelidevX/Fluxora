@@ -350,7 +350,9 @@ export default function PantallaAgendarVisita({
       );
 
       if (!entregaResponse.ok) {
-        throw new Error("Error al registrar la entrega.");
+        const errorData = await entregaResponse.json().catch(() => ({}));
+        const errorMessage = errorData?.message || "Error al registrar la entrega.";
+        throw new Error(errorMessage);
       }
 
       // 2. POST para agendar la próxima entrega
@@ -376,17 +378,18 @@ export default function PantallaAgendarVisita({
       );
 
       if (!programarResponse.ok) {
-        throw new Error("Error al agendar la entrega.");
+        const errorData = await programarResponse.json().catch(() => ({}));
+        const errorMessage = errorData?.message || "Error al agendar la entrega.";
+        throw new Error(errorMessage);
       }
 
       success("Entrega registrada y próxima visita agendada correctamente.", "¡Operación Exitosa!");
       onComplete(agendarData, clienteId);
     } catch (err) {
       console.error("Error al procesar:", err);
-      showError(
-        "Hubo un error al procesar la información. Por favor, inténtelo de nuevo.",
-        "Error al Procesar"
-      );
+      
+      const errorMessage = err instanceof Error ? err.message : "Error desconocido.";
+      showError(errorMessage, "Error al Procesar la entrega");
     } finally {
       setIsLoading(false);
     }

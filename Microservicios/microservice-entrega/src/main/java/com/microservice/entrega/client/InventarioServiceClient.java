@@ -38,4 +38,7 @@ public interface InventarioServiceClient {
 
     @GetMapping("api/inventario/productos/{nombre}")
     ResponseEntity<?> getProductoByNombre(@PathVariable("nombre") String nombre);
+
+    @GetMapping("api/inventario/productos/{productoId}/stock-total")
+    ResponseEntity<Integer> getStockTotalProducto(@PathVariable("productoId") Long productoId);
 }

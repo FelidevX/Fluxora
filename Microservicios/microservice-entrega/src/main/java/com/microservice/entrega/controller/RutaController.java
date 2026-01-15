@@ -1,7 +1,6 @@
 package com.microservice.entrega.controller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,25 +17,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.microservice.entrega.service.RutaService;
-import com.microservice.entrega.client.ClienteServiceClient;
-import com.microservice.entrega.client.UsuarioServiceClient;
 import com.microservice.entrega.dto.*;
 import com.microservice.entrega.entity.Ruta;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/rutas")
+@RequiredArgsConstructor
 public class RutaController {
 
-    private RutaService rutaService;
-    private ClienteServiceClient clienteServiceClient;
-    private UsuarioServiceClient usuarioServiceClient;
-
-    public RutaController(RutaService rutaService, ClienteServiceClient clienteServiceClient,
-            UsuarioServiceClient usuarioServiceClient) {
-        this.rutaService = rutaService;
-        this.clienteServiceClient = clienteServiceClient;
-        this.usuarioServiceClient = usuarioServiceClient;
-    }
+    private final RutaService rutaService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
     @GetMapping("/optimized-ortools/{id_ruta}")
@@ -197,10 +188,9 @@ public class RutaController {
     @PostMapping("/finalizar/{id_ruta}")
     public ResponseEntity<Map<String, Object>> finalizarRuta(@PathVariable Long id_ruta) {
         try {
-            rutaService.finalizarRuta(id_ruta);
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Ruta finalizada correctamente");
-            return ResponseEntity.ok(response);
+            Map<String, Object> resumen = rutaService.finalizarRuta(id_ruta);
+            resumen.put("message", "Ruta finalizada correctamente");
+            return ResponseEntity.ok(resumen);
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al finalizar la ruta: " + e.getMessage());
@@ -227,6 +217,31 @@ public class RutaController {
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al obtener ruta del cliente: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
+    @GetMapping("/clientes/batch")
+    public ResponseEntity<Map<String, String>> getNombresRutasPorClientes(
+            @RequestParam("clienteIds") List<Long> clienteIds) {
+        Map<String, String> resultado = rutaService.obtenerNombresRutasPorClientes(clienteIds);    
+        return ResponseEntity.ok(resultado);
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/marcar-pagado/{id_sesion}")
+    public ResponseEntity<Map<String, Object>> marcarComoPagado(@PathVariable Long id_sesion) {
+        try {
+            rutaService.marcarSesionComoPagada(id_sesion);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Sesión marcada como pagada exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }

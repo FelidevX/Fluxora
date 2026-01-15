@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,21 +16,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.microservice.entrega.dto.ClienteDTO;
 import com.microservice.entrega.dto.RegistroEntregaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.entity.RegistroEntrega;
-import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.TipoMovimiento;
 import com.microservice.entrega.service.EntregaService;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/entrega")
+@RequiredArgsConstructor
 public class EntregaController {
 
-    @Autowired
-    private EntregaService entregaService;
+    private final EntregaService entregaService;
 
     // Obtener todas las rutas activas con sus clientes
     @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
@@ -51,16 +52,14 @@ public class EntregaController {
             // Validaciones específicas para VENTA
             if (tipo == TipoMovimiento.VENTA) {
                 if (registroEntregaDTO.getId_pedido() == null) {
-                    System.err.println("ERROR: id_pedido es NULL para una VENTA");
                     Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("error", "El id_pedido es obligatorio para ventas");
+                    errorResponse.put("message", "El id_pedido es obligatorio para ventas");
                     return ResponseEntity.badRequest().body(errorResponse);
                 }
 
                 if (registroEntregaDTO.getProductos() == null || registroEntregaDTO.getProductos().isEmpty()) {
-                    System.err.println("ERROR: No se enviaron productos para una VENTA");
                     Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("error", "Debe incluir al menos un producto para ventas");
+                    errorResponse.put("message", "Debe incluir al menos un producto para ventas");
                     return ResponseEntity.badRequest().body(errorResponse);
                 }
             }
@@ -70,12 +69,18 @@ public class EntregaController {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Entrega registrada exitosamente");
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            System.err.println("Error al registrar entrega: " + e.getMessage());
-            e.printStackTrace();
+        } catch (RuntimeException e) {
+            // Excepciones de negocio (stock insuficiente, etc.) - NO incluir prefijo
+            log.error("Error de negocio al registrar entrega: {}", e.getMessage());
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Error al registrar entrega: " + e.getMessage());
+            errorResponse.put("message", e.getMessage()); // Mensaje limpio sin prefijo
             return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            // Errores técnicos inesperados
+            log.error("Error técnico al registrar entrega: {}", e.getMessage(), e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Error al registrar entrega: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
     

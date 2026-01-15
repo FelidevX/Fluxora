@@ -8,11 +8,10 @@ import { useHistorialEntregas } from "@/hooks/useHistorialEntregas";
 
 interface RutaActiva {
   id: number;
+  nombre: string;
+  progreso: number;
   id_driver: number;
-  fecha: string;
-  hora_retorno: string | null;
-  kg_corriente: number;
-  kg_especial: number;
+  entregasCompletadas: number;
 }
 
 interface DetalleEntregaExtendido {
@@ -28,13 +27,22 @@ interface DetalleEntregaExtendido {
 }
 
 export default function DashboardEstadisticasEntregas() {
-  const { entregas, drivers, clientes, loading, getNombreDriver } =
-    useHistorialEntregas();
+  const {
+    entregas,
+    drivers,
+    clientes,
+    loading,
+    getNombreDriver,
+    detallesEntrega,
+    fetchDetallesEntrega,
+  } = useHistorialEntregas();
   const [rutasActivas, setRutasActivas] = useState<RutaActiva[]>([]);
-  const [entregasDetalladas, setEntregasDetalladas] = useState<
-    DetalleEntregaExtendido[]
-  >([]);
+  const [rutasPorFecha, setRutasPorFecha] = useState<any[]>([]);
+  const [todasLasEntregasHoy, setTodasLasEntregasHoy] = useState<any[]>([]);
   const [loadingRutas, setLoadingRutas] = useState(false);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   const getAuthToken = () => {
     let token = localStorage.getItem("auth_token");
@@ -51,6 +59,7 @@ export default function DashboardEstadisticasEntregas() {
       const token = getAuthToken();
       if (!token) return;
 
+      // Obtener rutas activas
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-activas`,
         {
@@ -65,21 +74,10 @@ export default function DashboardEstadisticasEntregas() {
         const data = await response.json();
         setRutasActivas(data || []);
       }
-    } catch (error) {
-      console.error("Error al obtener rutas activas:", error);
-      setRutasActivas([]);
-    } finally {
-      setLoadingRutas(false);
-    }
-  };
 
-  const fetchTodasLasEntregas = async () => {
-    try {
-      const token = getAuthToken();
-      if (!token) return;
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/entregas`,
+      // Obtener rutas programadas por fecha (tiene los totales de kg)
+      const rutasPorFechaResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/rutas-por-fecha/${fechaSeleccionada}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,48 +86,102 @@ export default function DashboardEstadisticasEntregas() {
         }
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        const entregasConInfo = data.map((entrega: any) => {
-          const cliente = clientes.find((c) => c.id === entrega.id_cliente);
-          const driver = drivers.find((d) =>
-            entregas.some(
-              (e) => e.id === entrega.id_pedido && e.id_driver === d.id
-            )
-          );
+      if (rutasPorFechaResponse.ok) {
+        const rutasFecha = await rutasPorFechaResponse.json();
+        setRutasPorFecha(rutasFecha || []);
 
-          return {
-            ...entrega,
-            cliente_nombre: cliente?.nombre || "Cliente desconocido",
-            driver_nombre: driver?.nombre || "Driver desconocido",
-          };
-        });
-        setEntregasDetalladas(entregasConInfo);
+        // Obtener todos los pedidos (sesiones de reparto)
+        const pedidosResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedidos`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (pedidosResponse.ok) {
+          const todosPedidos = await pedidosResponse.json();
+          const todasEntregas: any[] = [];
+
+          // Para cada ruta de la fecha seleccionada
+          for (const rutaFecha of rutasFecha) {
+            const idDriver = rutaFecha.ruta.id_driver;
+
+            // Buscar la sesión de reparto (pedido) del driver en esta fecha
+            const pedido = todosPedidos.find(
+              (p: any) =>
+                p.id_driver === idDriver && p.fecha === fechaSeleccionada
+            );
+
+            if (pedido) {
+              // Obtener entregas de este pedido
+              try {
+                const detallesResponse = await fetch(
+                  `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/entrega/pedido/${pedido.id}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+
+                if (detallesResponse.ok) {
+                  const detalles = await detallesResponse.json();
+                  todasEntregas.push(...detalles);
+                }
+              } catch (error) {
+                console.error(
+                  `Error obteniendo entregas del pedido ${pedido.id}:`,
+                  error
+                );
+              }
+            }
+          }
+
+          setTodasLasEntregasHoy(todasEntregas);
+        }
       }
     } catch (error) {
-      console.error("Error al obtener entregas:", error);
-      setEntregasDetalladas([]);
+      console.error("Error al obtener rutas activas:", error);
+      setRutasActivas([]);
+      setRutasPorFecha([]);
+    } finally {
+      setLoadingRutas(false);
     }
   };
 
   useEffect(() => {
     fetchRutasActivas();
-    if (clientes.length > 0 && drivers.length > 0) {
-      fetchTodasLasEntregas();
-    }
-  }, [clientes, drivers]);
+  }, [fechaSeleccionada]);
 
-  const hoy = new Date().toISOString().split("T")[0];
+  const totalEntregasProgramadasHoy = rutasPorFecha.reduce((acc, ruta) => {
+    return acc + (ruta.totalClientes || 0);
+  }, 0);
 
-  const entregasHoy = entregas.filter((e) => e.fecha === hoy);
-  const entregasCompletadasHoy = entregas.filter(
-    (e) => e.fecha === hoy && e.hora_retorno !== null
-  );
+  const entregasCompletadasHoy = todasLasEntregasHoy;
 
-  const rutasActivasHoy = rutasActivas.filter((r) => r.fecha === hoy);
-  const rutasCompletadasHoy = entregas.filter(
-    (e) => e.fecha === hoy && e.hora_retorno !== null
-  );
+  const totalKgEntregadosHoy = todasLasEntregasHoy.reduce((acc, e) => {
+    return acc + (e.corriente_entregado || 0) + (e.especial_entregado || 0);
+  }, 0);
+
+  const entregasHoy = entregas.filter((e) => e.fecha === fechaSeleccionada);
+  const rutasActivasReales = rutasActivas.filter((r) => r.progreso < 100);
+  const rutasCompletadasReales = rutasActivas.filter((r) => r.progreso === 100);
+
+  // Filtrar rutas que tienen kg asignados
+  const rutasActivasConKg = rutasActivasReales.filter((rActiva) => {
+    const rutaConKg = rutasPorFecha.find((rf) => rf.ruta.id === rActiva.id);
+    const tieneKg =
+      rutaConKg &&
+      ((rutaConKg.totalKgCorriente || 0) > 0 ||
+        (rutaConKg.totalKgEspecial || 0) > 0);
+    return tieneKg;
+  });
+
+  const totalRutasActivas = rutasActivas.length; // Total de rutas (activas + completadas)
 
   const totalEntregas = entregas.length;
   const entregasConRetorno = entregas.filter((e) => e.hora_retorno !== null);
@@ -138,13 +190,24 @@ export default function DashboardEstadisticasEntregas() {
       ? Math.round((entregasConRetorno.length / totalEntregas) * 100)
       : 0;
 
-  const recentDeliveries = entregasDetalladas
+  const recentDeliveries = todasLasEntregasHoy
     .sort(
       (a, b) =>
         new Date(b.hora_entregada).getTime() -
         new Date(a.hora_entregada).getTime()
     )
-    .slice(0, 5);
+    .slice(0, 5)
+    .map((entrega: any) => {
+      const cliente = clientes.find((c) => c.id === entrega.id_cliente);
+      return {
+        ...entrega,
+        cliente_nombre: cliente?.nombre || "Cliente desconocido",
+      };
+    });
+
+  const totalKgParaEntregarHoy = rutasPorFecha.reduce((acc, ruta) => {
+    return acc + (ruta.totalKgCorriente || 0) + (ruta.totalKgEspecial || 0);
+  }, 0);
 
   if (loading || loadingRutas) {
     return (
@@ -162,6 +225,48 @@ export default function DashboardEstadisticasEntregas() {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      {/* Selector de Fecha */}
+      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+        <div className="flex items-center gap-3">
+          <MaterialIcon
+            name="calendar_today"
+            className="text-blue-600 text-xl"
+          />
+          <label
+            htmlFor="fecha"
+            className="text-sm font-semibold text-gray-700"
+          >
+            Fecha:
+          </label>
+          <input
+            type="date"
+            id="fecha"
+            value={fechaSeleccionada}
+            onChange={(e) => setFechaSeleccionada(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium text-gray-600"
+          />
+          <span className="text-sm text-gray-600 font-medium">
+            {new Date(fechaSeleccionada + "T00:00:00").toLocaleDateString(
+              "es-ES",
+              {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            )}
+          </span>
+          <button
+            onClick={fetchRutasActivas}
+            disabled={loadingRutas}
+            className="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center gap-2 font-medium"
+          >
+            <MaterialIcon name="refresh" className="text-xl" />
+            {loadingRutas ? "Cargando..." : "Refrescar"}
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center gap-2 mb-4">
         <MaterialIcon name="local_shipping" className="w-6 h-6 text-blue-600" />
         <h2 className="text-xl font-semibold text-gray-900">
@@ -169,42 +274,41 @@ export default function DashboardEstadisticasEntregas() {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.05 }}
-          className="bg-blue-50 rounded-lg p-4 border border-blue-200"
+          className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-600">
-                Entregados vs Total
+              <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">
+                Entregas Hoy
               </p>
-              <p className="text-2xl font-bold text-blue-900">
+              <p className="text-3xl font-bold text-blue-900 mt-1">
                 <AnimatedNumber
-                  value={entregasConRetorno.length}
+                  value={entregasCompletadasHoy.length}
                   duration={0.8}
                   delay={0.1}
                 />
-                {" / "}
-                <AnimatedNumber
-                  value={totalEntregas}
-                  duration={0.8}
-                  delay={0.1}
-                />
+                <span className="text-lg text-blue-600">
+                  /{totalEntregasProgramadasHoy}
+                </span>
               </p>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs text-blue-700 mt-1">
                 <AnimatedNumber
-                  value={entregadosPercent}
+                  value={
+                    totalEntregasProgramadasHoy - entregasCompletadasHoy.length
+                  }
                   duration={0.8}
                   delay={0.15}
-                  suffix="% completado"
+                  suffix=" pendientes"
                 />
               </p>
             </div>
-            <div className="text-blue-500 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100">
-              <MaterialIcon name="task_alt" className="w-5 h-5 text-blue-600" />
+            <div className="text-blue-600 w-12 h-12 flex items-center justify-center rounded-full bg-white/50">
+              <MaterialIcon name="local_shipping" className="w-6 h-6" />
             </div>
           </div>
         </motion.div>
@@ -213,37 +317,29 @@ export default function DashboardEstadisticasEntregas() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="bg-emerald-50 rounded-lg p-4 border border-emerald-200"
+          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-emerald-600">
-                Entregas hoy / en curso
+              <p className="text-xs font-medium text-emerald-700 uppercase tracking-wide">
+                Total KG Hoy
               </p>
-              <p className="text-2xl font-bold text-emerald-900">
+              <p className="text-3xl font-bold text-emerald-900 mt-1">
                 <AnimatedNumber
-                  value={entregasCompletadasHoy.length}
+                  value={totalKgEntregadosHoy}
                   duration={0.8}
                   delay={0.15}
                 />
-                {" / "}
-                <AnimatedNumber
-                  value={entregasHoy.length}
-                  duration={0.8}
-                  delay={0.15}
-                />
+                <span className="text-lg text-emerald-600">
+                  /{totalKgParaEntregarHoy}
+                </span>
               </p>
-              <p className="text-sm text-gray-600 mt-1">
-                <AnimatedNumber
-                  value={entregasHoy.length - entregasCompletadasHoy.length}
-                  duration={0.8}
-                  delay={0.2}
-                  suffix=" en curso"
-                />
+              <p className="text-xs text-emerald-700 mt-1">
+                Entregados vs Programados
               </p>
             </div>
-            <div className="text-emerald-500 w-10 h-10 flex items-center justify-center rounded-full bg-emerald-100">
-              <MaterialIcon name="today" className="w-5 h-5 text-emerald-600" />
+            <div className="text-emerald-600 w-12 h-12 flex items-center justify-center rounded-full bg-white/50">
+              <MaterialIcon name="scale" className="w-6 h-6" />
             </div>
           </div>
         </motion.div>
@@ -252,66 +348,29 @@ export default function DashboardEstadisticasEntregas() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.15 }}
-          className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-orange-600">
-                Rutas activas / completadas (hoy)
+              <p className="text-xs font-medium text-orange-700 uppercase tracking-wide">
+                Rutas Activas
               </p>
-              <p className="text-2xl font-bold text-orange-900">
+              <p className="text-3xl font-bold text-orange-900 mt-1">
                 <AnimatedNumber
-                  value={rutasActivasHoy.length}
+                  value={rutasActivasConKg.length}
                   duration={0.8}
                   delay={0.2}
                 />
-                {" / "}
-                <AnimatedNumber
-                  value={rutasCompletadasHoy.length}
-                  duration={0.8}
-                  delay={0.2}
-                />
+                <span className="text-lg text-orange-600">
+                  /{totalRutasActivas}
+                </span>
               </p>
-              <p className="text-sm text-gray-600 mt-1">
-                Rutas en ejecución / finalizadas
+              <p className="text-xs text-orange-700 mt-1">
+                {rutasCompletadasReales.length} completadas
               </p>
             </div>
-            <div className="text-orange-500 w-10 h-10 flex items-center justify-center rounded-full bg-orange-100">
-              <MaterialIcon
-                name="alt_route"
-                className="w-5 h-5 text-orange-600"
-              />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Últimas entregas registradas
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                <AnimatedNumber
-                  value={recentDeliveries.length}
-                  duration={0.8}
-                  delay={0.25}
-                />
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Entregas recientes
-              </p>
-            </div>
-            <div className="text-gray-500 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100">
-              <MaterialIcon
-                name="receipt_long"
-                className="w-5 h-5 text-gray-600"
-              />
+            <div className="text-orange-600 w-12 h-12 flex items-center justify-center rounded-full bg-white/50">
+              <MaterialIcon name="alt_route" className="w-6 h-6" />
             </div>
           </div>
         </motion.div>

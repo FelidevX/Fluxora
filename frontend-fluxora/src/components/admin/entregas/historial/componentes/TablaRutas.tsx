@@ -12,12 +12,16 @@ interface Ruta {
   corriente_devuelto: number;
   especial_devuelto: number;
   hora_retorno: string | null;
+  pagado: boolean;
+  fecha_pago: string | null;
+  monto_total: number;
 }
 
 interface TablaRutasProps {
   rutas: Ruta[];
   getNombreDriver: (idDriver: number) => string;
   onVerDetalles: (ruta: Ruta) => void;
+  onMarcarPagado?: (ruta: Ruta) => void;
   loading?: boolean;
   searchValue?: string;
   onSearch?: (value: string) => void;
@@ -27,6 +31,7 @@ export function TablaRutas({
   rutas,
   getNombreDriver,
   onVerDetalles,
+  onMarcarPagado,
   loading = false,
   searchValue = "",
   onSearch,
@@ -100,6 +105,17 @@ export function TablaRutas({
             </div>
           ),
         },
+        {
+          key: "pagado",
+          label: "Pago",
+          render: (ruta: Ruta) => (
+            <div className="flex justify-center">
+              <Badge variant={ruta.pagado ? "success" : "danger"}>
+                {ruta.pagado ? "Pagado" : "Pendiente"}
+              </Badge>
+            </div>
+          ),
+        },
       ]}
       actions={[
         {
@@ -108,6 +124,17 @@ export function TablaRutas({
           variant: "primary" as const,
           onClick: (ruta: Ruta) => onVerDetalles(ruta),
         },
+        ...(onMarcarPagado
+          ? [
+              {
+                label: "",
+                icon: "payments",
+                variant: "success" as const,
+                onClick: (ruta: Ruta) => onMarcarPagado(ruta),
+                disabled: (ruta: Ruta) => ruta.pagado || !ruta.hora_retorno,
+              },
+            ]
+          : []),
       ]}
       loading={loading}
       searchValue={searchValue}

@@ -52,22 +52,14 @@ public class ClienteController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCliente(@PathVariable Long id) {
-        try {
-            clienteService.deleteCliente(id);
-            return ResponseEntity.ok("Cliente eliminado exitosamente");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al eliminar cliente: " + e.getMessage());
-        }
+        clienteService.deleteCliente(id);
+        return ResponseEntity.ok("Cliente eliminado exitosamente");
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Cliente> updateCliente(@PathVariable Long id, @RequestBody Cliente clienteDetails) {
-        try {
-            ResponseEntity<Cliente> updatedCliente = clienteService.updateCliente(id, clienteDetails);
-            return ResponseEntity.ok(updatedCliente.getBody());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        ResponseEntity<Cliente> updatedCliente = clienteService.updateCliente(id, clienteDetails);
+        return ResponseEntity.ok(updatedCliente.getBody());
     }
 }

@@ -45,4 +45,7 @@ public interface RutaClienteRepository extends JpaRepository<RutaCliente, Long> 
     @Query("SELECT rc FROM RutaCliente rc WHERE rc.id_ruta = :idRuta AND rc.id_cliente = :idCliente AND rc.fecha_programada < :fecha ORDER BY rc.fecha_programada DESC")
     Optional<RutaCliente> findTopByIdRutaAndIdClienteAndFechaProgramadaLessThanOrderByFechaProgramadaDesc(@Param("idRuta") Long idRuta, @Param("idCliente") Long idCliente, @Param("fecha") LocalDate fecha);
 
+    @Query("SELECT DISTINCT rc FROM RutaCliente rc WHERE rc.id_cliente IN :clienteIds")
+    List<RutaCliente> findByIdClienteIn(@Param("clienteIds") List<Long> clienteIds);
+
 }

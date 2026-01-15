@@ -1,10 +1,10 @@
 package com.microservice.cliente.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,51 +12,77 @@ import org.springframework.transaction.annotation.Transactional;
 import com.microservice.cliente.client.EntregaServiceClient;
 import com.microservice.cliente.dto.ClienteDTO;
 import com.microservice.cliente.entity.Cliente;
+import com.microservice.cliente.exception.ClienteDeleteException;
+import com.microservice.cliente.exception.ClienteNotFoundException;
+import com.microservice.cliente.mapper.ClienteMapper;
 import com.microservice.cliente.repository.ClienteRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class ClienteService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
+    private final EntregaServiceClient entregaServiceClient;
+    private final ClienteMapper clienteMapper;
 
-    @Autowired
-    private EntregaServiceClient entregaServiceClient;
+    public ClienteService(ClienteRepository clienteRepository, 
+                         EntregaServiceClient entregaServiceClient,
+                         ClienteMapper clienteMapper) {
+        this.clienteRepository = clienteRepository;
+        this.entregaServiceClient = entregaServiceClient;
+        this.clienteMapper = clienteMapper;
+    }
+
 
     public List<Cliente> getAllClientes() {
         return clienteRepository.findAll();
     }
 
-    /**
-     * Obtiene todos los clientes con su información de ruta incluida
-     * @return Lista de ClienteDTO con información completa incluyendo ruta
-     */
     public List<ClienteDTO> getAllClientesConInfoRuta() {
         List<Cliente> clientes = clienteRepository.findAll();
-        return clientes.stream()
-                .map(cliente -> {
-                    String nombreRuta = obtenerNombreRuta(cliente.getId());
-                    return new ClienteDTO(
-                        cliente.getId(), 
-                        cliente.getNombreNegocio(),
-                        cliente.getNombre(),
-                        cliente.getContacto(),
-                        cliente.getDireccion(), 
-                        cliente.getLatitud(), 
-                        cliente.getLongitud(), 
-                        cliente.getEmail(),
-                        cliente.getPrecioCorriente(),
-                        cliente.getPrecioEspecial(),
-                        nombreRuta);
-                })
+        
+        if(clientes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> clienteIds = clientes.stream()
+                .map(Cliente::getId)
                 .collect(Collectors.toList());
+
+        Map<String, String> rutasPorCliente = obtenerNombresRutaBatch(clienteIds);
+
+        return clientes.stream().map(
+            cliente -> {
+                String nombreRuta = rutasPorCliente.getOrDefault(
+                    cliente.getId().toString(), 
+                    "Sin ruta asignada"
+                );
+                return clienteMapper.toDTO(cliente, nombreRuta);
+            }
+        ).collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene el nombre de la ruta para un cliente específico
-     * @param idCliente ID del cliente
-     * @return Nombre de la ruta o "Sin ruta asignada" si no tiene ruta
-     */
+    private Map<String, String> obtenerNombresRutaBatch(List<Long> clienteIds) {
+        try {
+            ResponseEntity<Map<String, String>> response = 
+                entregaServiceClient.getNombresRutasPorClientes(clienteIds);
+            
+            if (response.getBody() != null) {
+                return response.getBody();
+            }
+            
+            log.warn("El servicio de entregas retornó body vacío para {} clientes", clienteIds.size());
+            return Collections.emptyMap();
+            
+        } catch (Exception e) {
+            log.error("Error al obtener nombres de rutas batch para {} clientes: {}", 
+                     clienteIds.size(), e.getMessage(), e);
+            return Collections.emptyMap();
+        }
+    }
+
     private String obtenerNombreRuta(Long idCliente) {
         try {
             ResponseEntity<Map<String, Object>> response = entregaServiceClient.getNombreRutaPorCliente(idCliente);
@@ -65,7 +91,7 @@ public class ClienteService {
             }
             return "Sin ruta asignada";
         } catch (Exception e) {
-            System.err.println("Error al obtener nombre de ruta para cliente " + idCliente + ": " + e.getMessage());
+            log.error("Error al obtener nombre de ruta para cliente {}: {}", idCliente, e.getMessage(), e);
             return "Sin ruta asignada";
         }
     }
@@ -76,75 +102,65 @@ public class ClienteService {
 
     public List<ClienteDTO> getClienteByIds(List<Long> ids) {
         List<Cliente> clientes = clienteRepository.findAllById(ids);
-        List<ClienteDTO> clientesDTO = clientes.stream()
+
+        if(clientes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        if(clientes.size() > 1) {
+            List<Long> clienteIds = clientes.stream()
+                .map(Cliente::getId)
+                .collect(Collectors.toList());
+
+            Map<String, String> rutasPorCliente = obtenerNombresRutaBatch(clienteIds);
+
+            return clientes.stream()
                 .map(cliente -> {
-                    String nombreRuta = obtenerNombreRuta(cliente.getId());
-                    return new ClienteDTO(
-                        cliente.getId(), 
-                        cliente.getNombreNegocio(),
-                        cliente.getNombre(),
-                        cliente.getContacto(),
-                        cliente.getDireccion(), 
-                        cliente.getLatitud(), 
-                        cliente.getLongitud(), 
-                        cliente.getEmail(),
-                        cliente.getPrecioCorriente(),
-                        cliente.getPrecioEspecial(),
-                        nombreRuta);
+                    String nombreRuta = rutasPorCliente.getOrDefault(
+                        cliente.getId().toString(), 
+                        "Sin ruta asignada"
+                    );
+                    return clienteMapper.toDTO(cliente, nombreRuta);
                 })
                 .collect(Collectors.toList());
-        
-        return clientesDTO;
+        } else {
+            Cliente cliente = clientes.get(0);
+            String nombreRuta = obtenerNombreRuta(cliente.getId());
+            return List.of(clienteMapper.toDTO(cliente, nombreRuta));
+        }
     }
 
     public ClienteDTO getClienteById(Long id) {
         Cliente cliente = clienteRepository.findById(id).orElse(null);
         if (cliente != null) {
             String nombreRuta = obtenerNombreRuta(id);
-            return new ClienteDTO(
-                    cliente.getId(), 
-                    cliente.getNombreNegocio(),
-                    cliente.getNombre(),
-                    cliente.getContacto(),
-                    cliente.getDireccion(), 
-                    cliente.getLatitud(), 
-                    cliente.getLongitud(), 
-                    cliente.getEmail(),
-                    cliente.getPrecioCorriente(),
-                    cliente.getPrecioEspecial(),
-                    nombreRuta);
+            return clienteMapper.toDTO(cliente, nombreRuta);
         }
         return null;
     }
 
-    /**
-     * Elimina un cliente y todas sus relaciones en cascada
-     * Primero elimina las relaciones con rutas y entregas, luego elimina el cliente
-     * @param id ID del cliente a eliminar
-     */
     @Transactional
     public void deleteCliente(Long id) {
-        // Verificar que el cliente existe
-        Cliente cliente = clienteRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+        clienteRepository.findById(id)
+            .orElseThrow(() -> new ClienteNotFoundException(id));
         
         try {
-            // Primero eliminar todas las relaciones del cliente con rutas y entregas
             entregaServiceClient.eliminarRelacionesCliente(id);
-            
-            // Luego eliminar el cliente
             clienteRepository.deleteById(id);
-            
+            log.info("Cliente con ID {} eliminado exitosamente", id);
         } catch (Exception e) {
-            throw new RuntimeException("Error al eliminar cliente: " + e.getMessage(), e);
+            log.error("Error al eliminar cliente con ID {}: {}", id, e.getMessage(), e);
+            throw new ClienteDeleteException(id, e);
         }
     }
 
     public ResponseEntity<Cliente> updateCliente(Long id, Cliente clienteDetails) {
         Cliente cliente = clienteRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+            .orElseThrow(() -> new ClienteNotFoundException(id));
         
         cliente.setNombre(clienteDetails.getNombre());
+        cliente.setNombreNegocio(clienteDetails.getNombreNegocio());
+        cliente.setContacto(clienteDetails.getContacto());
         cliente.setDireccion(clienteDetails.getDireccion());
         cliente.setLatitud(clienteDetails.getLatitud());
         cliente.setLongitud(clienteDetails.getLongitud());

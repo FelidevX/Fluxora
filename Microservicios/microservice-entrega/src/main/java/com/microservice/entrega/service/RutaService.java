@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -29,6 +28,8 @@ import com.microservice.entrega.dto.ClienteDTO;
 import com.microservice.entrega.dto.ClienteConRutaDTO;
 import com.microservice.entrega.entity.SesionReparto;
 import com.microservice.entrega.entity.ProgramacionEntrega;
+import com.microservice.entrega.entity.RegistroEntrega;
+import com.microservice.entrega.entity.TipoMovimiento;
 import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.RutaCliente;
@@ -396,7 +397,7 @@ public class RutaService {
         }
     }
 
-    public void finalizarRuta(Long idPedido) {
+    public Map<String, Object> finalizarRuta(Long idPedido) {
         try {
 
             SesionReparto pedido = sesionRepartoRepository.findById(idPedido)
@@ -433,7 +434,33 @@ public class RutaService {
             pedido.setEspecial_devuelto(especialDevuelto);
             pedido.setHora_retorno(LocalDateTime.now());
 
+            // Calcular resumen financiero
+            Double totalDineroRecaudado = entregas.stream()
+                    .filter(e -> e.getTipo() == TipoMovimiento.VENTA)
+                    .map(e -> e.getMonto_total() != null ? e.getMonto_total() : 0.0)
+                    .reduce(0.0, Double::sum);
+            
+            // Guardar monto total en la sesión
+            pedido.setMonto_total(totalDineroRecaudado);
+
             SesionReparto pedidoActualizado = sesionRepartoRepository.save(pedido);
+
+            int totalEntregas = entregas.size();
+            int entregasVenta = (int) entregas.stream().filter(e -> e.getTipo() == TipoMovimiento.VENTA).count();
+
+            // Crear respuesta con resumen
+            Map<String, Object> resumen = new HashMap<>();
+            resumen.put("totalDineroRecaudado", totalDineroRecaudado);
+            resumen.put("totalCorrienteEntregado", totalCorrienteEntregado);
+            resumen.put("totalEspecialEntregado", totalEspecialEntregado);
+            resumen.put("corrienteDevuelto", corrienteDevuelto);
+            resumen.put("especialDevuelto", especialDevuelto);
+            resumen.put("totalEntregas", totalEntregas);
+            resumen.put("entregasVenta", entregasVenta);
+            resumen.put("kgCorrienteSalida", pedido.getKg_corriente());
+            resumen.put("kgEspecialSalida", pedido.getKg_especial());
+
+            return resumen;
         } catch (Exception e) {
             System.err.println("Error al finalizar ruta: " + e.getMessage());
             e.printStackTrace();
@@ -501,5 +528,175 @@ public class RutaService {
         } catch (Exception e) {
             throw new RuntimeException("Error al obtener clientes con programación: " + e.getMessage());
         }
+    }
+
+    public Map<String, String> obtenerNombresRutasPorClientes(List<Long> clienteIds) {
+        try {
+            if (clienteIds == null || clienteIds.isEmpty()) {
+                return new HashMap<>();
+            }
+
+            // 1. Obtener solo las relaciones de los clientes solicitados (query filtrada en BD)
+            List<RutaCliente> relaciones = rutaClienteRepository.findByIdClienteIn(clienteIds);
+            
+            if (relaciones.isEmpty()) {
+                return new HashMap<>();
+            }
+            
+            List<Long> rutaIds = relaciones.stream()
+                    .map(RutaCliente::getId_ruta)
+                    .distinct()
+                    .collect(Collectors.toList());
+            
+            List<Ruta> rutas = rutaRepository.findAllById(rutaIds);
+            
+            Map<Long, String> rutaNombresMap = rutas.stream()
+                    .collect(Collectors.toMap(
+                        Ruta::getId,
+                        Ruta::getNombre
+                    ));
+            
+            Map<String, String> resultado = relaciones.stream()
+                    .filter(rc -> rutaNombresMap.containsKey(rc.getId_ruta()))
+                    .collect(Collectors.toMap(
+                        rc -> rc.getId_cliente().toString(),
+                        rc -> rutaNombresMap.get(rc.getId_ruta()),
+                        (existing, replacement) -> existing
+                    ));
+            
+            return resultado;
+            
+        } catch (Exception e) {
+            System.err.println("Error al obtener nombres de rutas batch para " + clienteIds.size() + " clientes: " + e.getMessage());
+            e.printStackTrace();
+            return new HashMap<>();
+        }
+    }
+
+    /**
+     * Obtener todas las rutas activas con información básica
+     */
+    public List<Map<String, Object>> getRutasActivas() {
+        List<Ruta> rutas = rutaRepository.findAll();
+        List<Map<String, Object>> rutasActivas = new ArrayList<>();
+
+        for (Ruta ruta : rutas) {
+            Map<String, Object> rutaInfo = new HashMap<>();
+            rutaInfo.put("id", ruta.getId());
+            rutaInfo.put("nombre", ruta.getNombre());
+            rutaInfo.put("id_driver", ruta.getId_driver());
+
+            // Por simplicidad, por ahora no calculamos entregas completadas ni progreso
+            rutaInfo.put("entregasCompletadas", 0);
+            rutaInfo.put("progreso", 0);
+
+            rutasActivas.add(rutaInfo);
+        }
+
+        return rutasActivas;
+    }
+
+    /**
+     * Asignar un driver a una ruta
+     */
+    public void asignarDriverARuta(Long idRuta, Long idDriver) {
+        Ruta ruta = rutaRepository.findById(idRuta)
+                .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+
+        ruta.setId_driver(idDriver);
+        rutaRepository.save(ruta);
+    }
+
+    /**
+     * Crear nueva ruta con los datos proporcionados
+     */
+    public String crearRuta(Map<String, Object> datosRuta) {
+        try {
+            String nombre = (String) datosRuta.get("nombre");
+            String origenCoordenada = (String) datosRuta.get("origen_coordenada");
+            Object idDriverObj = datosRuta.get("id_driver");
+
+            if (nombre == null || nombre.trim().isEmpty()) {
+                throw new IllegalArgumentException("El nombre de la ruta es obligatorio");
+            }
+
+            // Verificar si ya existe una ruta con el mismo nombre
+            List<Ruta> rutasExistentes = rutaRepository.findAll();
+            for (Ruta ruta : rutasExistentes) {
+                if (ruta.getNombre().equalsIgnoreCase(nombre.trim())) {
+                    throw new IllegalArgumentException("Ya existe una ruta con el nombre: " + nombre);
+                }
+            }
+
+            Ruta nuevaRuta = new Ruta();
+            nuevaRuta.setNombre(nombre.trim());
+
+            // Parsear coordenadas si se proporcionan (formato "latitud,longitud")
+            if (origenCoordenada != null && !origenCoordenada.trim().isEmpty()) {
+                try {
+                    String[] coords = origenCoordenada.trim().split(",");
+                    if (coords.length == 2) {
+                        nuevaRuta.setLatitud(Double.parseDouble(coords[0].trim()));
+                        nuevaRuta.setLongitud(Double.parseDouble(coords[1].trim()));
+                    }
+                } catch (NumberFormatException e) {
+                    // Si no se pueden parsear las coordenadas, continuar sin ellas
+                    System.out.println("Advertencia: No se pudieron parsear las coordenadas: " + origenCoordenada);
+                }
+            }
+
+            // Manejar el ID del driver (puede ser null)
+            if (idDriverObj != null && !idDriverObj.toString().trim().isEmpty()) {
+                try {
+                    Long idDriver = Long.valueOf(idDriverObj.toString());
+                    nuevaRuta.setId_driver(idDriver);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("El ID del driver debe ser un número válido");
+                }
+            }
+
+            Ruta rutaGuardada = rutaRepository.save(nuevaRuta);
+
+            return "Ruta '" + rutaGuardada.getNombre() + "' creada exitosamente con ID: " + rutaGuardada.getId();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al crear la ruta: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Eliminar una ruta y todas sus relaciones
+     */
+    @Transactional
+    public void eliminarRuta(Long idRuta) {
+        System.out.println("Eliminando ruta ID: " + idRuta);
+        
+        // Verificar que la ruta existe
+        Ruta ruta = rutaRepository.findById(idRuta)
+            .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+        
+        // Eliminar programaciones de entregas asociadas a los clientes de esta ruta
+        List<RutaCliente> rutasClientes = rutaClienteRepository.findByIdRuta(idRuta);
+        for (RutaCliente rc : rutasClientes) {
+            programacionEntregaRepository.deleteByIdCliente(rc.getId_cliente());
+        }
+        
+        // Eliminar relaciones ruta-cliente
+        rutaClienteRepository.deleteAll(rutasClientes);
+        
+        // Eliminar la ruta
+        rutaRepository.delete(ruta);
+        
+        System.out.println("Ruta eliminada exitosamente");
+    }
+    
+    @Transactional
+    public void marcarSesionComoPagada(Long idSesion) {
+        SesionReparto sesion = sesionRepartoRepository.findById(idSesion)
+            .orElseThrow(() -> new RuntimeException("Sesión no encontrada con ID: " + idSesion));
+        
+        sesion.setPagado(true);
+        sesion.setFecha_pago(LocalDateTime.now());
+        sesionRepartoRepository.save(sesion);
     }
 }

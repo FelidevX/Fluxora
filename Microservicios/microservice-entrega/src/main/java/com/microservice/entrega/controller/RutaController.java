@@ -188,10 +188,9 @@ public class RutaController {
     @PostMapping("/finalizar/{id_ruta}")
     public ResponseEntity<Map<String, Object>> finalizarRuta(@PathVariable Long id_ruta) {
         try {
-            rutaService.finalizarRuta(id_ruta);
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Ruta finalizada correctamente");
-            return ResponseEntity.ok(response);
+            Map<String, Object> resumen = rutaService.finalizarRuta(id_ruta);
+            resumen.put("message", "Ruta finalizada correctamente");
+            return ResponseEntity.ok(resumen);
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al finalizar la ruta: " + e.getMessage());
@@ -228,5 +227,22 @@ public class RutaController {
             @RequestParam("clienteIds") List<Long> clienteIds) {
         Map<String, String> resultado = rutaService.obtenerNombresRutasPorClientes(clienteIds);    
         return ResponseEntity.ok(resultado);
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/marcar-pagado/{id_sesion}")
+    public ResponseEntity<Map<String, Object>> marcarComoPagado(@PathVariable Long id_sesion) {
+        try {
+            rutaService.marcarSesionComoPagada(id_sesion);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Sesión marcada como pagada exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 }

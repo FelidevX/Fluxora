@@ -9,6 +9,9 @@ interface Ruta {
   corriente_devuelto: number;
   especial_devuelto: number;
   hora_retorno: string | null;
+  pagado: boolean;
+  fecha_pago: string | null;
+  monto_total: number;
 }
 
 interface Driver {
@@ -170,6 +173,33 @@ export function useHistorialEntregas() {
     return driver ? driver.nombre : `Driver #${idDriver}`;
   };
 
+  const marcarComoPagado = async (idSesion: number) => {
+    try {
+      const token = getAuthToken();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/entregas/rutas/marcar-pagado/${idSesion}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Actualizar la lista de entregas
+        await fetchHistorialEntregas();
+        return true;
+      } else {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error al marcar como pagado:", error);
+      throw error;
+    }
+  };
+
   return {
     entregas,
     drivers,
@@ -179,5 +209,6 @@ export function useHistorialEntregas() {
     loadingDetalles,
     fetchDetallesEntrega,
     getNombreDriver,
+    marcarComoPagado,
   };
 }

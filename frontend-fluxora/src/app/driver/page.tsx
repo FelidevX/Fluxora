@@ -9,6 +9,7 @@ import MaterialIcon from "@/components/ui/MaterialIcon";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ui/ToastContainer";
 import { get } from "http";
+import { motion } from "framer-motion";
 
 // Helper para obtener el token normalizado
 const getAuthToken = (): string => {
@@ -69,6 +70,7 @@ export default function DriverHomePage() {
   const [rutaId, setRutaId] = useState<number | null>(null);
   const [pedidoId, setPedidoId] = useState<number | null>(null);
   const [programacion, setProgramacion] = useState<any[]>([]);
+  const [resumenGuardado, setResumenGuardado] = useState<any>(null);
 
   // Estado para rastrear clientes entregados
   const [clientesEntregados, setClientesEntregados] = useState<Set<number>>(
@@ -102,6 +104,12 @@ export default function DriverHomePage() {
   useEffect(() => {
     if (pedidoId) {
       cargarEntregasRealizadas();
+
+      // Verificar si hay resumen guardado
+      const resumen = localStorage.getItem(`resumen_ruta_${pedidoId}`);
+      if (resumen) {
+        setResumenGuardado(JSON.parse(resumen));
+      }
     }
   }, [pedidoId]);
 
@@ -496,6 +504,159 @@ export default function DriverHomePage() {
 
   // Pantalla de inicio de ruta
   if (!rutaIniciada) {
+    // Si no hay entregas pendientes y hay resumen guardado, mostrar resumen
+    if (clientesPendientes === 0 && resumenGuardado && pedidoId) {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full"
+          >
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-3 rounded-full">
+                  <MaterialIcon name="monetization_on" className="text-3xl" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Resumen de Ruta</h2>
+                  <p className="text-green-100 text-sm">Liquidación del día</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Dinero Recaudado */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <MaterialIcon
+                      name="payments"
+                      className="text-green-600 text-2xl"
+                    />
+                    <span className="text-sm font-semibold text-green-800 uppercase tracking-wide">
+                      Total a Pagar
+                    </span>
+                  </div>
+                </div>
+                <p className="text-4xl font-bold text-green-700">
+                  $
+                  {resumenGuardado.totalDineroRecaudado?.toLocaleString(
+                    "es-CL"
+                  ) || "0"}
+                </p>
+                <p className="text-sm text-green-600 mt-1">
+                  {resumenGuardado.entregasVenta || 0} ventas completadas
+                </p>
+              </div>
+
+              {/* Pan Entregado */}
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <MaterialIcon
+                    name="bakery_dining"
+                    className="text-blue-600"
+                  />
+                  <h3 className="font-semibold text-blue-900">Pan Entregado</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white rounded-lg p-3 border border-blue-100">
+                    <p className="text-xs text-blue-600 font-medium">
+                      Corriente
+                    </p>
+                    <p className="text-xl font-bold text-blue-900">
+                      {resumenGuardado.totalCorrienteEntregado?.toFixed(1) ||
+                        "0"}{" "}
+                      kg
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      de {resumenGuardado.kgCorrienteSalida?.toFixed(1) || "0"}{" "}
+                      kg
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-blue-100">
+                    <p className="text-xs text-blue-600 font-medium">
+                      Especial
+                    </p>
+                    <p className="text-xl font-bold text-blue-900">
+                      {resumenGuardado.totalEspecialEntregado?.toFixed(1) ||
+                        "0"}{" "}
+                      kg
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      de {resumenGuardado.kgEspecialSalida?.toFixed(1) || "0"}{" "}
+                      kg
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pan Devuelto */}
+              {(resumenGuardado.corrienteDevuelto > 0 ||
+                resumenGuardado.especialDevuelto > 0) && (
+                <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MaterialIcon
+                      name="assignment_return"
+                      className="text-orange-600"
+                    />
+                    <h3 className="font-semibold text-orange-900">
+                      Pan Devuelto
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {resumenGuardado.corrienteDevuelto > 0 && (
+                      <div className="bg-white rounded-lg p-3 border border-orange-100">
+                        <p className="text-xs text-orange-600 font-medium">
+                          Corriente
+                        </p>
+                        <p className="text-xl font-bold text-orange-900">
+                          {resumenGuardado.corrienteDevuelto?.toFixed(1)} kg
+                        </p>
+                      </div>
+                    )}
+                    {resumenGuardado.especialDevuelto > 0 && (
+                      <div className="bg-white rounded-lg p-3 border border-orange-100">
+                        <p className="text-xs text-orange-600 font-medium">
+                          Especial
+                        </p>
+                        <p className="text-xl font-bold text-orange-900">
+                          {resumenGuardado.especialDevuelto?.toFixed(1)} kg
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Botón Cerrar */}
+              <button
+                onClick={() => {
+                  // Limpiar resumen guardado
+                  localStorage.removeItem(`resumen_ruta_${pedidoId}`);
+                  setResumenGuardado(null);
+                  // Recargar la página para volver al inicio
+                  window.location.reload();
+                }}
+                className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-semibold text-base transition-colors flex items-center justify-center gap-2"
+              >
+                <MaterialIcon name="check" />
+                Entendido
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="w-full text-gray-600 hover:text-gray-800 py-2 flex items-center justify-center gap-1"
+              >
+                <MaterialIcon name="logout" className="text-sm" />
+                <span>Cerrar sesión</span>
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-500 to-blue-700 flex flex-col items-center justify-center p-4">
         <div className="text-center text-white mb-8">
@@ -541,6 +702,154 @@ export default function DriverHomePage() {
   }
 
   // Contenido principal
+  // Si la ruta está iniciada pero no hay pendientes y hay resumen, mostrar resumen
+  if (rutaIniciada && clientesPendientes === 0 && resumenGuardado && pedidoId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl shadow-2xl max-w-lg w-full"
+        >
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 rounded-t-2xl">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-3 rounded-full">
+                <MaterialIcon name="monetization_on" className="text-3xl" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Resumen de Ruta</h2>
+                <p className="text-green-100 text-sm">Liquidación del día</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Dinero Recaudado */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <MaterialIcon
+                    name="payments"
+                    className="text-green-600 text-2xl"
+                  />
+                  <span className="text-sm font-semibold text-green-800 uppercase tracking-wide">
+                    Total a Pagar
+                  </span>
+                </div>
+              </div>
+              <p className="text-4xl font-bold text-green-700">
+                $
+                {resumenGuardado.totalDineroRecaudado?.toLocaleString(
+                  "es-CL"
+                ) || "0"}
+              </p>
+              <p className="text-sm text-green-600 mt-1">
+                {resumenGuardado.entregasVenta || 0} ventas completadas
+              </p>
+            </div>
+
+            {/* Pan Entregado */}
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+              <div className="flex items-center gap-2 mb-3">
+                <MaterialIcon name="bakery_dining" className="text-blue-600" />
+                <h3 className="font-semibold text-blue-900">Pan Entregado</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white rounded-lg p-3 border border-blue-100">
+                  <p className="text-xs text-blue-600 font-medium">Corriente</p>
+                  <p className="text-xl font-bold text-blue-900">
+                    {resumenGuardado.totalCorrienteEntregado?.toFixed(1) || "0"}{" "}
+                    kg
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    de {resumenGuardado.kgCorrienteSalida?.toFixed(1) || "0"} kg
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-blue-100">
+                  <p className="text-xs text-blue-600 font-medium">Especial</p>
+                  <p className="text-xl font-bold text-blue-900">
+                    {resumenGuardado.totalEspecialEntregado?.toFixed(1) || "0"}{" "}
+                    kg
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    de {resumenGuardado.kgEspecialSalida?.toFixed(1) || "0"} kg
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pan Devuelto */}
+            {(resumenGuardado.corrienteDevuelto > 0 ||
+              resumenGuardado.especialDevuelto > 0) && (
+              <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <MaterialIcon
+                    name="assignment_return"
+                    className="text-orange-600"
+                  />
+                  <h3 className="font-semibold text-orange-900">
+                    Pan Devuelto
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {resumenGuardado.corrienteDevuelto > 0 && (
+                    <div className="bg-white rounded-lg p-3 border border-orange-100">
+                      <p className="text-xs text-orange-600 font-medium">
+                        Corriente
+                      </p>
+                      <p className="text-xl font-bold text-orange-900">
+                        {resumenGuardado.corrienteDevuelto?.toFixed(1)} kg
+                      </p>
+                    </div>
+                  )}
+                  {resumenGuardado.especialDevuelto > 0 && (
+                    <div className="bg-white rounded-lg p-3 border border-orange-100">
+                      <p className="text-xs text-orange-600 font-medium">
+                        Especial
+                      </p>
+                      <p className="text-xl font-bold text-orange-900">
+                        {resumenGuardado.especialDevuelto?.toFixed(1)} kg
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Botón Cerrar */}
+            <button
+              onClick={() => {
+                // Limpiar resumen guardado
+                localStorage.removeItem(`resumen_ruta_${pedidoId}`);
+                setResumenGuardado(null);
+                // Recargar la página para volver al inicio
+                window.location.reload();
+              }}
+              className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-semibold text-base transition-colors flex items-center justify-center gap-2"
+            >
+              <MaterialIcon name="check" />
+              Entendido
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="w-full text-gray-600 hover:text-gray-800 py-2 flex items-center justify-center gap-1"
+            >
+              <MaterialIcon name="logout" className="text-sm" />
+              <span>Cerrar sesión</span>
+            </button>
+          </div>
+        </motion.div>
+
+        <ToastContainer
+          toasts={toasts}
+          onClose={removeToast}
+          position="bottom-right"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Header fijo */}

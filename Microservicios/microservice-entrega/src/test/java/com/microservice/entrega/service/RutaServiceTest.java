@@ -5,6 +5,7 @@ import com.microservice.entrega.dto.ClienteDTO;
 import com.microservice.entrega.entity.Ruta;
 import com.microservice.entrega.entity.RutaCliente;
 import com.microservice.entrega.entity.SesionReparto;
+import com.microservice.entrega.entity.RegistroEntrega;
 import com.microservice.entrega.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -210,5 +212,79 @@ class RutaServiceTest {
         
         verify(rutaRepository).findById(1L);
         verify(rutaClienteRepository).findById_ruta(1L);
+    }
+
+    @Test
+    void testFinalizarRuta_Exitoso() {
+        // Arrange
+        Long idPedido = 1L;
+        SesionReparto sesion = new SesionReparto();
+        sesion.setId(idPedido);
+        sesion.setFecha(LocalDate.now());
+        sesion.setId_driver(100L);
+        sesion.setKg_corriente(50.0);
+        sesion.setKg_especial(30.0);
+
+        RegistroEntrega entrega1 = new RegistroEntrega();
+        entrega1.setId(1L);
+        entrega1.setId_pedido(idPedido);
+        entrega1.setMonto_corriente(500.0);
+        entrega1.setMonto_especial(300.0);
+        entrega1.setMonto_total(800.0);
+        entrega1.setCorriente_entregado(10.0);
+        entrega1.setEspecial_entregado(5.0);
+
+        RegistroEntrega entrega2 = new RegistroEntrega();
+        entrega2.setId(2L);
+        entrega2.setId_pedido(idPedido);
+        entrega2.setMonto_corriente(600.0);
+        entrega2.setMonto_especial(400.0);
+        entrega2.setMonto_total(1000.0);
+        entrega2.setCorriente_entregado(12.0);
+        entrega2.setEspecial_entregado(6.0);
+
+        List<RegistroEntrega> entregas = Arrays.asList(entrega1, entrega2);
+
+        when(sesionRepartoRepository.findById(idPedido)).thenReturn(Optional.of(sesion));
+        when(registroEntregaRepository.findByIdPedido(idPedido)).thenReturn(entregas);
+        when(sesionRepartoRepository.save(any(SesionReparto.class))).thenReturn(sesion);
+
+        // Act
+        assertDoesNotThrow(() -> rutaService.finalizarRuta(idPedido));
+
+        // Assert
+        verify(sesionRepartoRepository).save(argThat(s -> 
+            s.getCorriente_devuelto().equals(28.0) && // 50 - 22 = 28
+            s.getEspecial_devuelto().equals(19.0) &&  // 30 - 11 = 19
+            s.getHora_retorno() != null
+        ));
+    }
+
+    @Test
+    void testFinalizarRuta_SinEntregas() {
+        // Arrange
+        Long idPedido = 1L;
+        SesionReparto sesion = new SesionReparto();
+        sesion.setId(idPedido);
+        sesion.setKg_corriente(50.0);
+        sesion.setKg_especial(30.0);
+
+        when(sesionRepartoRepository.findById(idPedido)).thenReturn(Optional.of(sesion));
+        when(registroEntregaRepository.findByIdPedido(idPedido)).thenReturn(new ArrayList<>());
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> rutaService.finalizarRuta(idPedido));
+        verify(sesionRepartoRepository, never()).save(any());
+    }
+
+    @Test
+    void testFinalizarRuta_SesionNoExiste() {
+        // Arrange
+        Long idPedido = 999L;
+        when(sesionRepartoRepository.findById(idPedido)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> rutaService.finalizarRuta(idPedido));
+        verify(sesionRepartoRepository, never()).save(any());
     }
 }

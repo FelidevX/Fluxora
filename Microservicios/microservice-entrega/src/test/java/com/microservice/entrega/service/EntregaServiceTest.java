@@ -268,4 +268,207 @@ class EntregaServiceTest {
         assertTrue(resultado.containsKey("productosVendidosHoy"));
         assertTrue(resultado.containsKey("entregasSemana"));
     }
+
+    @Test
+    void testGetRutasProgramadasPorFecha_FormatoDDMMYYYY() {
+        // Arrange
+        String fecha = "15-01-2026"; // Formato dd-MM-yyyy
+        
+        lenient().when(rutaClienteRepository.findAll()).thenReturn(new ArrayList<>());
+
+        // Act & Assert - Solo verificamos que el método no lance excepción
+        assertDoesNotThrow(() -> entregaService.getRutasProgramadasPorFecha(fecha));
+    }
+
+    @Test
+    void testGetRutasProgramadasPorFecha_FormatoYYYYMMDD() {
+        // Arrange
+        String fecha = "2026-01-15"; // Formato yyyy-MM-dd
+        
+        lenient().when(rutaClienteRepository.findAll()).thenReturn(new ArrayList<>());
+
+        // Act & Assert - Solo verificamos que el método no lance excepción
+        assertDoesNotThrow(() -> entregaService.getRutasProgramadasPorFecha(fecha));
+    }
+
+    @Test
+    void testGetRutasProgramadasPorFecha_FechaSinRutas() {
+        // Arrange
+        String fecha = "2026-12-31";
+        lenient().when(rutaClienteRepository.findAll()).thenReturn(new ArrayList<>());
+
+        // Act & Assert - Solo verificamos que el método no lance excepción
+        assertDoesNotThrow(() -> entregaService.getRutasProgramadasPorFecha(fecha));
+    }
+
+    @Test
+    void testActualizarProgramacionCliente_CrearNueva() {
+        // Arrange
+        Long idRuta = 1L;
+        Long idCliente = 1L;
+        String fecha = "15-01-2026";
+        Double kgCorriente = 10.0;
+        Double kgEspecial = 5.0;
+
+        // No hay programaciones existentes para la fecha
+        when(programacionEntregaRepository.findByIdRutaAndFechaProgramada(anyLong(), any()))
+            .thenReturn(new ArrayList<>());
+        
+        // Hay clientes base en la ruta
+        ProgramacionEntrega clienteBase = new ProgramacionEntrega();
+        clienteBase.setId_cliente(idCliente);
+        clienteBase.setId_ruta(idRuta);
+        clienteBase.setOrden(1);
+        clienteBase.setFecha_programada(null); // Cliente base sin fecha
+        
+        when(programacionEntregaRepository.findByIdRuta(idRuta))
+            .thenReturn(Arrays.asList(clienteBase));
+        when(programacionEntregaRepository.save(any(ProgramacionEntrega.class)))
+            .thenReturn(new ProgramacionEntrega());
+
+        // Act
+        String resultado = entregaService.actualizarProgramacionCliente(idRuta, idCliente, fecha, kgCorriente, kgEspecial);
+
+        // Assert
+        assertTrue(resultado.contains("Programación creada exitosamente"));
+        verify(programacionEntregaRepository).save(any(ProgramacionEntrega.class));
+    }
+
+    @Test
+    void testActualizarProgramacionCliente_ActualizarExistente() {
+        // Arrange
+        Long idRuta = 1L;
+        Long idCliente = 1L;
+        String fecha = "2026-01-15";
+        Double kgCorriente = 15.0;
+        Double kgEspecial = 8.0;
+
+        ProgramacionEntrega programacionExistente = new ProgramacionEntrega();
+        programacionExistente.setId(1L);
+        programacionExistente.setId_ruta(idRuta);
+        programacionExistente.setId_cliente(idCliente);
+        programacionExistente.setKg_corriente_programado(10.0);
+        programacionExistente.setKg_especial_programado(5.0);
+
+        // Ya existen programaciones para la fecha
+        when(programacionEntregaRepository.findByIdRutaAndFechaProgramada(anyLong(), any()))
+            .thenReturn(Arrays.asList(programacionExistente));
+        when(programacionEntregaRepository.findByIdRutaAndIdClienteAndFechaProgramada(anyLong(), anyLong(), any()))
+            .thenReturn(Arrays.asList(programacionExistente));
+        when(programacionEntregaRepository.save(any(ProgramacionEntrega.class)))
+            .thenReturn(programacionExistente);
+
+        // Act
+        String resultado = entregaService.actualizarProgramacionCliente(idRuta, idCliente, fecha, kgCorriente, kgEspecial);
+
+        // Assert
+        assertTrue(resultado.contains("Programación actualizada exitosamente"));
+        verify(programacionEntregaRepository).save(argThat(prog -> 
+            prog.getKg_corriente_programado().equals(15.0) && 
+            prog.getKg_especial_programado().equals(8.0)
+        ));
+    }
+
+    @Test
+    void testActualizarProgramacionCliente_AmbosProductosNull() {
+        // Arrange
+        Long idRuta = 1L;
+        Long idCliente = 1L;
+        String fecha = "15-01-2026";
+        Double kgCorriente = null;
+        Double kgEspecial = null;
+
+        when(programacionEntregaRepository.findByIdRutaAndFechaProgramada(anyLong(), any()))
+            .thenReturn(new ArrayList<>());
+        when(programacionEntregaRepository.findByIdRuta(idRuta))
+            .thenReturn(new ArrayList<>());
+
+        // Act - El método no lanza excepción, solo guarda con valores null
+        String resultado = entregaService.actualizarProgramacionCliente(idRuta, idCliente, fecha, kgCorriente, kgEspecial);
+
+        // Assert - Verificamos que retorna un resultado (no lanza excepción)
+        assertNotNull(resultado);
+    }
+
+    @Test
+    void testActualizarProgramacionCliente_FormatoFechaIncorrecto() {
+        // Arrange
+        Long idRuta = 1L;
+        Long idCliente = 1L;
+        String fecha = "fecha-invalida";
+        Double kgCorriente = 10.0;
+        Double kgEspecial = 5.0;
+
+        // Act - El método captura la excepción y retorna mensaje de error
+        String resultado = entregaService.actualizarProgramacionCliente(idRuta, idCliente, fecha, kgCorriente, kgEspecial);
+
+        // Assert - Verificamos que retorna mensaje de error
+        assertNotNull(resultado);
+        assertTrue(resultado.contains("Error"));
+    }
+
+    @Test
+    void testCrearRuta_Exitoso() {
+        // Arrange
+        Map<String, Object> datosRuta = new HashMap<>();
+        datosRuta.put("nombre", "Ruta Norte");
+        datosRuta.put("origen_coordenada", "-34.6037,-58.3816");
+
+        Ruta rutaGuardada = new Ruta();
+        rutaGuardada.setId(1L);
+        rutaGuardada.setNombre("Ruta Norte");
+        rutaGuardada.setLatitud(-34.6037);
+        rutaGuardada.setLongitud(-58.3816);
+
+        when(rutaRepository.findAll()).thenReturn(new ArrayList<>());
+        when(rutaRepository.save(any(Ruta.class))).thenReturn(rutaGuardada);
+
+        // Act
+        String resultado = entregaService.crearRuta(datosRuta);
+
+        // Assert
+        assertNotNull(resultado);
+        assertTrue(resultado.contains("Ruta"));
+        assertTrue(resultado.contains("creada exitosamente"));
+        verify(rutaRepository).save(argThat(ruta -> 
+            ruta.getNombre().equals("Ruta Norte") && 
+            ruta.getLatitud() != null &&
+            ruta.getLongitud() != null
+        ));
+    }
+
+    @Test
+    void testCrearRuta_DatosIncompletos() {
+        // Arrange
+        Map<String, Object> datosRuta = new HashMap<>();
+        // Falta nombre (obligatorio)
+
+        // Act & Assert
+        assertThrows(Exception.class, 
+            () -> entregaService.crearRuta(datosRuta));
+        
+        verify(rutaRepository, never()).save(any());
+    }
+
+    @Test
+    void testCrearRuta_CoordenadasInvalidas() {
+        // Arrange
+        Map<String, Object> datosRuta = new HashMap<>();
+        datosRuta.put("nombre", "Ruta Test");
+        datosRuta.put("origen_coordenada", "invalido,invalido");
+
+        Ruta rutaGuardada = new Ruta();
+        rutaGuardada.setId(1L);
+        rutaGuardada.setNombre("Ruta Test");
+        
+        when(rutaRepository.findAll()).thenReturn(new ArrayList<>());
+        when(rutaRepository.save(any(Ruta.class))).thenReturn(rutaGuardada);
+
+        // Act - Debería guardar sin coordenadas si no se pueden parsear
+        String resultado = entregaService.crearRuta(datosRuta);
+
+        // Assert
+        assertNotNull(resultado);
+        verify(rutaRepository).save(any(Ruta.class));
+    }
 }

@@ -1,18 +1,90 @@
 services:
-  # Base de datos PostgreSQL
-  db:
+  # Base de datos PostgreSQL - Cliente Service
+  db-cliente:
     image: postgres:15-alpine
-    container_name: postgres-db
+    container_name: postgres-cliente
     environment:
       POSTGRES_USER: fluxora
       POSTGRES_PASSWORD: fluxora123
-      POSTGRES_DB: fluxora_db
+      POSTGRES_DB: cliente_db
       TZ: America/Santiago
       PGTZ: America/Santiago
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_cliente_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - fluxora-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fluxora"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Base de datos PostgreSQL - Usuario Service
+  db-usuario:
+    image: postgres:15-alpine
+    container_name: postgres-usuario
+    environment:
+      POSTGRES_USER: fluxora
+      POSTGRES_PASSWORD: fluxora123
+      POSTGRES_DB: usuario_db
+      TZ: America/Santiago
+      PGTZ: America/Santiago
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_usuario_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - fluxora-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fluxora"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Base de datos PostgreSQL - Entrega Service
+  db-entrega:
+    image: postgres:15-alpine
+    container_name: postgres-entrega
+    environment:
+      POSTGRES_USER: fluxora
+      POSTGRES_PASSWORD: fluxora123
+      POSTGRES_DB: entrega_db
+      TZ: America/Santiago
+      PGTZ: America/Santiago
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_entrega_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - fluxora-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fluxora"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Base de datos PostgreSQL - Inventario Service
+  db-inventario:
+    image: postgres:15-alpine
+    container_name: postgres-inventario
+    environment:
+      POSTGRES_USER: fluxora
+      POSTGRES_PASSWORD: fluxora123
+      POSTGRES_DB: inventario_db
+      TZ: America/Santiago
+      PGTZ: America/Santiago
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_inventario_data:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
@@ -81,7 +153,7 @@ services:
       - TZ=America/Santiago
       - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
-      - db
+      - db-cliente
       - eureka-server
     networks:
       - fluxora-network
@@ -98,7 +170,7 @@ services:
       - TZ=America/Santiago
       - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
-      - db
+      - db-usuario
       - eureka-server
     networks:
       - fluxora-network
@@ -115,7 +187,7 @@ services:
       - TZ=America/Santiago
       - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
-      - db
+      - db-entrega
       - eureka-server
     networks:
       - fluxora-network
@@ -132,7 +204,7 @@ services:
       - TZ=America/Santiago
       - JAVA_OPTS=-Duser.timezone=America/Santiago
     depends_on:
-      - db
+      - db-inventario
       - eureka-server
     networks:
       - fluxora-network
@@ -142,4 +214,7 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_cliente_data:
+  postgres_usuario_data:
+  postgres_entrega_data:
+  postgres_inventario_data:

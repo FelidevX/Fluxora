@@ -188,6 +188,34 @@ public class EntregaService {
                 double kgCorrienteTotal = 0.0;
                 double kgEspecialTotal = 0.0;
                 
+                // Recolecta todos los IDs de lote para hacer batch query
+                List<Long> lotesIds = productosProgramados.stream()
+                    .map(ProgramacionEntrega::getId_lote)
+                    .filter(id -> id != null)
+                    .distinct()
+                    .toList();
+
+                Map<Long, Map<String, Object>> lotesInfoMap = new HashMap<>();
+                if (!lotesIds.isEmpty()) {
+                    try {
+                        ResponseEntity<List<Map<String, Object>>> responseLotesBatch = 
+                            inventarioServiceClient.getLotesConProductosBatch(lotesIds);
+                        
+                        if (responseLotesBatch.getStatusCode().is2xxSuccessful() && 
+                            responseLotesBatch.getBody() != null) {
+                            
+                            // Crear mapa para búsqueda rápida
+                            for (Map<String, Object> loteInfo : responseLotesBatch.getBody()) {
+                                Long idLote = Long.valueOf(loteInfo.get("idLote").toString());
+                                lotesInfoMap.put(idLote, loteInfo);
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Log error pero continuar con datos limitados
+                        System.err.println("Error al obtener lotes batch: " + e.getMessage());
+                    }
+                }
+                
                 for (ProgramacionEntrega prod : productosProgramados) {
                     Map<String, Object> prodMap = new HashMap<>();
                     
@@ -196,35 +224,22 @@ public class EntregaService {
                     prodMap.put("cantidad_kg", prod.getCantidadProducto());
                     prodMap.put("estado", prod.getEstado());
 
-                    // 1. Obtener el lote
-                    ResponseEntity<?> responseLote = inventarioServiceClient.getLoteById(prod.getId_lote());
-                    Map<String, Object> loteInfo = null;
-                    if (responseLote.getStatusCode().is2xxSuccessful() && responseLote.getBody() instanceof Map) {
-                        loteInfo = (Map<String, Object>) responseLote.getBody();
-                    }
-                    if (loteInfo != null && loteInfo.containsKey("productoId")) {
-                        Long idProducto = Long.valueOf(loteInfo.get("productoId").toString());
-                        prodMap.put("id_producto", idProducto);
-
-                        // 2. Obtener el producto
-                        ResponseEntity<?> responseProducto = inventarioServiceClient.getProductoById(idProducto);
-                        Map<String, Object> productoInfo = null;
-                        if (responseProducto.getStatusCode().is2xxSuccessful() && responseProducto.getBody() instanceof Map) {
-                            productoInfo = (Map<String, Object>) responseProducto.getBody();
-                        }
-                        if (productoInfo != null && productoInfo.containsKey("tipoProducto")) {
-                            String tipoProducto = (String) productoInfo.get("tipoProducto");
-                            prodMap.put("tipoProducto", tipoProducto);
-                            
-                            // Sumar kg según el tipo de producto
-                            Integer cantidadKgInt = prod.getCantidadProducto();
-                            if (cantidadKgInt != null) {
-                                double cantidadKg = cantidadKgInt.doubleValue();
-                                if ("CORRIENTE".equalsIgnoreCase(tipoProducto)) {
-                                    kgCorrienteTotal += cantidadKg;
-                                } else if ("ESPECIAL".equalsIgnoreCase(tipoProducto)) {
-                                    kgEspecialTotal += cantidadKg;
-                                }
+                    // Obtener info del mapa precargado
+                    Map<String, Object> loteInfo = lotesInfoMap.get(prod.getId_lote());
+                    if (loteInfo != null) {
+                        prodMap.put("id_producto", loteInfo.get("idProducto"));
+                        
+                        String tipoProducto = (String) loteInfo.get("tipoProducto");
+                        prodMap.put("tipoProducto", tipoProducto);
+                        
+                        // Sumar kg según el tipo de producto
+                        Integer cantidadKgInt = prod.getCantidadProducto();
+                        if (cantidadKgInt != null) {
+                            double cantidadKg = cantidadKgInt.doubleValue();
+                            if ("CORRIENTE".equalsIgnoreCase(tipoProducto)) {
+                                kgCorrienteTotal += cantidadKg;
+                            } else if ("ESPECIAL".equalsIgnoreCase(tipoProducto)) {
+                                kgEspecialTotal += cantidadKg;
                             }
                         }
                     }

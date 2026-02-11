@@ -6,9 +6,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.microservice.entrega.config.FeignClientInterceptor;
 
+import java.util.List;
 import java.util.Map;
 
 @FeignClient(name = "microservice-inventario", configuration = FeignClientInterceptor.class)
@@ -41,4 +43,10 @@ public interface InventarioServiceClient {
 
     @GetMapping("api/inventario/productos/{productoId}/stock-total")
     ResponseEntity<Integer> getStockTotalProducto(@PathVariable("productoId") Long productoId);
+
+    /**
+     * Endpoint batch: obtener información de múltiples lotes con sus productos en una sola llamada
+     */
+    @GetMapping("api/inventario/productos/lotes-batch")
+    ResponseEntity<List<Map<String, Object>>> getLotesConProductosBatch(@RequestParam("ids") List<Long> ids);
 }

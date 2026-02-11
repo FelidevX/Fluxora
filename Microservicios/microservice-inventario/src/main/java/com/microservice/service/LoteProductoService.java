@@ -1,5 +1,6 @@
 package com.microservice.service;
 
+import com.microservice.dto.LoteConProductoDTO;
 import com.microservice.dto.LoteProductoDTO;
 import com.microservice.dto.StockDisponibleDTO;
 import com.microservice.entity.LoteProducto;
@@ -320,5 +321,48 @@ public class LoteProductoService {
         return loteProductoRepository.findById(loteId)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                     "Lote de producto no encontrado con ID: " + loteId));
+    }
+
+    /**
+     * Obtener información de múltiples lotes con sus productos en una sola consulta (batch)
+     * Optimización para evitar N+1 queries
+     */
+    public List<LoteConProductoDTO> getLotesConProductosBatch(List<Long> lotesIds) {
+        if (lotesIds == null || lotesIds.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+
+        // 1. Obtener todos los lotes de una vez
+        List<LoteProducto> lotes = loteProductoRepository.findAllById(lotesIds);
+        
+        // 2. Extraer IDs de productos únicos
+        List<Long> productosIds = lotes.stream()
+                .map(LoteProducto::getProductoId)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // 3. Obtener todos los productos de una vez
+        List<Producto> productos = productoRepository.findAllById(productosIds);
+        
+        // 4. Crear un mapa para búsqueda rápida
+        java.util.Map<Long, Producto> productosMap = productos.stream()
+                .collect(Collectors.toMap(Producto::getId, p -> p));
+        
+        // 5. Construir los DTOs combinados
+        return lotes.stream()
+                .map(lote -> {
+                    Producto producto = productosMap.get(lote.getProductoId());
+                    return LoteConProductoDTO.builder()
+                            .idLote(lote.getId())
+                            .idProducto(lote.getProductoId())
+                            .nombreProducto(producto != null ? producto.getNombre() : "Desconocido")
+                            .tipoProducto(producto != null && producto.getTipoProducto() != null 
+                                    ? producto.getTipoProducto().name() 
+                                    : "NO_APLICA")
+                            .stockActual(lote.getStockActual())
+                            .cantidadProducida(lote.getCantidadProducida())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

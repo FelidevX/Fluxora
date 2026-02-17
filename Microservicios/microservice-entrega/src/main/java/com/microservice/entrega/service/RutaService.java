@@ -602,12 +602,9 @@ public class RutaService {
                 throw new IllegalArgumentException("El nombre de la ruta es obligatorio");
             }
 
-            // Verificar si ya existe una ruta con el mismo nombre
-            List<Ruta> rutasExistentes = rutaRepository.findAll();
-            for (Ruta ruta : rutasExistentes) {
-                if (ruta.getNombre().equalsIgnoreCase(nombre.trim())) {
-                    throw new IllegalArgumentException("Ya existe una ruta con el nombre: " + nombre);
-                }
+            // Verificar si ya existe una ruta con el mismo nombre 
+            if (rutaRepository.existsByNombreIgnoreCase(nombre.trim())) {
+                throw new IllegalArgumentException("Ya existe una ruta con el nombre: " + nombre);
             }
 
             Ruta nuevaRuta = new Ruta();

@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class EmailService {
 
@@ -29,8 +31,7 @@ public class EmailService {
             javaMailSender.send(message);
                         
         } catch (MessagingException e) {
-            System.err.println("Error al enviar el email HTML: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al enviar el email HTML a {}: {}", to, e.getMessage(), e);
         }
     }
     

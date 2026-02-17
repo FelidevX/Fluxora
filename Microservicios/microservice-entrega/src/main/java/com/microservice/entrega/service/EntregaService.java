@@ -26,7 +26,9 @@ import com.microservice.entrega.repository.RutaClienteRepository;
 import com.microservice.entrega.repository.RutaRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EntregaService {
@@ -212,7 +214,7 @@ public class EntregaService {
                         }
                     } catch (Exception e) {
                         // Log error pero continuar con datos limitados
-                        System.err.println("Error al obtener lotes batch: " + e.getMessage());
+                        log.warn("Error al obtener lotes batch: {}", e.getMessage());
                     }
                 }
                 

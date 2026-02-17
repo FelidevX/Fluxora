@@ -15,7 +15,9 @@ import com.microservice.entrega.entity.ProgramacionEntrega;
 import com.microservice.entrega.repository.ProgramacionEntregaRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProgramacionService {
@@ -128,7 +130,7 @@ public class ProgramacionService {
                     programacion.put("cliente", clientes.get(0));
                 }
             } catch (Exception e) {
-                System.err.println("Error al obtener cliente " + prog.getId_cliente() + ": " + e.getMessage());
+                log.warn("Error al obtener cliente {}: {}", prog.getId_cliente(), e.getMessage());
             }
 
             resultado.add(programacion);
@@ -150,8 +152,8 @@ public class ProgramacionService {
             
             if (!programacionesExistentes.isEmpty()) {
                 programacionEntregaRepository.deleteAll(programacionesExistentes);
-                System.out.println("Se eliminaron " + programacionesExistentes.size() + 
-                    " programaciones existentes para el cliente " + idCliente);
+                log.info("Se eliminaron {} programaciones existentes para el cliente {}", 
+                    programacionesExistentes.size(), idCliente);
             }
             
             // Ahora crear las nuevas programaciones

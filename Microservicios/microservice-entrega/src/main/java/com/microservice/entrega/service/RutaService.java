@@ -39,6 +39,9 @@ import com.microservice.entrega.repository.SesionRepartoRepository;
 import com.microservice.entrega.repository.ProgramacionEntregaRepository;
 import com.microservice.entrega.repository.RegistroEntregaRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class RutaService {
     static {
@@ -345,8 +348,7 @@ public class RutaService {
                     return pedidoExistente.get().getId();
                 }
             } catch (Exception e) {
-                System.err.println("Error al buscar pedido existente: " + e.getMessage());
-                System.err.println("Continuando con la creación de nuevo pedido...");
+                log.warn("Error al buscar pedido existente: {}. Continuando con la creación de nuevo pedido...", e.getMessage());
             }
             // Obtener clientes de la ruta
             List<RutaCliente> clientesRuta = rutaClienteRepository.findById_ruta(idRuta);
@@ -406,7 +408,7 @@ public class RutaService {
             List<RegistroEntrega> entregas = registroEntregaRepository.findByIdPedido(idPedido);
 
             if (entregas.isEmpty()) {
-                System.err.println("NO SE ENCONTRARON ENTREGAS PARA ESTE PEDIDO");
+                log.error("NO SE ENCONTRARON ENTREGAS PARA ESTE PEDIDO: {}", idPedido);
                 throw new RuntimeException("No hay entregas registradas para este pedido");
             }
 
@@ -422,11 +424,11 @@ public class RutaService {
             Double especialDevuelto = pedido.getKg_especial() - totalEspecialEntregado;
 
             if (corrienteDevuelto < 0) {
-                System.err.println("Corriente devuelto negativo: " + corrienteDevuelto);
+                log.warn("Corriente devuelto negativo: {} para pedido: {}", corrienteDevuelto, idPedido);
                 corrienteDevuelto = 0.0;
             }
             if (especialDevuelto < 0) {
-                System.err.println("Especial devuelto negativo: " + especialDevuelto);
+                log.warn("Especial devuelto negativo: {} para pedido: {}", especialDevuelto, idPedido);
                 especialDevuelto = 0.0;
             }
 
@@ -462,8 +464,7 @@ public class RutaService {
 
             return resumen;
         } catch (Exception e) {
-            System.err.println("Error al finalizar ruta: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al finalizar ruta: {}", e.getMessage(), e);
             throw new RuntimeException("Error al finalizar la ruta: " + e.getMessage());
         }
     }
@@ -480,7 +481,7 @@ public class RutaService {
             return nombreRuta;
 
         } catch (Exception e) {
-            System.err.println("Error al obtener nombre de ruta para cliente " + idCliente + ": " + e.getMessage());
+            log.error("Error al obtener nombre de ruta para cliente {}: {}", idCliente, e.getMessage(), e);
             return null;
         }
     }
@@ -549,8 +550,7 @@ public class RutaService {
             return resultado;
             
         } catch (Exception e) {
-            System.err.println("Error al obtener nombres de rutas batch para " + clienteIds.size() + " clientes: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al obtener nombres de rutas batch para {} clientes: {}", clienteIds.size(), e.getMessage(), e);
             return new HashMap<>();
         }
     }
@@ -620,7 +620,7 @@ public class RutaService {
                     }
                 } catch (NumberFormatException e) {
                     // Si no se pueden parsear las coordenadas, continuar sin ellas
-                    System.out.println("Advertencia: No se pudieron parsear las coordenadas: " + origenCoordenada);
+                    log.warn("No se pudieron parsear las coordenadas: {}", origenCoordenada);
                 }
             }
 
@@ -648,7 +648,7 @@ public class RutaService {
      */
     @Transactional
     public void eliminarRuta(Long idRuta) {
-        System.out.println("Eliminando ruta ID: " + idRuta);
+        log.info("Eliminando ruta ID: {}", idRuta);
         
         // Verificar que la ruta existe
         Ruta ruta = rutaRepository.findById(idRuta)
@@ -666,7 +666,7 @@ public class RutaService {
         // Eliminar la ruta
         rutaRepository.delete(ruta);
         
-        System.out.println("Ruta eliminada exitosamente");
+        log.info("Ruta eliminada exitosamente: {}", idRuta);
     }
     
     @Transactional

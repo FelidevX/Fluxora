@@ -20,7 +20,9 @@ import com.microservice.entrega.repository.RegistroEntregaRepository;
 import com.microservice.entrega.repository.RutaRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReporteService {
@@ -167,8 +169,7 @@ public class ReporteService {
             respuesta.put("fechaGeneracion", LocalDateTime.now().toString());
             
         } catch (Exception e) {
-            System.err.println("Error al generar reporte de entregas: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al generar reporte de entregas: {}", e.getMessage(), e);
             respuesta.put("error", "Error al generar reporte: " + e.getMessage());
         }
         
@@ -241,8 +242,7 @@ public class ReporteService {
             respuesta.put("fechaGeneracion", LocalDateTime.now().toString());
             
         } catch (Exception e) {
-            System.err.println("Error al generar reporte de ventas: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al generar reporte de ventas: {}", e.getMessage(), e);
             respuesta.put("error", "Error al generar reporte: " + e.getMessage());
         }
         
@@ -285,7 +285,7 @@ public class ReporteService {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error al obtener productos del inventario: " + e.getMessage());
+            log.warn("Error al obtener productos del inventario: {}", e.getMessage());
             // Continuar con valores por defecto
         }
         
@@ -329,7 +329,7 @@ public class ReporteService {
                 clientes.add(clienteInfo);
                 
             } catch (Exception e) {
-                System.err.println("Error al obtener info del cliente " + prog.getId_cliente() + ": " + e.getMessage());
+                log.warn("Error al obtener info del cliente {}: {}", prog.getId_cliente(), e.getMessage());
             }
         }
         

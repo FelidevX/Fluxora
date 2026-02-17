@@ -152,8 +152,7 @@ public class EntregaController {
             List<RegistroEntrega> entregas = entregaService.getEntregasByIdPedido(idPedido);
             return ResponseEntity.ok(entregas);
         } catch (Exception e) {
-            System.err.println("Error al obtener entregas por idPedido: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al obtener entregas por idPedido: {}", e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }
@@ -165,8 +164,7 @@ public class EntregaController {
             List<SesionReparto> pedido = entregaService.getPedidos();
             return ResponseEntity.ok(pedido);
         } catch (Exception e) {
-            System.err.println("Error al obtener pedidos: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al obtener pedidos: {}", e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }
@@ -175,7 +173,7 @@ public class EntregaController {
     @PostMapping("/programar-entrega")
     public ResponseEntity<String> programarEntrega(@RequestBody Map<String, Object> datosProgramacion) {
         try {
-            System.out.println("Datos de programación recibidos: " + datosProgramacion);
+            log.debug("Datos de programación recibidos: {}", datosProgramacion);
             Long idRuta = Long.valueOf(datosProgramacion.get("idRuta").toString());
             Long idCliente = Long.valueOf(datosProgramacion.get("idCliente").toString());
             LocalDate fechaProgramacion = LocalDate.parse(datosProgramacion.get("fechaProgramacion").toString());
@@ -203,7 +201,7 @@ public class EntregaController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/cliente/{idCliente}/relaciones")
     public ResponseEntity<String> eliminarRelacionesCliente(@PathVariable Long idCliente) {
-        System.out.println("Solicitud para eliminar relaciones del cliente ID: " + idCliente);
+        log.info("Solicitud para eliminar relaciones del cliente ID: {}", idCliente);
         try {
             entregaService.eliminarRelacionesCliente(idCliente);
             return ResponseEntity.ok("Relaciones del cliente eliminadas exitosamente");
@@ -216,7 +214,7 @@ public class EntregaController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/rutas/{idRuta}")
     public ResponseEntity<String> eliminarRuta(@PathVariable Long idRuta) {
-        System.out.println("Solicitud para eliminar ruta ID: " + idRuta);
+        log.info("Solicitud para eliminar ruta ID: {}", idRuta);
         try {
             entregaService.eliminarRuta(idRuta);
             return ResponseEntity.ok("Ruta eliminada exitosamente");
@@ -233,8 +231,7 @@ public class EntregaController {
             Map<String, Object> estadisticas = entregaService.obtenerEstadisticasDashboard();
             return ResponseEntity.ok(estadisticas);
         } catch (Exception e) {
-            System.err.println("Error al obtener estadísticas del dashboard: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al obtener estadísticas del dashboard: {}", e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }
@@ -252,8 +249,7 @@ public class EntregaController {
             Map<String, Object> reporte = entregaService.generarReporteEntregas(inicio, fin, idRuta);
             return ResponseEntity.ok(reporte);
         } catch (Exception e) {
-            System.err.println("Error al generar reporte de entregas: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al generar reporte de entregas: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al generar reporte: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
@@ -272,8 +268,7 @@ public class EntregaController {
             Map<String, Object> reporte = entregaService.generarReporteVentas(inicio, fin);
             return ResponseEntity.ok(reporte);
         } catch (Exception e) {
-            System.err.println("Error al generar reporte de ventas: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al generar reporte de ventas: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al generar reporte: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
@@ -288,8 +283,7 @@ public class EntregaController {
             Map<String, Object> planProduccion = entregaService.getPlanProduccion(fechaParsed);
             return ResponseEntity.ok(planProduccion);
         } catch (Exception e) {
-            System.err.println("Error al obtener plan de producción: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al obtener plan de producción: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al obtener plan de producción: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);

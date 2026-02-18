@@ -16,6 +16,9 @@ public interface RutaClienteRepository extends JpaRepository<RutaCliente, Long> 
     @Query("SELECT DISTINCT rc.id_cliente FROM RutaCliente rc")
     List<Long> findAllClienteIds();
 
+    @Query("SELECT rc FROM RutaCliente rc WHERE rc.id_cliente = :idCliente")
+    RutaCliente findByIdCliente(@Param("idCliente") Long idCliente);
+
     @Modifying
     @Query("DELETE FROM RutaCliente rc WHERE rc.id_cliente = :idCliente")
     void deleteByIdCliente(@Param("idCliente") Long idCliente);
@@ -47,5 +50,9 @@ public interface RutaClienteRepository extends JpaRepository<RutaCliente, Long> 
 
     @Query("SELECT DISTINCT rc FROM RutaCliente rc WHERE rc.id_cliente IN :clienteIds")
     List<RutaCliente> findByIdClienteIn(@Param("clienteIds") List<Long> clienteIds);
+
+    // obtener nombre de ruta en 1 sola query con JOIN
+    @Query("SELECT r.nombre FROM RutaCliente rc JOIN Ruta r ON rc.id_ruta = r.id WHERE rc.id_cliente = :idCliente")
+    String findNombreRutaByIdCliente(@Param("idCliente") Long idCliente);
 
 }

@@ -1,5 +1,6 @@
 package com.microservice.controller;
 
+import com.microservice.dto.LoteConProductoDTO;
 import com.microservice.dto.LoteProductoDTO;
 import com.microservice.entity.LoteProducto;
 import com.microservice.dto.StockDisponibleDTO;
@@ -84,5 +85,15 @@ public class LoteProductoController {
             @RequestParam double multiplicador) {
         List<StockDisponibleDTO> stocks = loteProductoService.verificarStockDisponible(productoId, multiplicador);
         return ResponseEntity.ok(stocks);
+    }
+
+    /**
+     * Endpoint batch: obtener información de múltiples lotes con sus productos en una sola llamada
+     */
+    @GetMapping("/lotes-batch")
+    public ResponseEntity<List<LoteConProductoDTO>> getLotesConProductosBatch(
+            @RequestParam List<Long> ids) {
+        List<LoteConProductoDTO> lotes = loteProductoService.getLotesConProductosBatch(ids);
+        return ResponseEntity.ok(lotes);
     }
 }

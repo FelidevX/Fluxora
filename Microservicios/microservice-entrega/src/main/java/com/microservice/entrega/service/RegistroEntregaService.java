@@ -367,7 +367,7 @@ public class RegistroEntregaService {
     @Transactional
     public void eliminarRelacionesCliente(Long idCliente) {
         try {
-            System.out.println("Eliminando relaciones para el cliente ID: " + idCliente);
+            log.info("Eliminando relaciones para el cliente ID: {}", idCliente);
             // Eliminar programaciones de entrega
             programacionEntregaRepository.deleteByIdCliente(idCliente);
             

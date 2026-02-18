@@ -20,7 +20,9 @@ import com.microservice.entrega.repository.RegistroEntregaRepository;
 import com.microservice.entrega.repository.RutaRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReporteService {
@@ -167,8 +169,7 @@ public class ReporteService {
             respuesta.put("fechaGeneracion", LocalDateTime.now().toString());
             
         } catch (Exception e) {
-            System.err.println("Error al generar reporte de entregas: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al generar reporte de entregas: {}", e.getMessage(), e);
             respuesta.put("error", "Error al generar reporte: " + e.getMessage());
         }
         
@@ -241,8 +242,7 @@ public class ReporteService {
             respuesta.put("fechaGeneracion", LocalDateTime.now().toString());
             
         } catch (Exception e) {
-            System.err.println("Error al generar reporte de ventas: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al generar reporte de ventas: {}", e.getMessage(), e);
             respuesta.put("error", "Error al generar reporte: " + e.getMessage());
         }
         
@@ -258,40 +258,44 @@ public class ReporteService {
         
         Map<String, Map<String, Object>> productosAgrupados = new HashMap<>();
         
+        // Obtener todos los productos una sola vez antes del loop
+        Map<String, String> unidadesPorProducto = new HashMap<>();
+        try {
+            ResponseEntity<?> productosResp = inventarioServiceClient.getProductos();
+            
+            if (productosResp.getStatusCode().is2xxSuccessful() && productosResp.getBody() != null) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> productos = (List<Map<String, Object>>) productosResp.getBody();
+                
+                // Crear mapa de búsqueda rápida: nombreProducto -> unidadMedida
+                for (Map<String, Object> producto : productos) {
+                    String nombreProducto = (String) producto.get("nombre");
+                    String unidadMedida = "Kg"; // default
+                    
+                    // Si tiene recetaMaestra, obtener unidadBase
+                    if (producto.containsKey("recetaMaestra") && producto.get("recetaMaestra") != null) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> receta = (Map<String, Object>) producto.get("recetaMaestra");
+                        if (receta.containsKey("unidadBase") && receta.get("unidadBase") != null) {
+                            unidadMedida = receta.get("unidadBase").toString();
+                        }
+                    }
+                    
+                    unidadesPorProducto.put(nombreProducto, unidadMedida);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Error al obtener productos del inventario: {}", e.getMessage());
+            // Continuar con valores por defecto
+        }
+        
         for (ProgramacionEntrega prog : programaciones) {
             String nombreProducto = prog.getNombreProducto();
             
             // Si el producto no existe en el map, se crea
             if (!productosAgrupados.containsKey(nombreProducto)) {
-                // Obtener unidad de medida del inventario
-                String unidadMedida = "Kg"; // default
-                
-                try {
-                    // Obtener todos los productos del inventario
-                    ResponseEntity<?> productosResp = inventarioServiceClient.getProductos();
-                    
-                    if (productosResp.getStatusCode().is2xxSuccessful() && productosResp.getBody() != null) {
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> productos = (List<Map<String, Object>>) productosResp.getBody();
-                        
-                        // Buscar el producto por nombre
-                        for (Map<String, Object> producto : productos) {
-                            if (nombreProducto.equals(producto.get("nombre"))) {
-                                // Si tiene recetaMaestra, obtener unidadBase
-                                if (producto.containsKey("recetaMaestra") && producto.get("recetaMaestra") != null) {
-                                    @SuppressWarnings("unchecked")
-                                    Map<String, Object> receta = (Map<String, Object>) producto.get("recetaMaestra");
-                                    if (receta.containsKey("unidadBase") && receta.get("unidadBase") != null) {
-                                        unidadMedida = receta.get("unidadBase").toString();
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error al obtener unidad de medida para " + nombreProducto + ": " + e.getMessage());
-                }
+                // Obtener unidad de medida del mapa precargado o usar "Kg" por defecto
+                String unidadMedida = unidadesPorProducto.getOrDefault(nombreProducto, "Kg");
                 
                 // Crear estructura del producto agrupado
                 Map<String, Object> productoData = new HashMap<>();
@@ -325,7 +329,7 @@ public class ReporteService {
                 clientes.add(clienteInfo);
                 
             } catch (Exception e) {
-                System.err.println("Error al obtener info del cliente " + prog.getId_cliente() + ": " + e.getMessage());
+                log.warn("Error al obtener info del cliente {}: {}", prog.getId_cliente(), e.getMessage());
             }
         }
         
